@@ -1,0 +1,11 @@
+.file-upload label {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.file-upload input {
+  display: none;
+}

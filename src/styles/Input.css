@@ -1,0 +1,94 @@
+.input-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+
+label {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+
+.input, .textarea {
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+  width: 100%;  
+  max-width: 100%;
+  box-sizing: border-box; 
+}
+
+
+.input:focus, .textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+
+.search {
+  border-color: #94a3b8;
+}
+
+
+.search-input-group {
+  position: relative;
+}
+
+
+.input.search {
+  padding-right: 2em; 
+}
+
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  cursor: pointer;
+  font-size: 1.1em;
+
+}
+
+input[type="search"]::-webkit-user-select {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-user-select: none;
+}
+
+
+.search-icon.clear:hover {
+  color: #22c55e;
+}
+
+/* Hide default clear button in Chrome, Safari, Edge */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+@media screen and (max-width: 480px) {
+  .input {
+    font-size: 0.95rem;
+    padding: 6px 10px;
+  }
+
+  .search-icon {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,136 @@
+.NavBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px;
+  width: 100%;
+  background-color: transparent;
+  overflow: visible !important;
+  position: relative;
+  z-index: 1000;
+}
+
+.navItem {
+  color: var(--color-primary-text);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.5s ease;
+}
+
+.navItem::after {
+  content: '';
+  width: 0;
+  height: 3px;
+  background: var(--color-primary1);
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transition: 0.4s;
+  transform: translateX(-50%);
+}
+
+.navItem:hover::after {
+  width: 100%;
+}
+
+/* Submenu styles */
+.submenu {
+  position: fixed;
+  top: var(--topbar-height);
+  right: 1rem;
+  background-color: var(--color-background);
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  z-index: 9999;
+  padding: 0.5rem 0;
+}
+
+.submenuItem {
+  padding: 0.5rem 1rem;
+  color: var(--color-primary-text);
+  cursor: pointer;
+}
+
+.submenuItem:hover {
+  background-color: var(--color-primary1);
+  color: var(--color-secondary1);
+}
+
+/* Desktop nav visible by default */
+.desktop-nav {
+  display: flex;
+}
+
+/* Mobile menu button hidden by default */
+.mobile-menu-button {
+  display: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--color-primary-text);
+  padding: 0.5rem;
+}
+
+/* Mobile Navigation Drawer */
+.mobile-nav {
+  position: fixed;
+  top: var(--topbar-height);
+  right: 0;
+  width: 200px;
+  height: calc(100vh - 60px);
+  background: linear-gradient(rgba(0,0,0,0.6), #9015d8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 2000;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.3);
+
+  /* Animation setup */
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* When open */
+.mobile-nav.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-nav-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+.mobile-nav-item {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive behavior */
+@media screen and (max-width: 768px) {
+  .desktop-nav {
+    display: none;
+  }
+  .mobile-menu-button {
+    display: block;
+  }
+}
