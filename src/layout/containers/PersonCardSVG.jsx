@@ -59,7 +59,7 @@ const PersonCardSVG = ({ children, style, variant = "default", ...props }) => (
       fill={`url(#${gradientIds[variant] || gradientIds.default})`}
     />
     <foreignObject x="0" y="0" width="120" height="170">
-      <div style={{ width: "100%", height: "100%" }}>
+      <div style={{ margin:'0px', padding:'0px', width: "100%", height: "100%" }}>
         {children}
       </div>
     </foreignObject>

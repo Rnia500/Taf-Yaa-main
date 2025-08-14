@@ -9,7 +9,6 @@ import ModeratorNavbar from '../components/navbar/ModeratorNavbar';
 import EditorNavbar from '../components/navbar/EditorNavbar';
 import ViewerNavbar from '../components/navbar/EditorNavbar';
 import FamilyTreePage from './FamilyTreePage';
-import PDFExport from '../components/PdfExport';
 import useModalStore from '../store/useModalStore';
 
 
@@ -34,10 +33,7 @@ export default function BaseLayout() {
     >
       <>
 
-      <PDFExport
-          isOpen={modals.pdfExportModal}
-          onClose={() => closeModal('pdfExportModal')}
-        />
+
         <Card>
           <h1>Welcome to Taf'Yaa</h1>
           <p>Default navbar is now active for testing</p>
