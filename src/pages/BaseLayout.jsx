@@ -8,9 +8,16 @@ import AdminNavbar from '../components/navbar/AdminNavbar';
 import ModeratorNavbar from '../components/navbar/ModeratorNavbar';
 import EditorNavbar from '../components/navbar/EditorNavbar';
 import ViewerNavbar from '../components/navbar/EditorNavbar';
+import FamilyTreePage from './FamilyTreePage';
+import PDFExport from '../components/PdfExport';
+import useModalStore from '../store/useModalStore';
+
+
 
 export default function BaseLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+    const { modals, closeModal } = useModalStore();
 
   return (
     <PageFrame
@@ -26,6 +33,11 @@ export default function BaseLayout() {
       footerInsideMain={true}
     >
       <>
+
+      <PDFExport
+          isOpen={modals.pdfExportModal}
+          onClose={() => closeModal('pdfExportModal')}
+        />
         <Card>
           <h1>Welcome to Taf'Yaa</h1>
           <p>Default navbar is now active for testing</p>
@@ -34,7 +46,10 @@ export default function BaseLayout() {
           </button>
         </Card>
 
-        <ComponentDemo setSidebarOpen={setSidebarOpen} />
+              
+
+        {/* <ComponentDemo setSidebarOpen={setSidebarOpen} /> */}
+        <FamilyTreePage />
       </>
     </PageFrame>
   );
