@@ -12,6 +12,8 @@ import AudioStory from './ProfileSidebarComponents/audioStory';
 import PhotoMemorySection from './ProfileSidebarComponents/PhotoMemorySection';
 import RecordModal from './RecordModal/RecordModal'
 import profileDataJson from '../../data/profileData.json';
+import useSidebarStore from '../../store/useSidebarStore';
+import { people } from '../../data/dummyData.js'; 
 
 export default function ProfileSidebar({ onClose, onDownload }) {
   const [profileData, setProfileData] = useState({});
@@ -24,6 +26,8 @@ export default function ProfileSidebar({ onClose, onDownload }) {
   const [audioStories, setAudioStories] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const { activeProfileId, closeSidebar } = useSidebarStore();
+  
 
   const handleRecordAudio = () => {
     setIsRecordModalOpen(true);
@@ -42,19 +46,43 @@ export default function ProfileSidebar({ onClose, onDownload }) {
     setPhotos(profileDataJson.photos || []);
   }, []);
 
+   useEffect(() => {
+    if (activeProfileId) {
+      // Find the person in our dummy data array.
+      // In a real app, this is where you would make a Firebase call: `getDoc(doc(db, 'people', activeProfileId))`
+      const person = people.find(p => p.id === activeProfileId);
+      
+      if (person) {
+        
+        setProfileData({
+          profileName: person.name,
+          birthDate: person.dob,
+          deathDate: person.dod,
+          profileImage: person.photoUrl,
+        });
+      } else {
+        setProfileData(null); 
+      }
+    } else {
+      setProfileData(null); 
+    }
+  }, [activeProfileId]);
+
+  if (!profileData) {
+    return null;
+  }
+
+
   return (
     <FlexContainer gap='12px' backgroundColor="var(--color-background)">
       <ProfileHeader
         profileName={profileData.profileName}
         birthDate={profileData.birthDate}
         deathDate={profileData.deathDate}
-        statusIcons={profileData.statusIcons}
         profileImage={profileData.profileImage}
-        onClose={onClose}
-        onDownload={onDownload}
-        onUseAsRoot={() => {}}
-      />
 
+        onClose={closeSidebar} 
+      />
       <IdentityOverview identity={identityData} />
 
       <ContactMetaInfo contact={contactData} />

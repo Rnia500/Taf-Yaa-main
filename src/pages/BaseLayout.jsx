@@ -1,29 +1,28 @@
-import React, { useState } from 'react';
+// src/pages/BaseLayout.jsx
+import React from 'react';
 import PageFrame from '../layout/containers/PageFrame';
 import ProfileSidebar from '../components/sidebar/ProfileSidebar';
 import Card from '../layout/containers/Card';
-import ComponentDemo from './ComponentDemo';
-import DefaultNavbar from '../components/navbar/DefaultNavbar';
 import AdminNavbar from '../components/navbar/AdminNavbar';
-import ModeratorNavbar from '../components/navbar/ModeratorNavbar';
-import EditorNavbar from '../components/navbar/EditorNavbar';
-import ViewerNavbar from '../components/navbar/EditorNavbar';
 import FamilyTreePage from './FamilyTreePage';
-import useModalStore from '../store/useModalStore';
-
-
+import useSidebarStore from '../store/useSidebarStore';
+import Text from '../components/Text';
 
 export default function BaseLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
+  const closeSidebar = useSidebarStore((state) => state.closeSidebar);
   
-    const { modals, closeModal } = useModalStore();
+  
 
   return (
     <PageFrame
       topbar={<AdminNavbar />}
-      sidebar={<ProfileSidebar onClose={() => setSidebarOpen(false)} />}
-      sidebarOpen={sidebarOpen}
-      onSidebarClose={() => setSidebarOpen(false)}
+     
+      sidebar={<ProfileSidebar onClose={closeSidebar} />}
+      
+      sidebarOpen={isSidebarOpen}
+     
+      onSidebarClose={closeSidebar}
       footer={
         <div style={{ textAlign: 'center', width: '100%' }}>
           © {new Date().getFullYear()} Taf'Yaa · All rights reserved
@@ -32,19 +31,10 @@ export default function BaseLayout() {
       footerInsideMain={true}
     >
       <>
-
-
         <Card>
-          <h1>Welcome to Taf'Yaa</h1>
-          <p>Default navbar is now active for testing</p>
-          <button onClick={() => setSidebarOpen(true)} style={{ padding: '8px 16px', fontSize: 16 }}>
-            Open Profile Sidebar
-          </button>
+          <Text variant='heading1'>Welcome to Taf'Yaa</Text>
         </Card>
 
-              
-
-        {/* <ComponentDemo setSidebarOpen={setSidebarOpen} /> */}
         <FamilyTreePage />
       </>
     </PageFrame>
