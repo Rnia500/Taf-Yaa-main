@@ -1,3 +1,4 @@
+// src/components/tree/TreeCanvas.jsx
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ReactFlow, {
   Controls,
@@ -6,9 +7,10 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import '../../styles/treeCanvas.css';
 
 import { useFamilyData } from '../../hooks/useFamilyData';
-import { calculateLayout, traceLineage } from '../../utils/treeLayout';
+import { calculateLayout, traceLineage, filterFamilyByRoot } from '../../utils/treeLayout';
 import MarriageNode from './nodes/MarriageNode';
 import FlowPersonNode from './nodes/FlowPersonNode';
 import MonogamousEdge from './edges/MonogamousEdge';
@@ -24,7 +26,7 @@ const edgeTypes = { monogamousEdge: MonogamousEdge, polygamousEdge: PolygamousEd
 const CustomMarkers = () => (
   <svg>
     <defs>
-      <marker id="arrow-custom" viewBox="0 -5 10 10" refX={10} refY={0} markerWidth={6} markerHeight={6} orient="auto-start-reverse">
+      <marker id="arrow" viewBox="0 -5 10 10" refX={10} refY={0} markerWidth={6} markerHeight={6} orient="auto-start-reverse">
         <path d="M0,-5L10,0L0,5" fill="var(--color-gray)" />
       </marker>
       <marker id="circle" viewBox="0 0 10 10" refX={5} refY={5} markerWidth={8} markerHeight={8}>
@@ -35,35 +37,37 @@ const CustomMarkers = () => (
 );
 
 function TreeCanvas({ treeId }) {
-  const { people: initialPeople, marriages, loading } = useFamilyData(treeId);
-  const [people, setPeople] = useState(initialPeople);
+  const { people: allPeople, marriages: allMarriages, loading } = useFamilyData(treeId);
+  const [peopleWithCollapseState, setPeopleWithCollapseState] = useState(allPeople);
+  const [rootPersonId, setRootPersonId] = useState('p001');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [highlightedPath, setHighlightedPath] = useState({ nodes: [], edges: [] });
-  
+
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
 
   const handleToggleCollapse = useCallback((personId) => {
-    setPeople((currentPeople) =>
+    setPeopleWithCollapseState((currentPeople) =>
       currentPeople.map((p) => (p.id === personId ? { ...p, isCollapsed: !p.isCollapsed } : p))
     );
   }, []);
 
   const handleOpenProfile = useCallback((personId) => {
-    if (openProfileSidebar) {
-      openProfileSidebar(personId);
-    }
+    if (openProfileSidebar) openProfileSidebar(personId);
   }, [openProfileSidebar]);
   
   const handleTraceLineage = useCallback((personId) => {
-    const path = traceLineage(personId, people, marriages);
+    const path = traceLineage(personId, allPeople, allMarriages);
     setHighlightedPath(path);
-  }, [people, marriages]);
+  }, [allPeople, allMarriages]);
+  
+  const handleSetAsRoot = useCallback((personId) => {
+    setRootPersonId(personId);
+    setHighlightedPath({ nodes: [], edges: [] });
+  }, []);
 
-  const handleAddRelative = useCallback((personId) => {
-    // Implement the logic to add a relative
-    console.log(`Adding relative for person ID: ${personId}`);
-    // You can add your logic here to handle adding a relative
+  const handleResetView = useCallback(() => {
+    setRootPersonId('p001');
   }, []);
 
   const clearHighlight = useCallback(() => {
@@ -73,9 +77,29 @@ function TreeCanvas({ treeId }) {
     closeMenu();
   }, [highlightedPath, closeMenu]);
 
+  // ✨ THE FIX: This `useMemo` block is now corrected and robust.
+  const { visiblePeople, visibleMarriages } = useMemo(() => {
+    // First, create the most up-to-date list of people with their collapse status.
+    const peopleWithUpdatedCollapse = allPeople.map(p => {
+        const statefulPerson = peopleWithCollapseState.find(sp => sp.id === p.id);
+        return statefulPerson || p;
+    });
+
+    if (rootPersonId === 'p001') {
+      // If we are at the default root, return the full (but updated) dataset.
+      return { visiblePeople: peopleWithUpdatedCollapse, visibleMarriages: allMarriages };
+    }
+    
+    // If we have a custom root, filter the data.
+    const filteredData = filterFamilyByRoot(rootPersonId, peopleWithUpdatedCollapse, allMarriages);
+    
+    // The key fix: We rename the properties to match the destructuring.
+    return { visiblePeople: filteredData.people, visibleMarriages: filteredData.marriages };
+  }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
+
   const { nodes, edges } = useMemo(
-    () => calculateLayout(people, marriages, handleToggleCollapse, handleOpenProfile),
-    [people, marriages, handleToggleCollapse, handleOpenProfile]
+    () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile),
+    [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile]
   );
   
   const finalEdges = useMemo(() => {
@@ -84,25 +108,24 @@ function TreeCanvas({ treeId }) {
       const isHovered = edge.source === hoveredNodeId || edge.target === hoveredNodeId;
       let style = { stroke: 'var(--color-gray)', strokeWidth: 2 };
       let animated = false;
+      let className = '';
       if (isHighlighted) {
-        style = { stroke: 'var(--color-accent)', strokeWidth: 3 };
-        animated = true;
+        style = { stroke: 'green', strokeWidth: 3 };
+        className = 'lineage-edge';
       }
       if (isHovered) {
         style = { stroke: 'var(--color-primary)', strokeWidth: 4 };
         animated = true;
       }
-      return { ...edge, style, animated };
+      return { ...edge, style, animated, className };
     });
   }, [hoveredNodeId, edges, highlightedPath]);
   
   useEffect(() => {
-    setPeople(initialPeople);
-  }, [initialPeople]);
+    setPeopleWithCollapseState(allPeople);
+  }, [allPeople]);
 
-  if (loading) {
-    return <div>Loading Family Tree...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div style={{ height: '100%', width: '100%' }} onMouseDown={clearHighlight}>
@@ -110,7 +133,8 @@ function TreeCanvas({ treeId }) {
         handleToggleCollapse={handleToggleCollapse} 
         handleOpenProfile={handleOpenProfile}
         handleTraceLineage={handleTraceLineage}
-        handleAddRelative={handleAddRelative} // Pass the new handler
+        handleSetAsRoot={handleSetAsRoot}
+        handleResetView={handleResetView}
       />
       <ReactFlow
         nodes={nodes}

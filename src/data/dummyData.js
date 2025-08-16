@@ -3,7 +3,7 @@
 export const people = [
   // Generation 1: The Root
   { id: "p001", treeId: "tree001", name: "Chief Tanda", gender: "male", dob: "1935-06-20", dod: "2010-12-15", photoUrl: "https://i.pravatar.cc/150?u=p001", isCollapsed: false },
-  { id: "p011", treeId: "tree001", name: "Amina Tanda", gender: "female", dob: "1942-01-10", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p011", isCollapsed: true },
+  { id: "p011", treeId: "tree001", name: "Amina Tanda", gender: "female", dob: "1942-01-10", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p011", isCollapsed: false },
   { id: "p012", treeId: "tree001", name: "Beatrice Tanda", gender: "female", dob: "1950-05-25", dod: "1999-02-20", photoUrl: "https://i.pravatar.cc/150?u=p012", isCollapsed: false },
   { id: "p013", treeId: "tree001", name: "Celina Tanda", gender: "female", dob: "1955-11-30", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p013", isCollapsed: false },
   
@@ -12,7 +12,7 @@ export const people = [
   { id: "p103", treeId: "tree001", name: "Fatima Tanda", gender: "female", dob: "1974-07-22", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p103", isCollapsed: false },
   { id: "p104", treeId: "tree001", name: "David Tanda", gender: "male", dob: "1980-09-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p104", isCollapsed: false },
   { id: "p105", treeId: "tree001", name: "dev Tanda", gender: "male", dob: "1980-09-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p105", isCollapsed: false },
-  { id: "p106", treeId: "tree001", name: "mac Tanda", gender: "male", dob: "1980-09-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p106", isCollapsed: true },
+  { id: "p106", treeId: "tree001", name: "mac Tanda", gender: "male", dob: "1980-09-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p106", isCollapsed: false },
 
   // Spouses for Gen 2
   { id: "p201", treeId: "tree001", name: "Sarah Tanda", gender: "female", dob: "1975-04-14", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p201", isCollapsed: false },
@@ -54,7 +54,7 @@ export const marriages = [
     id: "m003",
     treeId: "tree001",
     marriageType: "monogamous",
-    spouses: ["p106", "p202"], // Mac & Zoe
+    spouses: ["p106", "p202"],
     childrenIds: ["p303", "p304", "p305"],
   },
   // Gen 3 Marriage
@@ -62,7 +62,7 @@ export const marriages = [
     id: "m004",
     treeId: "tree001",
     marriageType: "monogamous",
-    spouses: ["p303", "p306"], // Ben & Chloe
+    spouses: ["p303", "p306"],
     childrenIds: [], // No children yet
   },
 ];

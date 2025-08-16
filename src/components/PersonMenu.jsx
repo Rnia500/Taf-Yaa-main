@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage }) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot }) {
   const { isOpen, targetNodeId, position, actions } = usePersonMenuStore();
   const menuRef = useRef(null);
 
@@ -36,6 +36,8 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     actions.closeMenu();
   };
 
+
+
   const onOpenProfile = () => {
     if (targetNodeId) handleOpenProfile(targetNodeId);
     actions.closeMenu();
@@ -44,6 +46,13 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   const onTraceLineage = () => {
     if (targetNodeId && handleTraceLineage) {
         handleTraceLineage(targetNodeId);
+    }
+    actions.closeMenu();
+  };
+
+  const onSetAsRoot = () => {
+    if (targetNodeId && handleSetAsRoot) {
+      handleSetAsRoot(targetNodeId);
     }
     actions.closeMenu();
   };
@@ -58,7 +67,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
         left: position.x,
         zIndex: 10000,
       }}
-      // ✨ THE FIX: This stops the click from bubbling up to the canvas wrapper.
+      
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="person-menu-header">
@@ -85,6 +94,12 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
             </svg>
             <span className="person-menu-text">Trace Lineage</span>
         </button>
+         <button className="person-menu-item" onClick={onSetAsRoot}>
+        <svg className="person-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3" />
+        </svg>
+        <span className="person-menu-text">Set as Root</span>
+      </button>
         <button className="person-menu-item" onClick={() => actions.closeMenu()}>
           <svg className="person-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
