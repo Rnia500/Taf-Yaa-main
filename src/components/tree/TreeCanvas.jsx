@@ -1,10 +1,11 @@
 // src/components/tree/TreeCanvas.jsx
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ReactFlow, {
-  Controls,
+  Controls, // We keep this import to know what we're removing
   Background,
   MiniMap,
   ReactFlowProvider,
+  useReactFlow, // ✨ Import the useReactFlow hook
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import '../../styles/treeCanvas.css';
@@ -13,14 +14,16 @@ import { useFamilyData } from '../../hooks/useFamilyData';
 import { calculateLayout, traceLineage, filterFamilyByRoot } from '../../utils/treeLayout';
 import MarriageNode from './nodes/MarriageNode';
 import FlowPersonNode from './nodes/FlowPersonNode';
+import FlowPersonNodeHorizontal from './nodes/FlowPersonNodeHorizontal';
 import MonogamousEdge from './edges/MonogamousEdge';
 import PolygamousEdge from './edges/PolygamousEdge';
 import ParentChildEdge from './edges/ParentChildEdge';
 import PersonMenu from '../PersonMenu';
+import CustomControls from './CustomControls'; 
 import usePersonMenuStore from '../../store/usePersonMenuStore';
 import useSidebarStore from '../../store/useSidebarStore';
 
-const nodeTypes = { person: FlowPersonNode, marriage: MarriageNode };
+const nodeTypes = { person: FlowPersonNode, marriage: MarriageNode,  personHorizontal: FlowPersonNodeHorizontal };
 const edgeTypes = { monogamousEdge: MonogamousEdge, polygamousEdge: PolygamousEdge, parentChild: ParentChildEdge };
 
 const CustomMarkers = () => (
@@ -36,7 +39,7 @@ const CustomMarkers = () => (
   </svg>
 );
 
-function TreeCanvas({ treeId }) {
+function TreeCanvasComponent({ treeId }) {
   const { people: allPeople, marriages: allMarriages, loading } = useFamilyData(treeId);
   const [peopleWithCollapseState, setPeopleWithCollapseState] = useState(allPeople);
   const [rootPersonId, setRootPersonId] = useState('p001');
@@ -45,6 +48,10 @@ function TreeCanvas({ treeId }) {
 
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
+  
+
+  const { fitView } = useReactFlow();
+  const [orientation, setOrientation] = useState('vertical');
 
   const handleToggleCollapse = useCallback((personId) => {
     setPeopleWithCollapseState((currentPeople) =>
@@ -68,7 +75,15 @@ function TreeCanvas({ treeId }) {
 
   const handleResetView = useCallback(() => {
     setRootPersonId('p001');
-  }, []);
+    setPeopleWithCollapseState((currentPeople) =>
+      currentPeople.map((p) => ({ ...p, isCollapsed: false }))
+    );
+    setHighlightedPath({ nodes: [], edges: [] });
+    closeMenu();
+    setTimeout(() => {
+      fitView({ duration: 800 });
+    }, 50);
+  }, [fitView, closeMenu]); 
 
   const clearHighlight = useCallback(() => {
     if (highlightedPath.nodes.length > 0 || highlightedPath.edges.length > 0) {
@@ -77,29 +92,30 @@ function TreeCanvas({ treeId }) {
     closeMenu();
   }, [highlightedPath, closeMenu]);
 
-  // ✨ THE FIX: This `useMemo` block is now corrected and robust.
   const { visiblePeople, visibleMarriages } = useMemo(() => {
-    // First, create the most up-to-date list of people with their collapse status.
     const peopleWithUpdatedCollapse = allPeople.map(p => {
         const statefulPerson = peopleWithCollapseState.find(sp => sp.id === p.id);
         return statefulPerson || p;
     });
-
     if (rootPersonId === 'p001') {
-      // If we are at the default root, return the full (but updated) dataset.
       return { visiblePeople: peopleWithUpdatedCollapse, visibleMarriages: allMarriages };
     }
-    
-    // If we have a custom root, filter the data.
     const filteredData = filterFamilyByRoot(rootPersonId, peopleWithUpdatedCollapse, allMarriages);
-    
-    // The key fix: We rename the properties to match the destructuring.
     return { visiblePeople: filteredData.people, visibleMarriages: filteredData.marriages };
   }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
 
+  const handleToggleOrientation = useCallback(() => {
+    setOrientation((currentOrientation) =>
+      currentOrientation === 'vertical' ? 'horizontal' : 'vertical'
+    );
+    
+    setTimeout(() => fitView({ duration: 500 }), 100);
+  }, [fitView]);
+
+ 
   const { nodes, edges } = useMemo(
-    () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile),
-    [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile]
+    () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation),
+    [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation]
   );
   
   const finalEdges = useMemo(() => {
@@ -147,7 +163,10 @@ function TreeCanvas({ treeId }) {
         nodesDraggable={false}
         nodesConnectable={false}
       >
-        <Controls />
+        <CustomControls 
+          handleResetView={handleResetView}
+          handleToggleOrientation={handleToggleOrientation}
+        />
         <CustomMarkers />
         <MiniMap nodeStrokeWidth={3} zoomable pannable />
         <Background variant="dots" gap={12} size={1} />
@@ -156,10 +175,11 @@ function TreeCanvas({ treeId }) {
   );
 }
 
+// This wrapper provides the React Flow context so the inner component can use the hook.
 export default function TreeCanvasWrapper(props) {
   return (
     <ReactFlowProvider>
-      <TreeCanvas {...props} />
+      <TreeCanvasComponent {...props} />
     </ReactFlowProvider>
   );
 }

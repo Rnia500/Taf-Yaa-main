@@ -60,7 +60,7 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
           )}
         </Row>
 
-        {deathDate
+        {/* {deathDate
 
             ?<Card rounded onClick={onAdd} positionType="absolute" position="bottom-right" margin="0px 47.5px -34px 0px" backgroundColor="var(--color-transparent)" size={18} padding="0px" >
                 <Plus size={13} />
@@ -70,7 +70,7 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
                 <Plus size={13} />
             </Card>
         
-        }
+        } */}
 
       </Card>
       </div>

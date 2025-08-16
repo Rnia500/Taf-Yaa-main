@@ -25,8 +25,9 @@
 }
 
 .person-menu-header {
-  padding: 12px 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 6px 10px;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background: linear-gradient(135deg, var(--color-primary2) 0%, var(--color-primary1) 100%);
   color: white;
   font-weight: 600;
   font-size: 14px;
@@ -42,7 +43,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 10px 12px;
+  padding: 6px 6px;
   border: none;
   background: none;
   text-align: left;

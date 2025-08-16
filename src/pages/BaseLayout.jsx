@@ -7,10 +7,12 @@ import AdminNavbar from '../components/navbar/AdminNavbar';
 import FamilyTreePage from './FamilyTreePage';
 import useSidebarStore from '../store/useSidebarStore';
 import Text from '../components/Text';
+import ComponentDemo from './ComponentDemo';
 
 export default function BaseLayout() {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
+
   
   
 
@@ -36,6 +38,7 @@ export default function BaseLayout() {
         </Card>
 
         <FamilyTreePage />
+         {/* <ComponentDemo setSidebarOpen={() => {}} /> */}
       </>
     </PageFrame>
   );

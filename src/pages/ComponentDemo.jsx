@@ -26,6 +26,7 @@ import PersonCardContainer from '../layout/containers/PersonCardContainer';
 import RecordingIcon from '../components/RecordingIcon';
 import PersonCardSVG from '../layout/containers/PersonCardSVG';
 import PersonCard from '../components/PersonCard';
+import PersonCardHorizontal from '../components/PersonCardHorizontal';
 
 
 
@@ -326,6 +327,17 @@ const ComponentDemo = ({setSidebarOpen}) => {
           />
 
            <PersonCard
+            variant="spouce"
+            role='editor'
+            name="Vishanti Vlad Tepes"
+            sex="F"
+            birthDate="01/01/1880"
+            profileImage="/Images/image8.jpg"
+            onClick={() => setSidebarOpen(false)} 
+            onAdd={() => {}}
+          />
+
+           <PersonCardHorizontal
             variant="spouce"
             role='editor'
             name="Vishanti Vlad Tepes"
