@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
-import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell } from 'lucide-react';
+import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell, ArrowDownToLine } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
+import PDFExport from '../PdfExport';
+import useModalStore from '../../store/useModalStore';
 
 export default function AdminNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -20,8 +22,9 @@ export default function AdminNavbar() {
     { label: 'Members', href: '#content' },
     { label: 'Notification', href: '#content' },
     { label: 'Suggestions', href: '#content' },
-    { label: 'Export', href: '#content' },
   ];
+
+  const { openModal } = useModalStore();
 
   const MobileNavItems = [
     { label: 'Tree View', href: '#content' },
@@ -46,60 +49,73 @@ export default function AdminNavbar() {
       <div className="desktop-nav">
           <Row width='750px' fitContent={true} gap='1rem' justifyContent='end' padding='0px' margin='0px'>
           {navItems.map((item) => (
-            <Text key={item.label} className='navItem' as='a' variant='body1' bold href={item.href}>
+            <Text key={item.label} className='navItem' as='a' variant='body2' bold href={item.href}>
               {item.label}
             </Text>
           ))}
 
           <Card
             fitContent
-            size={30}
+            size={25}
             padding='3px'
             margin='5px'
             backgroundColor="var(--color-gray)"
             style={{ cursor: 'pointer' }}
           >
             <Row fitContent={true} gap='0.25rem' padding='0px' margin='0px'>
-              <EarthIcon size={25} color="var(--color-primary-text)" />
+              <EarthIcon size={20} color="var(--color-primary-text)" />
               <ChevronDown onClick={() => {alert("hello boy")}} color='var(--color-primary-text)' />
             </Row>
           </Card>
 
           <Card
             fitContent
-            size={25}
+            size={20}
             onClick={toggleSubmenu}
             padding='3px'
             margin='2px'
             backgroundColor="var(--color-gray)"
             style={{ cursor: 'pointer' }}
           >
-            <Settings size={25} color="var(--color-primary-text)" />
+            <Settings size={20} color="var(--color-primary-text)" />
           </Card>  
           
           <Card
             fitContent
-            size={25}
+            size={20}
             onClick={toggleSubmenu}
             padding='3px'
             margin='2px'
             backgroundColor="var(--color-gray)"
             style={{ cursor: 'pointer' }}
           >
-            <Bell size={25} color="var(--color-primary-text)" />
+            <Bell size={20} color="var(--color-primary-text)" />
+          </Card>
+          
+          <Card
+            fitContent
+            size={20}
+            onClick={() => openModal('pdfExportModal')}
+            padding='3px'
+            margin='2px'
+            backgroundColor="var(--color-gray)"
+            style={{ cursor: 'pointer' }}
+          >
+            <ArrowDownToLine size={20} color="var(--color-primary-text)" />
+             
           </Card>
 
           <Card
             fitContent
             rounded
-            size={40}
+            size={35}
             onClick={toggleSubmenu}
             padding='0px'
             margin='5px'
             backgroundColor="var(--color-transparent)"
             style={{ cursor: 'pointer' }}
           >
-            <CircleUser size={35} color="var(--color-primary-text)" />
+            <CircleUser size={30} color="var(--color-primary-text)" />
           </Card>
         </Row>
       </div>
