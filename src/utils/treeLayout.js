@@ -10,9 +10,9 @@ const HORIZONTAL_COLUMN_GAP = 70;
 const HORIZONTAL_NODE_WIDTH = 180;
 const HORIZONTAL_NODE_HEIGHT = 60;
 
-const MARRIAGE_ICON_Y_OFFSET = 28 ;
+const MARRIAGE_ICON_Y_OFFSET = 28;
 const MARRIAGE_ICON_X_OFFSET = -20;
-const HORIZONTAL_MARRIAGE_ICON_Y_OFFSET = -6 ;
+const HORIZONTAL_MARRIAGE_ICON_Y_OFFSET = -6;
 const HORIZONTAL_MARRIAGE_ICON_X_OFFSET = -17;
 const MARRIAGE_ICON_Y_OFFSET_NO_STEM = 28;
 
@@ -350,7 +350,7 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
         const nodes = Array.from(nodesMap.values());
         return { nodes, edges };
 
-    }   else { // if (orientation === 'horizontal')
+    } else { // if (orientation === 'horizontal')
         let currentX = 0;
         for (const marriage of marriages) {
             let rightmostXInMarriage = currentX;
@@ -360,69 +360,97 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
                 const husbandNode = nodesMap.get(husbandId);
                 if (!husbandNode) continue;
 
-                // ✨ THE FIX: The husband and all wives will share this same X position.
-                const columnX = husbandNode.isPositioned ? husbandNode.position.x : currentX;
-                
-                // Position the husband at the vertical center of his entire family unit (wives included).
-                const totalFamilyHeight = ((wives.length + 1) * NODE_HEIGHT) + (wives.length * HORIZONTAL_COLUMN_GAP);
-                const husbandY = husbandNode.isPositioned ? husbandNode.position.y : (totalFamilyHeight / 2) - (NODE_HEIGHT / 2);
-                husbandNode.position = { x: columnX, y: husbandY };
+                // Husband positioning
+                const husbandX = husbandNode.isPositioned ? husbandNode.position.x : currentX;
+                const husbandY = husbandNode.isPositioned ? husbandNode.position.y : 0;
+                husbandNode.position = { x: husbandX, y: husbandY };
                 husbandNode.isPositioned = true;
+                husbandNode.data.variant = 'root';
 
-                // Symmetrical vertical placement for wives IN THE SAME COLUMN.
+                // Split wives into above / below groups
                 const numWives = wives.length;
                 const numTopWives = Math.floor(numWives / 2);
                 const topWives = wives.slice(0, numTopWives);
                 const bottomWives = wives.slice(numTopWives);
-                
-                // Position bottom wives
+
+                // Shared vertical hub line (just conceptual – edges will bend to it)
+                const hubX = husbandX + NODE_WIDTH + VERTICAL_SPACING;
+
+                // Position wives below husband
                 let wifeYOffset = husbandY + NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;
                 for (const wife of bottomWives) {
                     const wifeNode = nodesMap.get(wife.wifeId);
                     if (wifeNode) {
-                        wifeNode.position = { x: columnX, y: wifeYOffset };
+                        wifeNode.position = { x: husbandX, y: wifeYOffset };
                         wifeNode.isPositioned = true;
+                        wifeNode.data.variant = 'spouce';
                     }
-                    edges.push({ id: `edge-husband-${wife.wifeId}`, source: husbandId, target: wife.wifeId, sourceHandle: 'source-right', targetHandle: 'target-parent', type: 'polygamousEdge', data: { orientation } });
+                   edges.push({ 
+    id: `edge-husband-${wife.wifeId}`, 
+    source: husbandId, 
+    target: wife.wifeId, 
+    type: 'polygamousEdge', 
+    // ✨ THE FIX: Use the correct handles for a symmetrical connection
+    sourceHandle: 'source-bottom', 
+    targetHandle: 'target-parent', 
+    data: { orientation } 
+});
                     wifeYOffset += NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;
                 }
 
-                // Position top wives
+                // Position wives above husband
                 wifeYOffset = husbandY - NODE_HEIGHT - HORIZONTAL_COLUMN_GAP;
                 for (const wife of topWives.slice().reverse()) {
                     const wifeNode = nodesMap.get(wife.wifeId);
                     if (wifeNode) {
-                        wifeNode.position = { x: columnX, y: wifeYOffset };
+                        wifeNode.position = { x: husbandX, y: wifeYOffset };
                         wifeNode.isPositioned = true;
+                        wifeNode.data.variant = 'spouce';
                     }
-                    edges.push({ id: `edge-husband-${wife.wifeId}`, source: husbandId, target: wife.wifeId, sourceHandle: 'source-right', targetHandle: 'target-parent', type: 'polygamousEdge', data: { orientation } });
+                    edges.push({
+                        id: `edge-${husbandId}-${wife.wifeId}`,
+                        source: husbandId,
+                        target: wife.wifeId,
+                        type: 'polygamousEdge',
+                        sourceHandle: 'source-top',   // 👈 use the correct handle
+                        targetHandle: 'target-parent',
+                        data: { orientation }
+                    });
                     wifeYOffset -= (NODE_HEIGHT + HORIZONTAL_COLUMN_GAP);
                 }
 
-
-                // Position all children in the next column to the right
-                const childrenX = columnX + NODE_WIDTH + VERTICAL_SPACING;
+                // --- Children ---
+                const childrenX = hubX + NODE_WIDTH;
                 const allChildren = wives.flatMap(w => w.childrenIds);
                 if (allChildren.length > 0) rightmostXInMarriage = Math.max(rightmostXInMarriage, childrenX + NODE_WIDTH);
-                
+
                 const totalChildrenHeight = (allChildren.length * NODE_HEIGHT) + ((allChildren.length - 1) * HORIZONTAL_COLUMN_GAP);
                 let childYOffset = husbandY - (totalChildrenHeight / 2) + (NODE_HEIGHT / 2);
-                
+
                 for (const wife of wives) {
-                    const wifeNode = nodesMap.get(wife.wifeId);
-                    if (!wifeNode) continue;
                     for (const childId of wife.childrenIds) {
                         const childNode = nodesMap.get(childId);
                         if (childNode) {
                             childNode.position = { x: childrenX, y: childYOffset };
                             childNode.isPositioned = true;
+                            childNode.data.variant = 'directline';
                         }
-                        edges.push({ id: `edge-wife-${childId}`, source: wife.wifeId, target: childId, sourceHandle: 'source-child', targetHandle: 'target-parent', type: 'parentChild', markerStart: 'circle', markerEnd: 'arrow-custom' });
+                        edges.push({
+                            id: `edge-${wife.wifeId}-${childId}`,
+                            source: wife.wifeId,
+                            target: childId,
+                            type: 'parentChild',
+                            sourceHandle: 'source-child',
+                            targetHandle: 'target-parent',
+                            markerStart: 'circle',
+                            markerEnd: 'arrow-custom'
+                        });
                         childYOffset += NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;
                     }
                 }
             }
- if (marriage.marriageType === 'monogamous') {
+
+            if (marriage.marriageType === 'monogamous') {
                 const [spouse1Id, spouse2Id] = marriage.spouses;
                 const spouse1Node = nodesMap.get(spouse1Id);
                 const spouse2Node = nodesMap.get(spouse2Id);
@@ -435,8 +463,9 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
                 if (!isSpouse1Positioned) {
                     spouse1Node.position = { x: spouse1X, y: spouse1Y };
                     spouse1Node.isPositioned = true;
+                    spouse1Node.data.variant = 'directline';
                 }
-                
+
                 const spouse2Y = spouse1Y + NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;
                 const spaceNeeded = NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;
                 nodesMap.forEach(node => {
@@ -444,16 +473,17 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
                         node.position.y += spaceNeeded;
                     }
                 });
-                
+
                 spouse2Node.position = { x: spouse1X, y: spouse2Y };
                 spouse2Node.isPositioned = true;
+                // ✨ FIX: Set variant for the second spouse
+                spouse2Node.data.variant = 'spouce';
 
                 const marriageNodeId = `marriage-${marriage.id}`;
                 const marriageNodeX = spouse1X + (NODE_WIDTH / 2) + HORIZONTAL_MARRIAGE_ICON_X_OFFSET;
                 const marriageNodeY = spouse1Y + NODE_HEIGHT + (HORIZONTAL_COLUMN_GAP / 2) + HORIZONTAL_MARRIAGE_ICON_Y_OFFSET;
                 nodesMap.set(marriageNodeId, { id: marriageNodeId, type: 'marriage', position: { x: marriageNodeX, y: marriageNodeY }, data: { hasChildren: marriage.childrenIds.length > 0, orientation: 'horizontal' }, isPositioned: true });
-                
-              
+
                 edges.push({ id: `edge-${spouse1Id}-${marriageNodeId}`, source: spouse1Id, target: marriageNodeId, sourceHandle: 'source-bottom', targetHandle: 'target-top', type: 'monogamousEdge' });
                 edges.push({ id: `edge-${spouse2Id}-${marriageNodeId}`, source: spouse2Id, target: marriageNodeId, sourceHandle: 'source-top', targetHandle: 'target-bottom', type: 'monogamousEdge' });
 
@@ -470,6 +500,8 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
                     if (childNode) {
                         childNode.position = { x: childrenX, y: childYOffset };
                         childNode.isPositioned = true;
+
+                        childNode.data.variant = 'directline';
                     }
                     edges.push({ id: `edge-${marriageNodeId}-${childId}`, source: marriageNodeId, target: childId, sourceHandle: 'source-right', targetHandle: 'target-parent', type: 'parentChild', markerStart: 'circle', markerEnd: 'arrow-custom' });
                     childYOffset += NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;

@@ -7,35 +7,47 @@ export default function PolygamousEdge({
   data 
 }) {
   const borderRadius = 10;
-  const offset = 30;
+  const offset = 30; 
   let edgePath;
 
   const orientation = data?.orientation || 'vertical';
 
   if (orientation === 'vertical') {
-    // --- YOUR WORKING VERTICAL LAYOUT PATH (UNCHANGED) ---
+    // ✅ Existing working vertical path (unchanged)
     const yOffset = -offset;
     if (targetX > sourceX) { // Wife on the right
-      edgePath = `M ${sourceX},${sourceY} V ${sourceY + yOffset + borderRadius} A ${borderRadius},${borderRadius} 0 0 1 ${sourceX + borderRadius},${sourceY + yOffset} H ${targetX - borderRadius} A ${borderRadius},${borderRadius} 0 0 1 ${targetX},${sourceY + yOffset + borderRadius} V ${targetY}`;
+      edgePath = `M ${sourceX},${sourceY} 
+        V ${sourceY + yOffset + borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 1 ${sourceX + borderRadius},${sourceY + yOffset} 
+        H ${targetX - borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 1 ${targetX},${sourceY + yOffset + borderRadius} 
+        V ${targetY}`;
     } else { // Wife on the left
-      edgePath = `M ${sourceX},${sourceY} V ${sourceY + yOffset + borderRadius} A ${borderRadius},${borderRadius} 0 0 0 ${sourceX - borderRadius},${sourceY + yOffset} H ${targetX + borderRadius} A ${borderRadius},${borderRadius} 0 0 0 ${targetX},${sourceY + yOffset + borderRadius} V ${targetY}`;
+      edgePath = `M ${sourceX},${sourceY} 
+        V ${sourceY + yOffset + borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 0 ${sourceX - borderRadius},${sourceY + yOffset} 
+        H ${targetX + borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 0 ${targetX},${sourceY + yOffset + borderRadius} 
+        V ${targetY}`;
     }
-  } else {
-    // ✨ THE FIX: This is the definitive, correct path for the horizontal layout.
-    // It creates a "bridge" line that goes out, then across, then in.
-    const xOffset = offset;
+  }  else {
+    // ✨ THE FIX: This is the definitive, correct manual SVG path for a horizontal bridge.
+    // It creates the clean "bus" line you designed.
     
-    const midX = sourceX + xOffset;
+    const xOffset = offset;
+    const busLineX = sourceX + xOffset;
 
-    edgePath = 
-      `M ${sourceX},${sourceY} ` + // Start at the husband's handle
-      `H ${midX - borderRadius} ` + // Go right to the start of the first curve
-      `A ${borderRadius},${borderRadius} 0 0 1 ${midX},${sourceY > targetY ? sourceY - borderRadius : sourceY + borderRadius} ` + // First curve (up or down)
-      `V ${targetY > sourceY ? targetY - borderRadius : targetY + borderRadius} ` + // Vertical line in the middle
-      `A ${borderRadius},${borderRadius} 0 0 0 ${midX + borderRadius},${targetY} ` + // Second curve (up or down)
-      `H ${targetX}`; // Go straight to the wife's handle
+    // Determine the direction of the curve from the bus line to the wife
+    const yCurveDirection = targetY > sourceY ? 1 : 0;
+
+    edgePath = `
+      M ${sourceX},${sourceY}
+      H ${busLineX}
+      V ${targetY > sourceY ? targetY - borderRadius : targetY + borderRadius}
+      A ${borderRadius},${borderRadius} 0 0 ${yCurveDirection} ${busLineX + borderRadius},${targetY}
+      H ${targetX}
+    `;
   }
-
   return (
     <path
       d={edgePath}
