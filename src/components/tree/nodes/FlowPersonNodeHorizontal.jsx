@@ -21,7 +21,7 @@ function FlowPersonNodeHorizontal({ id, data }) {
     >
       {/* INPUT from a parent connection (always on the left) */}
       <Handle type="target" position={Position.Left} id="target-parent" style={handleStyle} />
-      
+      <Handle type="source" position={Position.Left} id="source-left" style={handleStyle} />
       {/* OUTPUT to a child connection (always on the right) */}
       <Handle type="source" position={Position.Right} id="source-child" style={handleStyle} />
       

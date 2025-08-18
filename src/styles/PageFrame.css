@@ -73,7 +73,7 @@
 .pf-main {
   flex: 1 1 auto;
   min-width: 0;
-  padding: 1rem;
+  padding: 0;
   overflow: auto;
   box-sizing: border-box;
   transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);

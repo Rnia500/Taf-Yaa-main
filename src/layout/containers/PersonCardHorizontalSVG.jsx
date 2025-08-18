@@ -42,9 +42,9 @@ const gradientIds = {
 };
 
 const PersonCardHorizontalSVG = ({ children, style, variant = "default", width = 170, ...props }) => {
-  const aspectRatio = 80 / 190;
+  const aspectRatio = 80 / 184;
   const height = width * aspectRatio;
-  const viewBoxWidth = 200;
+  const viewBoxWidth = 211;
   const viewBoxHeight = 94;
 
   return (

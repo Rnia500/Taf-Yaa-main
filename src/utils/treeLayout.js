@@ -93,38 +93,45 @@ function getDescendantIds(personId, marriages) {
  * @returns {{nodes: Array<string>, edges: Array<string>}} An object containing the IDs of nodes and edges in the lineage.
  */
 export function traceLineage(personId, people, marriages) {
-    const highlightedNodes = new Set([personId]);
-    const highlightedEdges = new Set();
-    // Inner recursive function to traverse the tree upwards.
+    const highlightedNodes = [personId]; // start with the person
+    const highlightedEdges = [];
+
     function findAncestors(currentPersonId) {
         const parentMarriage = marriages.find(m =>
             (m.marriageType === 'monogamous' && m.childrenIds.includes(currentPersonId)) ||
             (m.marriageType === 'polygamous' && m.wives.some(w => w.childrenIds.includes(currentPersonId)))
         );
-        if (!parentMarriage) return; // Reached the top of a branch
+        if (!parentMarriage) return;
+
         if (parentMarriage.marriageType === 'monogamous') {
             const [p1, p2] = parentMarriage.spouses;
-            highlightedNodes.add(p1); highlightedNodes.add(p2);
             const marriageNodeId = `marriage-${parentMarriage.id}`;
-            highlightedNodes.add(marriageNodeId);
-            highlightedEdges.add(`edge-${p1}-${marriageNodeId}`);
-            highlightedEdges.add(`edge-${p2}-${marriageNodeId}`);
-            highlightedEdges.add(`edge-${marriageNodeId}-${currentPersonId}`);
-            findAncestors(p1); findAncestors(p2);
-        } else if (parentMarriage.marriageType === 'polygamous') {
+            highlightedNodes.push(p1, p2, marriageNodeId);
+            highlightedEdges.push(
+                `edge-${p1}-${marriageNodeId}`,
+                `edge-${p2}-${marriageNodeId}`,
+                `edge-${marriageNodeId}-${currentPersonId}`
+            );
+            findAncestors(p1);
+            findAncestors(p2);
+        } else {
             const husbandId = parentMarriage.husbandId;
             const wifeData = parentMarriage.wives.find(w => w.childrenIds.includes(currentPersonId));
             if (wifeData) {
                 const wifeId = wifeData.wifeId;
-                highlightedNodes.add(husbandId); highlightedNodes.add(wifeId);
-                highlightedEdges.add(`edge-${husbandId}-${wifeId}`);
-                highlightedEdges.add(`edge-${wifeId}-${currentPersonId}`);
-                findAncestors(husbandId); findAncestors(wifeId);
+                highlightedNodes.push(husbandId, wifeId);
+                highlightedEdges.push(
+                    `edge-${husbandId}-${wifeId}`,
+                    `edge-${wifeId}-${currentPersonId}`
+                );
+                findAncestors(husbandId);
+                findAncestors(wifeId);
             }
         }
     }
+
     findAncestors(personId);
-    return { nodes: Array.from(highlightedNodes), edges: Array.from(highlightedEdges) };
+    return { nodes: highlightedNodes, edges: highlightedEdges }; // keep order
 }
 
 /**
@@ -385,16 +392,16 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
                         wifeNode.isPositioned = true;
                         wifeNode.data.variant = 'spouce';
                     }
-                   edges.push({ 
-    id: `edge-husband-${wife.wifeId}`, 
-    source: husbandId, 
-    target: wife.wifeId, 
-    type: 'polygamousEdge', 
-    // ✨ THE FIX: Use the correct handles for a symmetrical connection
-    sourceHandle: 'source-bottom', 
-    targetHandle: 'target-parent', 
-    data: { orientation } 
-});
+                    edges.push({
+                        id: `edge-${husbandId}-${wife.wifeId}`,
+                        source: husbandId,
+                        target: wife.wifeId,
+                        type: 'polygamousEdge',
+                        sourceHandle: 'source-left',  
+                        targetHandle: 'target-parent', 
+                        markerStart: 'circle',
+                        data: { orientation }
+                    });
                     wifeYOffset += NODE_HEIGHT + HORIZONTAL_COLUMN_GAP;
                 }
 
@@ -412,8 +419,9 @@ export function calculateLayout(rootId, people, marriages, handleToggleCollapse,
                         source: husbandId,
                         target: wife.wifeId,
                         type: 'polygamousEdge',
-                        sourceHandle: 'source-top',   // 👈 use the correct handle
+                        sourceHandle: 'source-left',
                         targetHandle: 'target-parent',
+                        markerStart: 'circle',
                         data: { orientation }
                     });
                     wifeYOffset -= (NODE_HEIGHT + HORIZONTAL_COLUMN_GAP);

@@ -21,7 +21,7 @@ const ControlButton = ({ onClick, title, children }) => (
 function CustomControls({ handleResetView, handleToggleOrientation  }) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
-  // We add a duration to the actions for a smooth transition.
+ 
   const onZoomIn = () => zoomIn({ duration: 300 });
   const onZoomOut = () => zoomOut({ duration: 300 });
   const onFitView = () => fitView({ duration: 300 });
@@ -32,8 +32,8 @@ function CustomControls({ handleResetView, handleToggleOrientation  }) {
       <ControlButton onClick={onZoomOut} title="Zoom Out"><ZoomOut color="var(--color-primary2)" size={20} /></ControlButton>
       <ControlButton onClick={onFitView} title="Fit to Screen"><Maximize color="var(--color-primary2)" size={20} /></ControlButton>
       <ControlButton onClick={handleToggleOrientation} title="Change Orientation"><Rotate3d  color="var(--color-primary2)" size={20} /></ControlButton>
-      <ControlButton onClick={handleResetView} title="Reset View"><Home color="var(--color-primary2)" size={20} /></ControlButton>
       <ControlButton onClick={handleResetView} title="Capture curent View"><Aperture  color="var(--color-primary2)" size={20} /></ControlButton>
+      <ControlButton onClick={handleResetView} title="Reset View"><Home color="var(--color-primary2)" size={20} /></ControlButton>
     </div>
   );
 }

@@ -25,17 +25,11 @@ export default function BaseLayout() {
       sidebarOpen={isSidebarOpen}
      
       onSidebarClose={closeSidebar}
-      footer={
-        <div style={{ textAlign: 'center', width: '100%' }}>
-          © {new Date().getFullYear()} Taf'Yaa · All rights reserved
-        </div>
-      }
-      footerInsideMain={true}
     >
       <>
-        <Card>
+        {/* <Card>
           <Text variant='heading1'>Welcome to Taf'Yaa</Text>
-        </Card>
+        </Card> */}
 
         <FamilyTreePage />
          {/* <ComponentDemo setSidebarOpen={() => {}} /> */}

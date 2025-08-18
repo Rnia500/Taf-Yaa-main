@@ -13,7 +13,7 @@ export default function PolygamousEdge({
   const orientation = data?.orientation || 'vertical';
 
   if (orientation === 'vertical') {
-    // ✅ Existing working vertical path (unchanged)
+    // ✅ unchanged vertical logic
     const yOffset = -offset;
     if (targetX > sourceX) { // Wife on the right
       edgePath = `M ${sourceX},${sourceY} 
@@ -31,23 +31,28 @@ export default function PolygamousEdge({
         V ${targetY}`;
     }
   }  else {
-    // ✨ THE FIX: This is the definitive, correct manual SVG path for a horizontal bridge.
-    // It creates the clean "bus" line you designed.
-    
-    const xOffset = offset;
-    const busLineX = sourceX + xOffset;
+    // ✨ THE FIX: This is the definitive, corrected SVG path for a horizontal layout.
+    const xOffset = -offset; // Go left from the husband
 
-    // Determine the direction of the curve from the bus line to the wife
-    const yCurveDirection = targetY > sourceY ? 1 : 0;
-
-    edgePath = `
-      M ${sourceX},${sourceY}
-      H ${busLineX}
-      V ${targetY > sourceY ? targetY - borderRadius : targetY + borderRadius}
-      A ${borderRadius},${borderRadius} 0 0 ${yCurveDirection} ${busLineX + borderRadius},${targetY}
-      H ${targetX}
-    `;
+    if (targetY >= sourceY) { // Wife is below or at the same level
+      edgePath = `
+        M ${sourceX},${sourceY} 
+        H ${sourceX + xOffset + borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 0 ${sourceX + xOffset},${sourceY + borderRadius} 
+        V ${targetY - borderRadius} 
+        A ${borderRadius},${borderRadius} 1 0 0 ${sourceX + xOffset + borderRadius},${targetY} 
+        H ${targetX}`;
+    } else { // Wife is above
+      edgePath = `
+        M ${sourceX},${sourceY} 
+        H ${sourceX + xOffset + borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 1 ${sourceX + xOffset},${sourceY - borderRadius} 
+        V ${targetY + borderRadius} 
+        A ${borderRadius},${borderRadius} 0 0 1 ${sourceX + xOffset + borderRadius},${targetY} 
+        H ${targetX}`;
+    }
   }
+
   return (
     <path
       d={edgePath}

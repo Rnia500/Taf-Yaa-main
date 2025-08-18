@@ -1,14 +1,9 @@
 /* src/styles/treeCanvas.css */
 
-
-.lineage-edge .react-flow__edge-path {
- 
-  
-  stroke-dasharray: 1000;
-
-  stroke-dashoffset: 1000;
-
-  animation: draw-line 2s ease-out forwards;
+.lineage-edge {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: draw-line 5s linear forwards; 
 }
 
 @keyframes draw-line {

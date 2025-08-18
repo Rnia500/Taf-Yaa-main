@@ -1,11 +1,10 @@
 // src/components/tree/TreeCanvas.jsx
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import ReactFlow, {
-  Controls, // We keep this import to know what we're removing
   Background,
   MiniMap,
   ReactFlowProvider,
-  useReactFlow, // ✨ Import the useReactFlow hook
+  useReactFlow, 
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import '../../styles/treeCanvas.css';
@@ -20,6 +19,7 @@ import PolygamousEdge from './edges/PolygamousEdge';
 import ParentChildEdge from './edges/ParentChildEdge';
 import PersonMenu from '../PersonMenu';
 import CustomControls from './CustomControls'; 
+import Legend from './Legend';
 import usePersonMenuStore from '../../store/usePersonMenuStore';
 import useSidebarStore from '../../store/useSidebarStore';
 
@@ -45,10 +45,22 @@ function TreeCanvasComponent({ treeId }) {
   const [rootPersonId, setRootPersonId] = useState('p001');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [highlightedPath, setHighlightedPath] = useState({ nodes: [], edges: [] });
+  const [lineageEdges, setLineageEdges] = useState([]);
 
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
   
+    const { visiblePeople, visibleMarriages } = useMemo(() => {
+    const peopleWithUpdatedCollapse = allPeople.map(p => {
+        const statefulPerson = peopleWithCollapseState.find(sp => sp.id === p.id);
+        return statefulPerson || p;
+    });
+    if (rootPersonId === 'p001') {
+      return { visiblePeople: peopleWithUpdatedCollapse, visibleMarriages: allMarriages };
+    }
+    const filteredData = filterFamilyByRoot(rootPersonId, peopleWithUpdatedCollapse, allMarriages);
+    return { visiblePeople: filteredData.people, visibleMarriages: filteredData.marriages };
+  }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
 
   const { fitView } = useReactFlow();
   const [orientation, setOrientation] = useState('vertical');
@@ -62,11 +74,29 @@ function TreeCanvasComponent({ treeId }) {
   const handleOpenProfile = useCallback((personId) => {
     if (openProfileSidebar) openProfileSidebar(personId);
   }, [openProfileSidebar]);
+
+   const { nodes, edges: baseEdges } = useMemo(
+    () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation),
+    [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation]
+  );
   
+  // ✨ THE FIX: This handler now creates the animated overlay.
   const handleTraceLineage = useCallback((personId) => {
     const path = traceLineage(personId, allPeople, allMarriages);
-    setHighlightedPath(path);
-  }, [allPeople, allMarriages]);
+    
+    // Find the full edge objects from our base layout that match the lineage path.
+    const highlightedBaseEdges = baseEdges.filter(edge => path.edges.includes(edge.id));
+
+    // Create a new set of green, animated edges for the overlay.
+    const animatedOverlay = highlightedBaseEdges.map(edge => ({
+      ...edge,
+      id: `lineage-${edge.id}`, // Give it a unique ID to prevent conflicts
+      style: {  color: 'red' ,stroke: "var(--color-primary1)", strokeWidth: 8 },
+      className: 'lineage-edge', // This is what triggers your CSS animation
+    }));
+
+    setLineageEdges(animatedOverlay);
+  }, [allPeople, allMarriages, baseEdges]);
   
   const handleSetAsRoot = useCallback((personId) => {
     setRootPersonId(personId);
@@ -92,17 +122,7 @@ function TreeCanvasComponent({ treeId }) {
     closeMenu();
   }, [highlightedPath, closeMenu]);
 
-  const { visiblePeople, visibleMarriages } = useMemo(() => {
-    const peopleWithUpdatedCollapse = allPeople.map(p => {
-        const statefulPerson = peopleWithCollapseState.find(sp => sp.id === p.id);
-        return statefulPerson || p;
-    });
-    if (rootPersonId === 'p001') {
-      return { visiblePeople: peopleWithUpdatedCollapse, visibleMarriages: allMarriages };
-    }
-    const filteredData = filterFamilyByRoot(rootPersonId, peopleWithUpdatedCollapse, allMarriages);
-    return { visiblePeople: filteredData.people, visibleMarriages: filteredData.marriages };
-  }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
+
 
   const handleToggleOrientation = useCallback(() => {
     setOrientation((currentOrientation) =>
@@ -112,31 +132,17 @@ function TreeCanvasComponent({ treeId }) {
     setTimeout(() => fitView({ duration: 500 }), 100);
   }, [fitView]);
 
- 
-  const { nodes, edges } = useMemo(
-    () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation),
-    [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation]
-  );
   
-  const finalEdges = useMemo(() => {
-    return edges.map(edge => {
-      const isHighlighted = highlightedPath.edges.includes(edge.id);
-      const isHovered = edge.source === hoveredNodeId || edge.target === hoveredNodeId;
-      let style = { stroke: 'var(--color-gray)', strokeWidth: 2 };
-      let animated = false;
-      let className = '';
-      if (isHighlighted) {
-        style = { stroke: 'green', strokeWidth: 3 };
-        className = 'lineage-edge';
+ const finalBaseEdges = useMemo(() => {
+    if (!hoveredNodeId) return baseEdges;
+    return baseEdges.map(edge => {
+      if (edge.source === hoveredNodeId || edge.target === hoveredNodeId) {
+        return { ...edge, style: { stroke: 'var(--color-primary1)', strokeWidth: 4 }, animated: true };
       }
-      if (isHovered) {
-        style = { stroke: 'var(--color-primary)', strokeWidth: 4 };
-        animated = true;
-      }
-      return { ...edge, style, animated, className };
+      return edge;
     });
-  }, [hoveredNodeId, edges, highlightedPath]);
-  
+  }, [hoveredNodeId, baseEdges]);
+
   useEffect(() => {
     setPeopleWithCollapseState(allPeople);
   }, [allPeople]);
@@ -153,8 +159,9 @@ function TreeCanvasComponent({ treeId }) {
         handleResetView={handleResetView}
       />
       <ReactFlow
+        edges={[...finalBaseEdges, ...lineageEdges]}
         nodes={nodes}
-        edges={finalEdges}
+        // edges={finalEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeMouseEnter={(event, node) => setHoveredNodeId(node.id)}
@@ -162,13 +169,20 @@ function TreeCanvasComponent({ treeId }) {
         fitView
         nodesDraggable={false}
         nodesConnectable={false}
+        proOptions={{ hideAttribution: true }}
       >
         <CustomControls 
           handleResetView={handleResetView}
           handleToggleOrientation={handleToggleOrientation}
         />
+        <Legend />
         <CustomMarkers />
-        <MiniMap nodeStrokeWidth={3} zoomable pannable />
+         <MiniMap 
+          position="bottom-left"
+          nodeStrokeWidth={3} 
+          zoomable 
+          pannable 
+        />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
     </div>
@@ -183,3 +197,6 @@ export default function TreeCanvasWrapper(props) {
     </ReactFlowProvider>
   );
 }
+
+
+

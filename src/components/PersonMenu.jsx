@@ -13,8 +13,10 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target) && 
-          submenuRef.current && !submenuRef.current.contains(event.target)) {
+      const isClickOutsideMenu = menuRef.current && !menuRef.current.contains(event.target);
+      const isClickOutsideSubmenu = !showSubmenu || (submenuRef.current && !submenuRef.current.contains(event.target));
+      
+      if (isClickOutsideMenu && isClickOutsideSubmenu) {
         actions.closeMenu();
         setShowSubmenu(false);
       }
@@ -23,7 +25,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     return () => {
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, [isOpen, actions]);
+  }, [isOpen, actions, showSubmenu]);
 
   useEffect(() => {
     if (!isOpen) return;
