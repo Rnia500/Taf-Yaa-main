@@ -8,6 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "netlify:dev": "netlify dev",
     "deploy": "netlify deploy --prod"
   },
@@ -38,6 +41,14 @@
     "vite": "^7.0.4",
     "cloudinary": "^1.41.0",
     "firebase-admin": "^11.11.0",
-    "formidable": "^3.5.1"
+    "formidable": "^3.5.1",
+    "vitest": "^2.1.8",
+    "jsdom": "^25.0.1",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/user-event": "^14.5.2",
+    "firebase-functions-test": "^3.1.1",
+    "supertest": "^6.3.4",
+    "@vitest/coverage-v8": "^2.1.8"
   }
 }

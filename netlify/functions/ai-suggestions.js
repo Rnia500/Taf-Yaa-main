@@ -110,40 +110,40 @@ exports.handler = async (event, context) => {
 // Helper functions
 function calculateMatchScore(member1, member2) {
   let score = 0;
-  let factors = 0;
+  let totalWeight = 0;
 
-  // Name similarity
+  // Name similarity (weight: 0.4)
   if (member1.name && member2.name) {
     const similarity = calculateStringSimilarity(
       member1.name.toLowerCase(),
       member2.name.toLowerCase()
     );
     score += similarity * 0.4;
-    factors++;
+    totalWeight += 0.4;
   }
 
-  // Birth date proximity
+  // Birth date proximity (weight: 0.3)
   if (member1.birthDate && member2.birthDate) {
     const proximity = calculateDateProximity(member1.birthDate, member2.birthDate);
     score += proximity * 0.3;
-    factors++;
+    totalWeight += 0.3;
   }
 
-  // Location match
+  // Location match (weight: 0.2)
   if (member1.birthPlace && member2.birthPlace) {
     const locationMatch = member1.birthPlace.toLowerCase() === member2.birthPlace.toLowerCase() ? 1 : 0;
     score += locationMatch * 0.2;
-    factors++;
+    totalWeight += 0.2;
   }
 
-  // Tribe match
+  // Tribe match (weight: 0.1)
   if (member1.tribe && member2.tribe) {
     const tribeMatch = member1.tribe.toLowerCase() === member2.tribe.toLowerCase() ? 1 : 0;
     score += tribeMatch * 0.1;
-    factors++;
+    totalWeight += 0.1;
   }
 
-  return factors > 0 ? score / factors : 0;
+  return totalWeight > 0 ? score / totalWeight : 0;
 }
 
 function calculateStringSimilarity(str1, str2) {

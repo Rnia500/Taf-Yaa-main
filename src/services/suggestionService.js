@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   setDoc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -230,17 +231,17 @@ export const suggestionService = {
   // Determine suggested relationship type
   determineSuggestedRelation(person1, person2) {
     // Simple age-based heuristic
-    if (person1.dob && person2.dob) {
-      const age1 = new Date().getFullYear() - new Date(person1.dob).getFullYear();
-      const age2 = new Date().getFullYear() - new Date(person2.dob).getFullYear();
+    if (person1.birthDate && person2.birthDate) {
+      const age1 = new Date().getFullYear() - new Date(person1.birthDate).getFullYear();
+      const age2 = new Date().getFullYear() - new Date(person2.birthDate).getFullYear();
       const ageDiff = Math.abs(age1 - age2);
-      
+
       if (ageDiff < 5) return 'sibling';
       if (ageDiff > 15 && age1 > age2) return 'child';
       if (ageDiff > 15 && age2 > age1) return 'parent';
       return 'cousin';
     }
-    
+
     return 'relative';
   },
 
@@ -258,10 +259,10 @@ export const suggestionService = {
       }
     }
     
-    if (person1.dob && person2.dob) {
-      const proximity = this.calculateDateProximity(person1.dob, person2.dob);
+    if (person1.birthDate && person2.birthDate) {
+      const proximity = this.calculateDateProximity(person1.birthDate, person2.birthDate);
       if (proximity > 0.5) {
-        evidence.push(`Close birth dates: ${person1.dob} ↔ ${person2.dob}`);
+        evidence.push(`Close birth dates: ${person1.birthDate} ↔ ${person2.birthDate}`);
       }
     }
     
@@ -297,22 +298,81 @@ export const suggestionService = {
     }
   },
 
-  // Add AI-powered relationship detection
+  // Get a specific person by ID
+  async getPerson(personId) {
+    try {
+      const personDoc = await getDoc(doc(db, 'people', personId));
+      if (!personDoc.exists()) {
+        throw new Error('Person not found');
+      }
+      return { id: personDoc.id, ...personDoc.data() };
+    } catch (error) {
+      throw new Error(`Failed to get person: ${error.message}`);
+    }
+  },
+
+  // Get tree members
+  async getTreeMembers(treeId) {
+    try {
+      const membersQuery = query(
+        collection(db, 'people'),
+        where('treeId', '==', treeId),
+        orderBy('createdAt', 'desc')
+      );
+
+      const snapshot = await getDocs(membersQuery);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error(`Failed to get tree members: ${error.message}`);
+    }
+  },
+
+  // Add AI-powered relationship detection via Netlify function
   async generateAISuggestions(treeId, personId) {
     try {
-      const person = await this.getPerson(personId);
-      const treeMembers = await this.getTreeMembers(treeId);
-      
-      // Use existing logic + AI enhancements
-      const suggestions = await this.generateSuggestions(treeId, personId);
-      
-      // Add cross-tree matching for diaspora connections
-      const crossTreeSuggestions = await this.findCrossTreeMatches(person);
-      
-      return [...suggestions, ...crossTreeSuggestions];
+      const response = await fetch('/.netlify/functions/ai-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ treeId, memberId: personId })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.data || [];
     } catch (error) {
       throw new Error(`Failed to generate AI suggestions: ${error.message}`);
     }
+  },
+
+  // Find potential matches between a person and a list of members
+  findPotentialMatches(person, members) {
+    const matches = [];
+
+    for (const member of members) {
+      if (member.id === person.id) continue;
+
+      const matchScore = this.calculateMatchScore(person, member);
+
+      if (matchScore > 0.7) {
+        matches.push({
+          id: `match_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+          sourcePersonId: person.id,
+          targetPersonId: member.id,
+          sourceTreeId: person.treeId,
+          targetTreeId: member.treeId,
+          matchScore: matchScore,
+          suggestedRelation: this.determineSuggestedRelation(person, member),
+          evidence: this.generateEvidence(person, member),
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    return matches;
   },
 
   // Cross-tree matching for diaspora families
@@ -323,17 +383,17 @@ export const suggestionService = {
         where('isPublic', '==', true),
         where('mergeOptIn', '==', true)
       );
-      
+
       const snapshot = await getDocs(publicTreesQuery);
       const suggestions = [];
-      
+
       for (const treeDoc of snapshot.docs) {
         const treeData = treeDoc.data();
         if (treeData.id === person.treeId) continue;
-        
+
         const treeMembers = await this.getTreeMembers(treeData.id);
         const matches = this.findPotentialMatches(person, treeMembers);
-        
+
         suggestions.push(...matches.map(match => ({
           ...match,
           type: 'cross-tree',
@@ -341,7 +401,7 @@ export const suggestionService = {
           requiresApproval: true
         })));
       }
-      
+
       return suggestions;
     } catch (error) {
       console.error('Cross-tree matching error:', error);
