@@ -6,6 +6,7 @@ const useModalStore = create((set) => ({
     componentModal: false,
     settingsModal: false,
     profileModal: false,
+    addSpouseModal: false,
   },
   
   // Open a specific modal
@@ -29,6 +30,7 @@ const useModalStore = create((set) => ({
       componentModal: false,
       settingsModal: false,
       profileModal: false,
+      addSpouseModal: false,
     }
   }),
 }));

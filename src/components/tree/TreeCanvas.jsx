@@ -20,6 +20,7 @@ import ParentChildEdge from './edges/ParentChildEdge';
 import PersonMenu from '../PersonMenu';
 import CustomControls from './CustomControls'; 
 import Legend from './Legend';
+import AddSpouseModal from '../Add Relatives/Spouse/AddSpouseModal';
 import usePersonMenuStore from '../../store/usePersonMenuStore';
 import useSidebarStore from '../../store/useSidebarStore';
 
@@ -38,6 +39,7 @@ const CustomMarkers = () => (
     </defs>
   </svg>
 );
+
 
 function TreeCanvasComponent({ treeId }) {
   const { people: allPeople, marriages: allMarriages, loading } = useFamilyData(treeId);
@@ -149,6 +151,19 @@ function TreeCanvasComponent({ treeId }) {
 
   if (loading) return <div>Loading...</div>;
 
+
+  const handleAddSpouseSubmit = async (formData) => {
+    console.log("Form submitted with this data:", formData);
+    // 1. Call your API/Firebase function here to save the data
+    // await yourApi.addSpouse(treeId, formData.targetNodeId, formData.people, formData.marriages);
+
+    // 2. Trigger a re-fetch of the family data so the tree updates
+    // refetchFamilyData(); 
+  };
+
+
+
+
   return (
     <div style={{ height: '100%', width: '100%' }} onMouseDown={clearHighlight}>
       <PersonMenu 
@@ -158,6 +173,7 @@ function TreeCanvasComponent({ treeId }) {
         handleSetAsRoot={handleSetAsRoot}
         handleResetView={handleResetView}
       />
+      <AddSpouseModal onSubmit={handleAddSpouseSubmit} /> 
       <ReactFlow
         edges={[...finalBaseEdges, ...lineageEdges]}
         nodes={nodes}

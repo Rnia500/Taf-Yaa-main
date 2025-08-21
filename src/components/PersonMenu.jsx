@@ -1,6 +1,7 @@
 // src/components/PersonMenu.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
+import useModalStore from '../store/useModalStore';
 import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight  } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
@@ -79,10 +80,18 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   };
 
   const handleAddRelative = (relativeType) => {
-    console.log(`Adding ${relativeType} for node ${targetNodeId}`);
-    // Here you would implement the actual logic to add the relative
-    actions.closeMenu();
-    setShowSubmenu(false);
+    if (relativeType === 'spouse') {
+      // Close the menu first
+      actions.closeMenu();
+      setShowSubmenu(false);
+      
+      // Open the modal using the modal store
+      useModalStore.getState().openModal('addSpouseModal');
+    } else {
+      console.log(`Adding ${relativeType} for node ${targetNodeId}`);
+      actions.closeMenu();
+      setShowSubmenu(false);
+    }
   };
 
   const toggleSubmenu = () => {

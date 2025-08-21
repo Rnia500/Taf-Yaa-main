@@ -29,6 +29,20 @@
   --color-female: #FF00EE;
   --color-link: #2563eb;
   --color-link-hover: #7c0786;
+  
+  /* Extended color palette for audio components */
+  --color-primary: var(--color-primary1);
+  --color-primary-dark: #15803d;
+  --color-primary-light: #bbf7d0;
+  --color-gray-light: #e5e7eb;
+  --color-gray-ultralight: #f9fafb;
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-error-dark: #b91c1c;
+  --color-success-light: #dcfce7;
+  --color-success-dark: #15803d;
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #b45309;
 
   /* Text Colors */
   --color-primary-text: #111827;

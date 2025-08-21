@@ -45,7 +45,6 @@ const RecordModal = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="record-modal-container">
         <Card fitContent padding='5px' margin='20px 0px' backgroundColor="var(--color-transparent)" position='left'>
           <Text variant='heading2'>New Recordings</Text>
         </Card>
@@ -93,7 +92,6 @@ const RecordModal = ({ isOpen, onClose }) => {
         {error && (
           <div style={{ color: 'red', marginTop: '1rem', textAlign: 'center' }}>{error}</div>
         )}
-      </div>
     </Modal>
   );
 };
