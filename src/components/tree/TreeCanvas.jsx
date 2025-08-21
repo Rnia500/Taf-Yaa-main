@@ -10,7 +10,7 @@ import 'reactflow/dist/style.css';
 import '../../styles/treeCanvas.css';
 
 import { useFamilyData } from '../../hooks/useFamilyData';
-import { calculateLayout, traceLineage, filterFamilyByRoot } from '../../utils/treeLayout';
+import { calculateLayout, traceLineage, filterFamilyByRoot } from '../../utils/treeUtils/treeLayout';
 import MarriageNode from './nodes/MarriageNode';
 import FlowPersonNode from './nodes/FlowPersonNode';
 import FlowPersonNodeHorizontal from './nodes/FlowPersonNodeHorizontal';
@@ -189,7 +189,6 @@ function TreeCanvasComponent({ treeId }) {
   );
 }
 
-// This wrapper provides the React Flow context so the inner component can use the hook.
 export default function TreeCanvasWrapper(props) {
   return (
     <ReactFlowProvider>

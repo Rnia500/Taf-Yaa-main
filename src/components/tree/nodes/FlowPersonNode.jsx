@@ -69,7 +69,7 @@ function FlowPersonNode({ id, data }) {
       onTouchEnd={handlePressEnd}
     >
       <Handle type="target" position={Position.Top} id="target-parent" style={handleStyle} />
-      <Handle type="source" position={Position.Top} id="source-polygamous" style={handleStyle} />
+      <Handle type="source" position={Position.Top} id="source-top" style={handleStyle} />
       <Handle type="source" position={Position.Left} id="source-left" style={handleStyle} />
       <Handle type="source" position={Position.Right} id="source-right" style={handleStyle} />
       
