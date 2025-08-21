@@ -173,17 +173,9 @@ function createEdges(marriages, nodesMap) {
     if (marriage.marriageType === 'polygamous') {
       const { husbandId, wives = [] } = marriage;
       for (const w of wives) {
-        // ✨ THE FIX: Specify the correct handles for vertical polygamy ✨
         const e = createEdgeWithGuard(
-            createPolygamousEdge,
-            nodesMap,
-            husbandId,
-            w.wifeId,
-            {
-                orientation: 'vertical',
-                sourceHandle: 'source-top', // Connect from the TOP of the husband
-                targetHandle: 'target-top'  // Connect to the TOP of the wife
-            }
+            createPolygamousEdge, nodesMap, husbandId, w.wifeId,
+            { orientation: 'vertical', sourceHandle: 'source-top', targetHandle: 'target-top' }
         );
         if (e) edges.push(e);
         
@@ -210,8 +202,18 @@ function createEdges(marriages, nodesMap) {
         isPositioned: true,
       });
 
-      edges.push(createEdgeWithGuard(createMonogamousEdge, nodesMap, leftId, mId, marriage.id, { sourceHandle: 'source-right' }));
-      edges.push(createEdgeWithGuard(createMonogamousEdge, nodesMap, rightId, mId, marriage.id, { sourceHandle: 'source-left' }));
+      
+      const e1 = createEdgeWithGuard(createMonogamousEdge, nodesMap, leftId, mId, marriage.id, { 
+          sourceHandle: 'source-right', 
+          targetHandle: 'target-left'   
+      });
+      const e2 = createEdgeWithGuard(createMonogamousEdge, nodesMap, rightId, mId, marriage.id, {
+          sourceHandle: 'source-left',  
+          targetHandle: 'target-right'  
+      });
+      
+      if (e1) edges.push(e1);
+      if (e2) edges.push(e2);
       
       for (const cId of (marriage.childrenIds || [])) {
         const ec = createEdgeWithGuard(createParentChildEdge, nodesMap, mId, cId);

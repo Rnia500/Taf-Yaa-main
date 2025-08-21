@@ -139,7 +139,7 @@ function formatPersonData(person, marriages, handleToggleCollapse, handleOpenPro
   );
   return {
     id: person.id,
-    name: person.id,
+    name: person.name,
     profileImage: person.photoUrl,
     sex: person.gender === "male" ? "M" : "F",
     birthDate: person.dob,
@@ -193,9 +193,6 @@ function getDescendantIds(personId, marriages) {
   return Array.from(descendants);
 }
 
-/* -------------------------
-   Main calculateLayout (Final, Definitive Version)
-   ------------------------- */
 export function calculateLayout(
   rootId,
   people,
@@ -204,11 +201,7 @@ export function calculateLayout(
   handleOpenProfile,
   orientation = "vertical"
 ) {
-  // ========================================================================
-  // ✨ STEP 0: PRE-FILTERING - The Definitive Fix
-  // We first filter the entire dataset to only include people and marriages
-  // that are actually connected to the rootId. This eliminates all "islands".
-  // ========================================================================
+  
   const { people: visiblePeople, marriages: visibleMarriages } = filterFamilyByRoot(rootId, people, marriages);
 
   const isVertical = orientation === "vertical";
