@@ -1,0 +1,201 @@
+/* ...existing code... */
+.back-link{
+    text-align: center;
+    top: 20px;
+    left: 20px;
+    font-size: 8px;
+    color: darkgreen;
+    text-decoration: none;
+    /* margin-top: 1000px; */
+    i{
+        color: darkgreen;
+        background-color: white;
+        padding: 10px;
+        border-radius: 50%;
+    }
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.login-form {
+  background: #fff;
+  padding: 2.0rem 2.0rem 2rem 2.0rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(60,64,67,.15);
+  width: 450px; 
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-title {
+  font-size: 1.0rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #202124;
+  text-align: center;
+}
+
+p{
+    font-size: 0.95rem;
+    color: #5f6368;
+    margin-bottom: 2rem;
+    text-align: center;
+
+}
+
+.form-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.input-group label {
+  font-size: 1rem;
+  color: black;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  background-color: #f1f3f4;
+  margin-top: 0.2rem;
+}
+
+.input-group input:focus {
+  border-color: darkgreen;
+}
+
+.login-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forgot-link {
+  font-size: 0.95rem;
+  color: darkgreen;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.login-btn {
+  width: 100%;
+  background: darkgreen;
+  color: #fff;
+  border: none;
+  padding: 0.4rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+
+/* .login-btn:hover {
+  background: #357ae8;
+} */
+
+.divider {
+  width: 100%;
+  text-align: center;
+  margin: 1.2rem 0;
+  position: relative;
+  color: #b0b0b0;
+  font-size: 0.95rem;
+}
+
+.divider span {
+  background: #fff;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.divider:before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #e0e0e0;
+  z-index: 0;
+}
+
+.google-signin-btn {
+  width: 100%;
+  background: #fff;
+  color: black;
+  border: 1px solid #dadce0;
+  padding: 0.4rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  i{
+    color: black;
+    margin-right: 8px;
+    font-size: 1.2rem;
+    background-color: white;
+    padding: 0px;
+  }
+}
+
+.google-signin-btn:hover {
+  background: #f5f5f5;
+  border-color: darkgreen;
+}
+
+.google-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg') no-repeat center/contain;
+  margin-right: 8px;
+}
+
+.signup-link {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #5f6368;
+  text-align: center;
+}
+
+.signup-link a {
+  color: darkgreen;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* ...existing code... */

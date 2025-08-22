@@ -1,0 +1,125 @@
+nav {
+    color: black;
+    padding: 16px 32px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    background: #fff;
+    margin-top: 10px;
+}
+
+.logo-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-container img {
+    width: 60px;
+    height: 60px;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    border: 1px solid orange;
+    border-radius: 5px;
+    list-style: none;
+    display: flex;
+    margin-left: auto;
+    align-items: center;
+    height: 100%;
+    padding: 0;
+}
+
+ul li {
+    padding: 10px 10px;
+    border-radius: 4px;
+    transition: border 0.2s, background 0.2s;
+}
+
+ul li:hover {
+    /* background: orange; */
+    color: black;
+}
+
+.active-link {
+    background: orange;
+    color: black;
+    padding: 5px 5px;
+    border-radius: 5px;
+}
+.inactive-link {
+    color: black;
+    text-decoration: none;
+}
+
+/* Medium screen */
+@media (max-width: 1140px) and (min-width: 701px) { 
+    nav {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 24px;
+    }
+
+    .logo-container {
+        position: static;
+        left: unset;
+        top: unset;
+        transform: none;
+        margin-bottom: 0;
+        justify-content: flex-start;
+        width: auto;
+    }
+
+    ul {
+        margin-left: 0;
+        border: 1px solid orange;
+        border-radius: 5px;
+        height: auto;
+    }
+}
+
+/* Small screen */
+@media (max-width: 700px) {
+    nav {
+        flex-direction: column;
+        min-height: unset;
+        padding: 12px 8px;
+        height: auto;
+    }
+
+    .logo-container {
+        position: static;
+        left: unset;
+        top: unset;
+        transform: none;
+        margin-bottom: 12px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    ul {
+        flex-direction: column;
+        align-items: center;
+        border: none;
+        width: 100%;
+        margin-left: 0;
+        padding: 0;
+    }
+
+    ul li {
+        width: 100%;
+        text-align: center;
+        margin: 4px 0;
+    }
+}
