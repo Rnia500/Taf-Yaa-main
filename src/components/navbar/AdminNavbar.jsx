@@ -8,6 +8,9 @@ import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
 import PDFExport from '../PdfExport';
 import useModalStore from '../../store/useModalStore';
+import { NavLink } from "react-router-dom";
+
+
 
 export default function AdminNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -22,20 +25,22 @@ export default function AdminNavbar() {
     { label: 'Members', href: '#content' },
     { label: 'Notification', href: '#content' },
     { label: 'Suggestions', href: '#content' },
+    { label: 'Export', href: '/export' }
+
   ];
 
   const { openModal } = useModalStore();
 
-  const MobileNavItems = [
-    { label: 'Tree View', href: '#content' },
-    { label: 'Members', href: '#content' },
-    { label: 'Notification', href: '#content' },
-    { label: 'Suggestions', href: '#content' },
-    { label: 'Export', href: '#content' },
-    { label: 'Settings', href: '#content' },
-    { label: 'Language', href: '#content' },
-    
-  ];
+const MobileNavItems = [
+  { label: 'Tree View', href: '/base' },
+  { label: 'Members', href: '/members' },
+  { label: 'Notification', href: '/notifications' },
+  { label: 'Suggestions', href: '/suggestions' },
+  { label: 'Export', action: () => openModal('pdfExportModal') },
+  { label: 'Settings', href: '/settings' },
+  { label: 'Language', href: '/language' },
+];
+
 
   return (
     <nav className='NavBar'>
@@ -49,9 +54,10 @@ export default function AdminNavbar() {
       <div className="desktop-nav">
           <Row width='750px' fitContent={true} gap='1rem' justifyContent='end' padding='0px' margin='0px'>
           {navItems.map((item) => (
-            <Text key={item.label} className='navItem' as='a' variant='body2' bold href={item.href}>
-              {item.label}
-            </Text>
+           <NavLink key={item.label} to={item.href} className='navItem'>
+  {item.label}
+</NavLink>
+
           ))}
 
           <Card
@@ -133,16 +139,32 @@ export default function AdminNavbar() {
       {mobileMenuOpen && ReactDOM.createPortal(
         <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
           <div className="mobile-nav-content">
-            {MobileNavItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="mobile-nav-item"
-                onClick={closeMobileMenu}
-              >
-                {item.label}
-              </a>
-            ))}
+            {MobileNavItems.map((item) =>
+  item.href ? (
+    <NavLink
+      key={item.label}
+      to={item.href}
+      className="mobile-nav-item"
+      onClick={closeMobileMenu}
+    >
+      {item.label}
+    </NavLink>
+  ) : (
+    <button
+      key={item.label}
+      onClick={() => {
+        item.action();
+        closeMobileMenu();
+      }}
+      className="mobile-nav-item"
+      style={{ background: "none", border: "none", cursor: "pointer" }}
+    >
+      {item.label}
+    </button>
+  )
+)}
+
+
           </div>
         </div>,
         document.body
