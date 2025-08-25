@@ -2,7 +2,7 @@ import React from "react";
 import Card from "../../../layout/containers/Card";
 import Text from "../../Text";
 import Spacer from "../../Spacer";
-import Row from "../../../layout/containers/Row";   // ✅ Add this import
+import Row from "../../../layout/containers/Row";   
 import { Download } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -11,7 +11,7 @@ export default function PDFDownloadModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const handleDownloadPDF = () => {
-    const profileElement = document.querySelector(".profile-sidebar"); // ✅ make sure ProfileSidebar has this class
+    const profileElement = document.querySelector(".profile-sidebar"); 
     if (!profileElement) return;
 
     html2canvas(profileElement).then((canvas) => {
