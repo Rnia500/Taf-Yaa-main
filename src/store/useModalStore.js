@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import AddChildModal from '../components/Add Relatives/Child/AddChildModal';
 
 const useModalStore = create((set) => ({
   // Modal states for ComponentDemo
@@ -7,11 +8,25 @@ const useModalStore = create((set) => ({
     settingsModal: false,
     profileModal: false,
     addSpouseModal: false,
+    addChildModal: false
   },
   
-  // Open a specific modal
-  openModal: (modalName) => set((state) => ({
-    modals: { ...state.modals, [modalName]: true }
+  // Modal data
+  modalData: {
+    addSpouseModal: {
+      targetNodeId: null
+    },
+    addChildModal: {
+      targetNodeId: null,
+      parent1Id: null,
+      parent2Id: null
+    }
+  },
+  
+  // Open a specific modal with optional data
+  openModal: (modalName, data = {}) => set((state) => ({
+    modals: { ...state.modals, [modalName]: true },
+    modalData: { ...state.modalData, [modalName]: { ...state.modalData[modalName], ...data } }
   })),
   
   // Close a specific modal
@@ -31,6 +46,7 @@ const useModalStore = create((set) => ({
       settingsModal: false,
       profileModal: false,
       addSpouseModal: false,
+      addChildModal: false
     }
   }),
 }));

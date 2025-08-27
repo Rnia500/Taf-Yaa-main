@@ -1,4 +1,3 @@
-// AddSpouseForm.jsx
 import React, { useState } from 'react';
 import { TextInput, TextArea } from '../../Input';
 import SelectDropdown from '../../SelectDropdown';
@@ -8,24 +7,10 @@ import FileUpload from '../../FileUpload';
 import AudioUploadCard from '../../AudioUploadCard';
 import Row from '../../../layout/containers/Row';
 import Button from '../../Button';
-import { User, Heart, Shield, BookOpen } from 'lucide-react';
-import { MarriageModel } from '../../../models/treeModels/MarriageModel';
+import { User, BookOpen, Shield } from 'lucide-react';
 
-const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) => {
-  
-  const marriageModel = new MarriageModel({
-    id: '',
-    treeId: '',
-    marriageType: 'polygamous',
-    husbandId: 'dummy', 
-    wives: existingWives,
-    createdBy: '',
-    createdAt: '',
-    updatedAt: ''
-  });
-
+const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name }) => {
   const [formData, setFormData] = useState({
-    // Section 1: New Spouse's Information
     fullName: '',
     gender: '',
     dateOfBirth: '',
@@ -35,19 +20,9 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
     biography: '',
     tribe: '',
     language: '',
-
-    // Section 2: Oral History
     storyTitle: '',
     audioFile: null,
     audioURL: null,
-
-    // Section 3: Marriage Information
-    marriageDate: '',
-    marriageLocation: '',
-    marriageNotes: '',
-    wifeOrder: marriageModel.getNextWifeOrder(), // 
-
-    // Section 4: Privacy
     privacy: 'membersOnly'
   });
 
@@ -92,10 +67,10 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
   return (
     <form onSubmit={handleSubmit} className="premium-form">
       
-      {/* Display the husband's name at the top of the form */}
-      {husbandName && (
-        <div className="husband-name-display" style={{marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
-          <h3 style={{margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600'}}>Spouse of {husbandName}</h3>
+      {/* Display the parents' names at the top of the form */}
+      {parent1Name && parent2Name && (
+        <div className="parents-name-display" style={{marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
+          <h3 style={{margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600'}}>Child of {parent1Name} and {parent2Name}</h3>
         </div>
       )}
 
@@ -230,59 +205,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
         </div>
       </div>
 
-      {/* Section 3: Marriage Information */}
-      <div className="section-card">
-        <div className="section-header">
-          <div className="section-icon">
-            <Heart size={20} />
-          </div>
-          <h3 className="section-title">Marriage Information {husbandName && `(Spouse of ${husbandName})`}</h3>
-        </div>
-
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Marriage Date</label>
-            <DateInput
-              value={formData.marriageDate}
-              onChange={(e) => handleInputChange('marriageDate', e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Location of Marriage</label>
-            <TextInput
-              value={formData.marriageLocation}
-              onChange={(e) => handleInputChange('marriageLocation', e.target.value)}
-              placeholder="Enter marriage location"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Order (position among wives)</label>
-            <TextInput
-              type="number"
-              value={formData.wifeOrder}
-              onChange={(e) => handleInputChange('wifeOrder', parseInt(e.target.value))}
-              placeholder={`Suggested: ${marriageModel.getNextWifeOrder()}`}
-            />
-            <p className="text-xs text-gray-500">
-              Suggested: {marriageModel.getNextWifeOrder()} (editable)
-            </p>
-          </div>
-
-          <div className="form-group full-width">
-            <label className="form-label">Notes about the Marriage</label>
-            <TextArea
-              value={formData.marriageNotes}
-              onChange={(e) => handleInputChange('marriageNotes', e.target.value)}
-              placeholder="Share special memories..."
-              rows={3}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Section 4: Privacy */}
+      {/* Section 3: Privacy */}
       <div className="section-card">
         <div className="section-header">
           <div className="section-icon">
@@ -306,11 +229,11 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
           Cancel
         </Button>
         <Button fullWidth type="submit">
-          Add Spouse
+          Add Child
         </Button>
       </Row>
     </form>
   );
 };
 
-export default AddSpouseForm;
+export default AddChildForm;

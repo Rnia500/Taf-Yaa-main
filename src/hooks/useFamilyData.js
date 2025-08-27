@@ -1,26 +1,76 @@
 // src/hooks/useFamilyData.js
+import { useEffect, useState, useCallback } from "react";
 
-// ✨ STEP 1: Import useMemo from React
-import { useMemo } from 'react';
-import { people as allPeople, marriages as allMarriages } from '../data/dummyData';
+// Local dummy data (used only when USE_LOCAL = true)
+import { people as dummyPeople, marriages as dummyMarriages } from "../data/dummyData.js";
+
+const STORAGE_KEY = "familyDB";
+
+// Firebase imports (used only when USE_LOCAL = false) 
+// import { collection, onSnapshot, query } from "firebase/firestore"; 
+// import { db } from "../firebase";
+
+// Toggle for local testing
+const USE_LOCAL = true;
 
 export function useFamilyData(treeId) {
-  // ✨ STEP 2: Wrap the filtering logic in useMemo.
-  // This ensures that the `people` array is only re-calculated if `treeId` changes.
-  const people = useMemo(
-    () => allPeople.filter(p => p.treeId === treeId),
-    [treeId]
-  );
+  const [people, setPeople] = useState([]);
+  const [marriages, setMarriages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Do the same for the `marriages` array.
-  const marriages = useMemo(
-    () => allMarriages.filter(m => m.treeId === treeId),
-    [treeId]
-  );
+  const loadLocal = useCallback(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setPeople(parsed.people || []);
+        setMarriages(parsed.marriages || []);
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.error("Failed to parse local DB:", err);
+      }
+    }
+    // fallback to dummyData
+    setPeople(dummyPeople);
+    setMarriages(dummyMarriages);
+    setLoading(false);
+  }, []);
 
-  // ✨ STEP 3: Memoize the final returned object as well for ultimate stability.
-  return useMemo(
-    () => ({ people, marriages, loading: false }),
-    [people, marriages]
-  );
+  useEffect(() => {
+    if (USE_LOCAL) {
+      loadLocal();
+      return;
+    }
+
+    // Firebase mode (real-time listeners)
+    /*
+    const peopleQuery = query(collection(db, "people"));
+    const marriagesQuery = query(collection(db, "marriages"));
+
+    const unsubPeople = onSnapshot(peopleQuery, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setPeople(docs);
+    });
+
+    const unsubMarriages = onSnapshot(marriagesQuery, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMarriages(docs);
+    });
+
+    setLoading(false);
+
+    return () => {
+      unsubPeople();
+      unsubMarriages();
+    };
+    */
+  }, [treeId, loadLocal]);
+
+  return {
+    people,
+    marriages,
+    loading,
+    reload: loadLocal, 
+  };
 }

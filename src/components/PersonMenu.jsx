@@ -1,11 +1,10 @@
 // src/components/PersonMenu.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
-import useModalStore from '../store/useModalStore';
 import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight  } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot }) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild }) {
   const { isOpen, targetNodeId, position, actions } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
@@ -81,12 +80,22 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
 
   const handleAddRelative = (relativeType) => {
     if (relativeType === 'spouse') {
-      // Close the menu first
+      const currentTargetNodeId = targetNodeId;
       actions.closeMenu();
       setShowSubmenu(false);
       
-      // Open the modal using the modal store
-      useModalStore.getState().openModal('addSpouseModal');
+      // Trigger the onAddSpouse prop to open the modal
+      onAddSpouse(currentTargetNodeId);
+      
+      // Log for debugging
+      console.log('Adding spouse for node:', currentTargetNodeId);
+    } else if (relativeType === 'child') {
+      const currentTargetNodeId = targetNodeId;
+      actions.closeMenu();
+      setShowSubmenu(false);
+      
+      // Trigger the onAddChild prop to open the modal
+      onAddChild(currentTargetNodeId);
     } else {
       console.log(`Adding ${relativeType} for node ${targetNodeId}`);
       actions.closeMenu();

@@ -25,7 +25,7 @@ function FlowPersonNode({ id, data }) {
   const handleRightClick = (event) => {
     event.preventDefault();
     clearTimeout(timerRef.current);
-    actions.openMenu(id, { x: event.clientX, y: event.clientY });
+    actions.openMenu(id, data.name, { x: event.clientX, y: event.clientY });
   };
 
   // Starts the timer on mouse down or touch start
@@ -42,7 +42,7 @@ function FlowPersonNode({ id, data }) {
         x: event.clientX || event.touches[0].clientX, 
         y: event.clientY || event.touches[0].clientY 
       };
-      actions.openMenu(id, position);
+      actions.openMenu(id, data.name, position);
     }, LONG_PRESS_DURATION);
   };
 

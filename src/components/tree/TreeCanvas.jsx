@@ -9,8 +9,9 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import '../../styles/treeCanvas.css';
 
-import { useFamilyData } from '../../hooks/useFamilyData';
+import { useFamilyData } from '../../hooks/useFamilyData';  
 import { calculateLayout, traceLineage, filterFamilyByRoot } from '../../utils/treeUtils/treeLayout';
+import * as treeController from '../../controllers/treeController/treeController'; // ✅ fixed import
 import MarriageNode from './nodes/MarriageNode';
 import FlowPersonNode from './nodes/FlowPersonNode';
 import FlowPersonNodeHorizontal from './nodes/FlowPersonNodeHorizontal';
@@ -21,10 +22,11 @@ import PersonMenu from '../PersonMenu';
 import CustomControls from './CustomControls'; 
 import Legend from './Legend';
 import AddSpouseModal from '../Add Relatives/Spouse/AddSpouseModal';
+import AddChildModal from '../Add Relatives/Child/AddChildModal';
 import usePersonMenuStore from '../../store/usePersonMenuStore';
 import useSidebarStore from '../../store/useSidebarStore';
 
-const nodeTypes = { person: FlowPersonNode, marriage: MarriageNode,  personHorizontal: FlowPersonNodeHorizontal };
+const nodeTypes = { person: FlowPersonNode, marriage: MarriageNode, personHorizontal: FlowPersonNodeHorizontal };
 const edgeTypes = { monogamousEdge: MonogamousEdge, polygamousEdge: PolygamousEdge, parentChild: ParentChildEdge };
 
 const CustomMarkers = () => (
@@ -40,22 +42,27 @@ const CustomMarkers = () => (
   </svg>
 );
 
+function TreeCanvasComponent() {
+  const { people: allPeople, marriages: allMarriages, loading, reload  } = useFamilyData("tree001");
 
-function TreeCanvasComponent({ treeId }) {
-  const { people: allPeople, marriages: allMarriages, loading } = useFamilyData(treeId);
   const [peopleWithCollapseState, setPeopleWithCollapseState] = useState(allPeople);
   const [rootPersonId, setRootPersonId] = useState('p001');
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [highlightedPath, setHighlightedPath] = useState({ nodes: [], edges: [] });
   const [lineageEdges, setLineageEdges] = useState([]);
 
+  // modal control states
+  const [partnerName, setPartnerName] = useState(''); // State for partner's name
+  const [showAddSpouseModal, setShowAddSpouseModal] = useState(false);
+  const [targetNodeId, setTargetNodeId] = useState(null);
+
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
-  
-    const { visiblePeople, visibleMarriages } = useMemo(() => {
+
+  const { visiblePeople, visibleMarriages } = useMemo(() => {
     const peopleWithUpdatedCollapse = allPeople.map(p => {
-        const statefulPerson = peopleWithCollapseState.find(sp => sp.id === p.id);
-        return statefulPerson || p;
+      const statefulPerson = peopleWithCollapseState.find(sp => sp.id === p.id);
+      return statefulPerson || p;
     });
     if (rootPersonId === 'p001') {
       return { visiblePeople: peopleWithUpdatedCollapse, visibleMarriages: allMarriages };
@@ -77,29 +84,23 @@ function TreeCanvasComponent({ treeId }) {
     if (openProfileSidebar) openProfileSidebar(personId);
   }, [openProfileSidebar]);
 
-   const { nodes, edges: baseEdges } = useMemo(
+  const { nodes, edges: baseEdges } = useMemo(
     () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation),
     [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation]
   );
-  
-  // ✨ THE FIX: This handler now creates the animated overlay.
+
   const handleTraceLineage = useCallback((personId) => {
     const path = traceLineage(personId, allPeople, allMarriages);
-    
-    // Find the full edge objects from our base layout that match the lineage path.
     const highlightedBaseEdges = baseEdges.filter(edge => path.edges.includes(edge.id));
-
-    // Create a new set of green, animated edges for the overlay.
     const animatedOverlay = highlightedBaseEdges.map(edge => ({
       ...edge,
-      id: `lineage-${edge.id}`, // Give it a unique ID to prevent conflicts
-      style: {  color: 'red' ,stroke: "var(--color-primary1)", strokeWidth: 8 },
-      className: 'lineage-edge', // This is what triggers your CSS animation
+      id: `lineage-${edge.id}`,
+      style: { stroke: "var(--color-primary1)", strokeWidth: 8 },
+      className: 'lineage-edge',
     }));
-
     setLineageEdges(animatedOverlay);
   }, [allPeople, allMarriages, baseEdges]);
-  
+
   const handleSetAsRoot = useCallback((personId) => {
     setRootPersonId(personId);
     setHighlightedPath({ nodes: [], edges: [] });
@@ -124,18 +125,14 @@ function TreeCanvasComponent({ treeId }) {
     closeMenu();
   }, [highlightedPath, closeMenu]);
 
-
-
   const handleToggleOrientation = useCallback(() => {
     setOrientation((currentOrientation) =>
       currentOrientation === 'vertical' ? 'horizontal' : 'vertical'
     );
-    
     setTimeout(() => fitView({ duration: 500 }), 100);
   }, [fitView]);
 
-  
- const finalBaseEdges = useMemo(() => {
+  const finalBaseEdges = useMemo(() => {
     if (!hoveredNodeId) return baseEdges;
     return baseEdges.map(edge => {
       if (edge.source === hoveredNodeId || edge.target === hoveredNodeId) {
@@ -151,18 +148,35 @@ function TreeCanvasComponent({ treeId }) {
 
   if (loading) return <div>Loading...</div>;
 
-
+  // spouse submit
   const handleAddSpouseSubmit = async (formData) => {
-    console.log("Form submitted with this data:", formData);
-    // 1. Call your API/Firebase function here to save the data
-    // await yourApi.addSpouse(treeId, formData.targetNodeId, formData.people, formData.marriages);
-
-    // 2. Trigger a re-fetch of the family data so the tree updates
-    // refetchFamilyData(); 
+    try {
+      if (!targetNodeId) return;
+      await treeController.addSpouse("tree001", targetNodeId, formData);
+      setShowAddSpouseModal(false);
+      setTargetNodeId(null);
+       reload();
+    } catch (err) {
+      console.error("Error adding spouse:", err);
+    }
   };
 
+  // child submit
+  const handleAddChildSubmit = async (formData) => {
+    try {
+      if (!targetNodeId) return;
+      await treeController.addChild("tree001", {
+        parentId: targetNodeId,
+        childData: formData,
+      });
+      reload();
+      setTargetNodeId(null);
+    } catch (err) {
+      console.error("Error adding child:", err);
+    }
+  };
 
-
+  
 
   return (
     <div style={{ height: '100%', width: '100%' }} onMouseDown={clearHighlight}>
@@ -172,12 +186,31 @@ function TreeCanvasComponent({ treeId }) {
         handleTraceLineage={handleTraceLineage}
         handleSetAsRoot={handleSetAsRoot}
         handleResetView={handleResetView}
+        onAddSpouse={(personId) => { 
+          console.log('onAddSpouse called with:', personId);
+          setTargetNodeId(personId); 
+          setShowAddSpouseModal(true);
+          setPartnerName(data.name); // Store the partner's name
+        }}
+        onAddChild={(personId) => { setTargetNodeId(personId); }}
       />
-      <AddSpouseModal onSubmit={handleAddSpouseSubmit} /> 
+        {showAddSpouseModal && (
+          <AddSpouseModal 
+            onSubmit={handleAddSpouseSubmit} 
+            onClose={() => {
+              console.log('Closing spouse modal');
+              setShowAddSpouseModal(false);
+            }}
+          />
+        )}
+        <AddChildModal 
+          onSubmit={handleAddChildSubmit} 
+        />
+  
+
       <ReactFlow
         edges={[...finalBaseEdges, ...lineageEdges]}
         nodes={nodes}
-        // edges={finalEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeMouseEnter={(event, node) => setHoveredNodeId(node.id)}
@@ -193,12 +226,7 @@ function TreeCanvasComponent({ treeId }) {
         />
         <Legend />
         <CustomMarkers />
-         <MiniMap 
-          position="bottom-left"
-          nodeStrokeWidth={3} 
-          zoomable 
-          pannable 
-        />
+        <MiniMap position="bottom-left" nodeStrokeWidth={3} zoomable pannable />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
     </div>
@@ -212,6 +240,3 @@ export default function TreeCanvasWrapper(props) {
     </ReactFlowProvider>
   );
 }
-
-
-
