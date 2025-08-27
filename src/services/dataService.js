@@ -33,6 +33,7 @@ let localDB = loadLocalDB();
 
 function saveLocalDB() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(localDB));
+  window.dispatchEvent(new Event('familyDataChanged'));
 }
 
 // --- Local implementations ---

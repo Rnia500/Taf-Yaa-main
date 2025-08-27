@@ -4,12 +4,12 @@ import ReactFlow, {
   Background,
   MiniMap,
   ReactFlowProvider,
-  useReactFlow, 
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import '../../styles/treeCanvas.css';
 
-import { useFamilyData } from '../../hooks/useFamilyData';  
+import { useFamilyData } from '../../hooks/useFamilyData';
 import { calculateLayout, traceLineage, filterFamilyByRoot } from '../../utils/treeUtils/treeLayout';
 import * as treeController from '../../controllers/treeController/treeController'; // ✅ fixed import
 import MarriageNode from './nodes/MarriageNode';
@@ -19,7 +19,7 @@ import MonogamousEdge from './edges/MonogamousEdge';
 import PolygamousEdge from './edges/PolygamousEdge';
 import ParentChildEdge from './edges/ParentChildEdge';
 import PersonMenu from '../PersonMenu';
-import CustomControls from './CustomControls'; 
+import CustomControls from './CustomControls';
 import Legend from './Legend';
 import AddSpouseModal from '../Add Relatives/Spouse/AddSpouseModal';
 import AddChildModal from '../Add Relatives/Child/AddChildModal';
@@ -43,7 +43,7 @@ const CustomMarkers = () => (
 );
 
 function TreeCanvasComponent() {
-  const { people: allPeople, marriages: allMarriages, loading, reload  } = useFamilyData("tree001");
+  const { people: allPeople, marriages: allMarriages, loading, reload } = useFamilyData("tree001");
 
   const [peopleWithCollapseState, setPeopleWithCollapseState] = useState(allPeople);
   const [rootPersonId, setRootPersonId] = useState('p001');
@@ -116,7 +116,7 @@ function TreeCanvasComponent() {
     setTimeout(() => {
       fitView({ duration: 800 });
     }, 50);
-  }, [fitView, closeMenu]); 
+  }, [fitView, closeMenu]);
 
   const clearHighlight = useCallback(() => {
     if (highlightedPath.nodes.length > 0 || highlightedPath.edges.length > 0) {
@@ -155,7 +155,7 @@ function TreeCanvasComponent() {
       await treeController.addSpouse("tree001", targetNodeId, formData);
       setShowAddSpouseModal(false);
       setTargetNodeId(null);
-       reload();
+      reload();
     } catch (err) {
       console.error("Error adding spouse:", err);
     }
@@ -176,37 +176,46 @@ function TreeCanvasComponent() {
     }
   };
 
-  
+
 
   return (
     <div style={{ height: '100%', width: '100%' }} onMouseDown={clearHighlight}>
-      <PersonMenu 
-        handleToggleCollapse={handleToggleCollapse} 
+      <PersonMenu
+        handleToggleCollapse={handleToggleCollapse}
         handleOpenProfile={handleOpenProfile}
         handleTraceLineage={handleTraceLineage}
         handleSetAsRoot={handleSetAsRoot}
         handleResetView={handleResetView}
-        onAddSpouse={(personId) => { 
+        onAddSpouse={(personId) => {
           console.log('onAddSpouse called with:', personId);
-          setTargetNodeId(personId); 
+          setTargetNodeId(personId);
           setShowAddSpouseModal(true);
-          setPartnerName(data.name); // Store the partner's name
+
+          // find person by ID and store their name
+          const person = allPeople.find(p => p.id === personId);
+          if (person) {
+            setPartnerName(person.name);
+          }
         }}
         onAddChild={(personId) => { setTargetNodeId(personId); }}
       />
-        {showAddSpouseModal && (
-          <AddSpouseModal 
-            onSubmit={handleAddSpouseSubmit} 
-            onClose={() => {
-              console.log('Closing spouse modal');
-              setShowAddSpouseModal(false);
-            }}
-          />
-        )}
-        <AddChildModal 
-          onSubmit={handleAddChildSubmit} 
+
+      {showAddSpouseModal && (
+        <AddSpouseModal
+          targetNodeId={targetNodeId}        // ✅ pass directly
+          partnerName={partnerName}          // ✅ pass partner name too
+          onSuccess={() => {
+            handleAddSpouseSubmit();         // run your submit handler
+            setShowAddSpouseModal(false);    // close after success
+            setTargetNodeId(null);           // reset
+          }}
         />
-  
+      )}
+
+      <AddChildModal
+        onSubmit={handleAddChildSubmit}
+      />
+
 
       <ReactFlow
         edges={[...finalBaseEdges, ...lineageEdges]}
@@ -220,7 +229,7 @@ function TreeCanvasComponent() {
         nodesConnectable={false}
         proOptions={{ hideAttribution: true }}
       >
-        <CustomControls 
+        <CustomControls
           handleResetView={handleResetView}
           handleToggleOrientation={handleToggleOrientation}
         />

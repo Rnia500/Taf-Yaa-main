@@ -11,18 +11,9 @@ import Button from '../../Button';
 import { User, Heart, Shield, BookOpen } from 'lucide-react';
 import { MarriageModel } from '../../../models/treeModels/MarriageModel';
 
-const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) => {
+const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1 }) => {
   
-  const marriageModel = new MarriageModel({
-    id: '',
-    treeId: '',
-    marriageType: 'polygamous',
-    husbandId: 'dummy', 
-    wives: existingWives,
-    createdBy: '',
-    createdAt: '',
-    updatedAt: ''
-  });
+
 
   const [formData, setFormData] = useState({
     // Section 1: New Spouse's Information
@@ -42,10 +33,11 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
     audioURL: null,
 
     // Section 3: Marriage Information
+    marriageType: 'monogamous', 
     marriageDate: '',
     marriageLocation: '',
     marriageNotes: '',
-    wifeOrder: marriageModel.getNextWifeOrder(), // 
+    wifeOrder: suggestedWifeOrder,
 
     // Section 4: Privacy
     privacy: 'membersOnly'
@@ -87,6 +79,11 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
     { value: 'membersOnly', label: 'Members Only (Highest Privacy)' },
     { value: 'authenticated', label: 'Registered Users' },
     { value: 'public', label: 'Public' }
+  ];
+
+    const marriageTypeOptions = [
+    { value: 'monogamous', label: 'Monogamous' },
+    { value: 'polygamous', label: 'Polygamous' }
   ];
 
   return (
@@ -240,6 +237,20 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
         </div>
 
         <div className="form-grid">
+
+          {/* ✨ CONDITIONAL FIELD: Only show "Marriage Type" for the FIRST spouse */}
+          {isFirstSpouse && (
+            <div className="form-group">
+              <label className="form-label">Marriage Type *</label>
+              <SelectDropdown
+                value={formData.marriageType}
+                onChange={(e) => handleInputChange('marriageType', e.target.value)}
+                options={marriageTypeOptions}
+                required
+              />
+            </div>
+          )}
+          
           <div className="form-group">
             <label className="form-label">Marriage Date</label>
             <DateInput
@@ -257,18 +268,17 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, existingWives = [] }) 
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Order (position among wives)</label>
-            <TextInput
-              type="number"
-              value={formData.wifeOrder}
-              onChange={(e) => handleInputChange('wifeOrder', parseInt(e.target.value))}
-              placeholder={`Suggested: ${marriageModel.getNextWifeOrder()}`}
-            />
-            <p className="text-xs text-gray-500">
-              Suggested: {marriageModel.getNextWifeOrder()} (editable)
-            </p>
-          </div>
+          {formData.marriageType === 'polygamous' && (
+            <div className="form-group">
+              <label className="form-label">Order (position among wives)</label>
+              <TextInput
+                type="number"
+                value={formData.wifeOrder}
+                onChange={(e) => handleInputChange('wifeOrder', parseInt(e.target.value) || 1)}
+                min="1"
+              />
+            </div>
+          )}
 
           <div className="form-group full-width">
             <label className="form-label">Notes about the Marriage</label>

@@ -39,8 +39,9 @@ export function useFamilyData(treeId) {
 
   useEffect(() => {
     if (USE_LOCAL) {
+      window.addEventListener('familyDataChanged', loadLocal);
       loadLocal();
-      return;
+      return () => window.removeEventListener('familyDataChanged', loadLocal);
     }
 
     // Firebase mode (real-time listeners)

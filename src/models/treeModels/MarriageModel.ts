@@ -2,21 +2,26 @@
 
 export type MarriageType = "monogamous" | "polygamous";
 
+// Wife inside a polygamous marriage
 export interface PolygamousWife {
   wifeId: string;
-  order?: number; // explicitly entered by the user
+  order?: number;
   startDate?: string | null;
   endDate?: string | null;
   location?: string | null;
   notes?: string | null;
   childrenIds?: string[];
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
+// Monogamous marriage (two spouses only)
 export interface MonogamousMarriage {
   id: string;
   treeId: string;
   marriageType: "monogamous";
-  spouses: [string, string]; // exactly 2 people
+  spouses: [string, string];
   childrenIds: string[];
   startDate?: string | null;
   endDate?: string | null;
@@ -26,6 +31,8 @@ export interface MonogamousMarriage {
   createdAt: string;
   updatedAt: string;
 }
+
+
 
 export interface PolygamousMarriage {
   id: string;
@@ -40,6 +47,8 @@ export interface PolygamousMarriage {
 
 export type Marriage = MonogamousMarriage | PolygamousMarriage;
 
+
+
 export class MarriageModel {
   marriage: Marriage;
 
@@ -47,21 +56,26 @@ export class MarriageModel {
     this.marriage = marriage;
   }
 
-  // Suggest the next wife order (for UI convenience only)
+
+  
   getNextWifeOrder(): number {
     if (this.marriage.marriageType !== "polygamous") return 1;
     const orders = this.marriage.wives.map(w => w.order ?? 0);
     return orders.length > 0 ? Math.max(...orders) + 1 : 1;
   }
 
-  // Add a wife (but keep order user-editable)
+
   addWife(wife: PolygamousWife): void {
     if (this.marriage.marriageType === "polygamous") {
-      this.marriage.wives.push(wife);
+      this.marriage.wives.push({
+        ...wife,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
     }
   }
 
-  // Add a child to monogamous or polygamous
+
   addChild(childId: string, wifeId?: string): void {
     if (this.marriage.marriageType === "monogamous") {
       this.marriage.childrenIds.push(childId);
@@ -70,6 +84,7 @@ export class MarriageModel {
       if (wife) {
         wife.childrenIds = wife.childrenIds || [];
         wife.childrenIds.push(childId);
+        wife.updatedAt = new Date().toISOString();
       }
     }
   }
