@@ -92,9 +92,10 @@ function updateMarriage(marriageId, updatedMarriageData) {
 
 
 function clearLocalDB() {
-  localDB = { people: [...dummyData.people], marriages: [...dummyData.marriages] };
+  localDB = { people: [...dummyPeople], marriages: [...dummyMarriages] };
   saveLocalDB();
 }
+
 
 // --- Firebase stubs (future-ready) ---
 async function addPersonFirebase(person) {

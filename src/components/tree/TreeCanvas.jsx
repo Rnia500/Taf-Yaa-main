@@ -25,6 +25,9 @@ import AddSpouseModal from '../Add Relatives/Spouse/AddSpouseModal';
 import AddChildModal from '../Add Relatives/Child/AddChildModal';
 import usePersonMenuStore from '../../store/usePersonMenuStore';
 import useSidebarStore from '../../store/useSidebarStore';
+import useModalStore from '../../store/useModalStore';
+import dataService from '../../services/dataService';
+import Button from '../Button';
 
 const nodeTypes = { person: FlowPersonNode, marriage: MarriageNode, personHorizontal: FlowPersonNodeHorizontal };
 const edgeTypes = { monogamousEdge: MonogamousEdge, polygamousEdge: PolygamousEdge, parentChild: ParentChildEdge };
@@ -51,13 +54,12 @@ function TreeCanvasComponent() {
   const [highlightedPath, setHighlightedPath] = useState({ nodes: [], edges: [] });
   const [lineageEdges, setLineageEdges] = useState([]);
 
-  // modal control states
   const [partnerName, setPartnerName] = useState(''); // State for partner's name
-  const [showAddSpouseModal, setShowAddSpouseModal] = useState(false);
   const [targetNodeId, setTargetNodeId] = useState(null);
 
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
+  const { openModal } = useModalStore();
 
   const { visiblePeople, visibleMarriages } = useMemo(() => {
     const peopleWithUpdatedCollapse = allPeople.map(p => {
@@ -153,7 +155,6 @@ function TreeCanvasComponent() {
     try {
       if (!targetNodeId) return;
       await treeController.addSpouse("tree001", targetNodeId, formData);
-      setShowAddSpouseModal(false);
       setTargetNodeId(null);
       reload();
     } catch (err) {
@@ -189,32 +190,35 @@ function TreeCanvasComponent() {
         onAddSpouse={(personId) => {
           console.log('onAddSpouse called with:', personId);
           setTargetNodeId(personId);
-          setShowAddSpouseModal(true);
 
           // find person by ID and store their name
           const person = allPeople.find(p => p.id === personId);
           if (person) {
             setPartnerName(person.name);
           }
+
+          // Open the modal using the Zustand store
+          openModal('addSpouseModal', { targetNodeId: personId });
         }}
         onAddChild={(personId) => { setTargetNodeId(personId); }}
       />
 
-      {showAddSpouseModal && (
-        <AddSpouseModal
-          targetNodeId={targetNodeId}        // ✅ pass directly
-          partnerName={partnerName}          // ✅ pass partner name too
-          onSuccess={() => {
-            handleAddSpouseSubmit();         // run your submit handler
-            setShowAddSpouseModal(false);    // close after success
-            setTargetNodeId(null);           // reset
-          }}
-        />
-      )}
+      <AddSpouseModal
+        targetNodeId={targetNodeId}
+        partnerName={partnerName}
+        onSuccess={handleAddSpouseSubmit}
+      />
 
       <AddChildModal
         onSubmit={handleAddChildSubmit}
       />
+
+      <Button positionType='absolute' position='top-left' margin='10px 0px 0px 200px' variant='danger'  onClick={() => {
+        dataService.clearLocalDB();
+        window.location.reload();
+      }}>
+        Reset Family Tree
+      </Button>
 
 
       <ReactFlow

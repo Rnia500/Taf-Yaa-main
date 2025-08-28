@@ -7,15 +7,22 @@ import { X } from 'lucide-react';
 import Card from '../../../layout/containers/Card';
 
 export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess }) {
-  const { closeModal } = useModalStore();
+  const { modals, closeModal } = useModalStore();
+  const isOpen = modals.addSpouseModal || false;
 
   const handleSuccess = (result) => {
     if (onSuccess) onSuccess(result);
     closeModal('addSpouseModal');
   };
 
+  const handleClose = () => {
+    closeModal('addSpouseModal');
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="modal-overlay" onClick={() => closeModal('addSpouseModal')}>
+    <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <Card
           fitContent
@@ -25,7 +32,7 @@ export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess })
           margin='15px 15px 0px 0px'
           position='top-right'
           style={{ zIndex: 10 }}
-          onClick={() => closeModal('addSpouseModal')}
+          onClick={handleClose}
         >
           <X size={24} color="white" />
         </Card>
@@ -44,7 +51,7 @@ export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess })
               treeId="tree001"
               existingSpouseId={targetNodeId}
               onSuccess={handleSuccess}
-              onCancel={() => closeModal('addSpouseModal')}
+              onCancel={handleClose}
             />
           )}
         </div>
