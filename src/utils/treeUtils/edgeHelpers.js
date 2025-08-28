@@ -37,18 +37,20 @@ export function createPolygamousEdge(source, target, marriageId, options = {}) {
   // normalize marriageId safely
   const cleanMarriageId = String(marriageId || "").replace(/^marriage-/, "") || "unknown";
 
-  return {
-    id: `edge-polygamous-${source}-${target}-marriage-${cleanMarriageId}`,
-    source,
-    target,
-    type: "polygamousEdge",
-    sourceHandle: options.sourceHandle || "source-left",
-    targetHandle: options.targetHandle || "target-parent",
-    markerStart: "circle",
-    markerEnd: "arrow-custom",
-    data: { orientation: options.orientation || "vertical" },
-    ...options
-  };
+return {
+  id: `edge-polygamous-${source}-${target}-marriage-${cleanMarriageId}`,
+  source,
+  target,
+  type: "polygamousEdge",
+  sourceHandle: options.sourceHandle /*|| "source-left"*/,
+  targetHandle: options.targetHandle /*|| "target-parent"*/,
+  markerStart: "circle",
+  ...options,
+  data: {
+    orientation: options.orientation /*|| "horizontal"*/
+  }
+};
+
 }
 
 export function createSpouseEdge(source, target, options = {}) {

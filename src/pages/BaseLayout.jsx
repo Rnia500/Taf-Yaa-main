@@ -8,13 +8,11 @@ import FamilyTreePage from './FamilyTreePage';
 import useSidebarStore from '../store/useSidebarStore';
 import Text from '../components/Text';
 import ComponentDemo from './ComponentDemo';
+import Toast from '../components/toasts/Toast';
 
 export default function BaseLayout() {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
-
-  
-  
 
   return (
     <PageFrame
@@ -27,12 +25,13 @@ export default function BaseLayout() {
       onSidebarClose={closeSidebar}
     >
       <>
+        <Toast />
         {/* <Card>
           <Text variant='heading1'>Welcome to Taf'Yaa</Text>
         </Card> */}
 
-        <FamilyTreePage />
-         {/* <ComponentDemo setSidebarOpen={() => {}} /> */}
+        {/* <FamilyTreePage /> */}
+         <ComponentDemo setSidebarOpen={() => {}} />
       </>
     </PageFrame>
   );

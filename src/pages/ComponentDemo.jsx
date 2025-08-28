@@ -21,16 +21,26 @@ import AudioPlayer from '../components/AudioPLayer';
 import WaveformPlayer from '../components/WaveformPlayer';
 import Pill from '../components/pill';
 import ClampText from '../components/ClampText';
-import ImageCard from '../layout/containers/ImageCard';
-import PersonCardContainer from '../layout/containers/PersonCardContainer';
+import ImageCard from '../layout/containers/ImageCard'; 0
 import RecordingIcon from '../components/RecordingIcon';
-import PersonCardSVG from '../layout/containers/PersonCardSVG';
 import PersonCard from '../components/PersonCard';
 import PersonCardHorizontal from '../components/PersonCardHorizontal';
+import ConfirmationModal from '../components/modals/ConfirmationModal';
+import WarningModal from '../components/modals/WarningModal';
+import ErrorModal from '../components/modals/ErrorModal';
+import InfoModal from '../components/modals/InfoModal';
+import useToastStore from '../store/useToastStore';
 
 
 
-const ComponentDemo = ({setSidebarOpen}) => {
+
+
+
+
+
+
+
+const ComponentDemo = ({ setSidebarOpen }) => {
   const [checked, setChecked] = useState(false);
   const [date, setDate] = useState('');
   const [step, setStep] = useState(1);
@@ -43,6 +53,11 @@ const ComponentDemo = ({setSidebarOpen}) => {
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
   const [audioDurations, setAudioDurations] = useState({});
   const [audioTimes, setAudioTimes] = useState({});
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const addToast = useToastStore((state) => state.addToast);
 
 
   const handleAudioActivate = (index) => {
@@ -120,7 +135,7 @@ const ComponentDemo = ({setSidebarOpen}) => {
       <Divider />
 
       <h2>FileUpload</h2>
-      <FileUpload onChange={() => {}} />
+      <FileUpload onChange={() => { }} />
       <Divider />
 
       <h2>Input</h2>
@@ -130,7 +145,7 @@ const ComponentDemo = ({setSidebarOpen}) => {
         placeholder="Search for a Tree..."
         value={search}
         onChange={setSearch}
-        onSearch={val => alert('Searching for:'+' '+ val)}
+        onSearch={val => alert('Searching for:' + ' ' + val)}
       />
       <Spacer />
       <TextArea label="Description" value={textarea} onChange={e => setTextarea(e.target.value)} />
@@ -167,15 +182,15 @@ const ComponentDemo = ({setSidebarOpen}) => {
       <Divider />
 
       <h2>ToggleSwitch</h2>
-        <ToggleSwitch
-          checked={toggle}
-          onChange={newValue => {
-            setToggle(newValue);
-            // setTimeout(() => {
-            //   alert(newValue ? "this is On" : "this is Off");
-            // }, 0);
-          }}
-        /> 
+      <ToggleSwitch
+        checked={toggle}
+        onChange={newValue => {
+          setToggle(newValue);
+          // setTimeout(() => {
+          //   alert(newValue ? "this is On" : "this is Off");
+          // }, 0);
+        }}
+      />
       <Divider />
 
       <h2>Pill</h2>
@@ -204,10 +219,10 @@ const ComponentDemo = ({setSidebarOpen}) => {
       <Divider />
 
       <h2>Flexible Container</h2>
-       <FlexContainer direction="column" responsiveDirection="row" gap="1rem">
+      <FlexContainer direction="column" responsiveDirection="row" gap="1rem">
         <Card backgroundColor='#1F724A' height='50px'> Card 1 </Card>
         <Card backgroundColor='#1F724A' height='50px'> Card 2 </Card>
-       </FlexContainer>
+      </FlexContainer>
       <Divider />
 
       <h2>Grid</h2>
@@ -222,31 +237,31 @@ const ComponentDemo = ({setSidebarOpen}) => {
       <Card padding="24px" shadow borderRadius="12px" backgroundColor='black' positionType='Relative'>
         <h3>Card Title</h3>
         <p>Card content goes here.</p>
-        <Card rounded positionType='Absolute' position='top-right' backgroundColor='white' onClick={() => {}} margin='5px 5px 0px 0px' ><CircleUser strokeWidth={2} size={50} color='#1F724A'/></Card>
-        <Card width='100px'  positionType='Absolute' position='bottom-right' onClick={() => {}} margin='0px 10px 10px 0px' ><Text variant='caption1' color='danger'> others</Text></Card>
-        <Card width='100px' positionType='Absolute' position='bottom-left' onClick={() => {}} margin='0px 0px 10px 10px' ><Text variant='caption1' color='link'> others</Text></Card>
+        <Card rounded positionType='Absolute' position='top-right' backgroundColor='white' onClick={() => { }} margin='5px 5px 0px 0px' ><CircleUser strokeWidth={2} size={50} color='#1F724A' /></Card>
+        <Card width='100px' positionType='Absolute' position='bottom-right' onClick={() => { }} margin='0px 10px 10px 0px' ><Text variant='caption1' color='danger'> others</Text></Card>
+        <Card width='100px' positionType='Absolute' position='bottom-left' onClick={() => { }} margin='0px 0px 10px 10px' ><Text variant='caption1' color='link'> others</Text></Card>
       </Card>
 
       <h2>Image Card</h2>
       <Row gap="16px" justifyContent="start">
-        <ImageCard 
-          image="/Images/image1.png" 
-          alt="Sample image 1" 
-          width="150px" 
+        <ImageCard
+          image="/Images/image1.png"
+          alt="Sample image 1"
+          width="150px"
           height="150px"
-          borderRadius="10px" 
-        />
-        <ImageCard 
-          image="/Images/image3.png" 
-          alt="Sample image 3" 
-          width="150px" 
-          height="150px" 
           borderRadius="10px"
         />
-        <ImageCard 
-          alt="Fallback icon" 
-          width="150px" 
-          height="150px" 
+        <ImageCard
+          image="/Images/image3.png"
+          alt="Sample image 3"
+          width="150px"
+          height="150px"
+          borderRadius="10px"
+        />
+        <ImageCard
+          alt="Fallback icon"
+          width="150px"
+          height="150px"
           rounded
         />
       </Row>
@@ -293,66 +308,151 @@ const ComponentDemo = ({setSidebarOpen}) => {
 
       <h2>Person Card</h2>
       <Row alignItems='center' padding="0px" gap="1rem" margin='0px'>
-          <PersonCard
-            variant="root"
-            name="Vishanti"
-            sex="F"
-            birthDate="01/01/1880"
-            profileImage="/Images/image5.jpg" 
-            onClick={() => setSidebarOpen(true)}
-            onAdd={() => {}}
-          />
+        <PersonCard
+          variant="root"
+          name="Vishanti"
+          sex="F"
+          birthDate="01/01/1880"
+          profileImage="/Images/image5.jpg"
+          onClick={() => setSidebarOpen(true)}
+          onAdd={() => { }}
+        />
 
-           <PersonCard
-            variant="dead"
-            name="Vishanti Vlad Tepes"
-            sex="F"
-            role='admin'
-            birthDate="01/01/1880" 
-            deathDate="01/01/1950"
-            profileImage="/Images/image6.jpg" 
-            onClick={() => setSidebarOpen(false)}
-            onAdd={() => {}}
-          />
+        <PersonCard
+          variant="dead"
+          name="Vishanti Vlad Tepes"
+          sex="F"
+          role='admin'
+          birthDate="01/01/1880"
+          deathDate="01/01/1950"
+          profileImage="/Images/image6.jpg"
+          onClick={() => setSidebarOpen(false)}
+          onAdd={() => { }}
+        />
 
-           <PersonCard
-            variant="directline"
-            name="Vishanti Vlad Tepes"
-            sex="F"
-            role='moderator'
-            birthDate="01/01/1880"
-            profileImage="/Images/image7.jpg" 
-            onClick={() => setSidebarOpen(true)}
-            onAdd={() => {}}
-          />
+        <PersonCard
+          variant="directline"
+          name="Vishanti Vlad Tepes"
+          sex="F"
+          role='moderator'
+          birthDate="01/01/1880"
+          profileImage="/Images/image7.jpg"
+          onClick={() => setSidebarOpen(true)}
+          onAdd={() => { }}
+        />
 
-           <PersonCard
-            variant="spouce"
-            role='editor'
-            name="Vishanti Vlad Tepes"
-            sex="F"
-            birthDate="01/01/1880"
-            profileImage="/Images/image8.jpg"
-            onClick={() => setSidebarOpen(false)} 
-            onAdd={() => {}}
-          />
+        <PersonCard
+          variant="spouce"
+          role='editor'
+          name="Vishanti Vlad Tepes"
+          sex="F"
+          birthDate="01/01/1880"
+          profileImage="/Images/image8.jpg"
+          onClick={() => setSidebarOpen(false)}
+          onAdd={() => { }}
+        />
 
-           <PersonCardHorizontal
-            variant="spouce"
-            role='editor'
-            name="Vishanti Vlad Tepes"
-            sex="F"
-            birthDate="01/01/1880"
-            profileImage="/Images/image8.jpg"
-            onClick={() => setSidebarOpen(false)} 
-            onAdd={() => {}}
-          />
+        <PersonCardHorizontal
+          variant="spouce"
+          role='editor'
+          name="Vishanti Vlad Tepes"
+          sex="F"
+          birthDate="01/01/1880"
+          profileImage="/Images/image8.jpg"
+          onClick={() => setSidebarOpen(false)}
+          onAdd={() => { }}
+        />
       </Row>
-        
-      
+
+
+      <Divider />
+      <h2>Reusable Modals</h2>
+      <Row padding='0px' margin='0px' fitContent>
+        <Button fullWidth onClick={() => setIsConfirmationModalOpen(true)}>
+          Open Confirmation Modal
+        </Button>
+        <ConfirmationModal
+          isOpen={isConfirmationModalOpen}
+          onClose={() => setIsConfirmationModalOpen(false)}
+          onConfirm={(rememberChoice) => alert(`Confirmed! Remember choice: ${rememberChoice}`)}
+          title="Confirm action"
+          message="Are you sure you want to confirm this action This action cannot be undone."
+          confirmText="Confirm"
+          cancelText="Cancel"
+          confirmVariant="primary"
+        />
+        <Button fullWidth onClick={() => setIsWarningModalOpen(true)}>
+          Open Warning Modal
+        </Button>
+        <WarningModal
+          isOpen={isWarningModalOpen}
+          onClose={() => setIsWarningModalOpen(false)}
+          onConfirm={(dontRemindMe) => alert(`Proceed! Don't remind me: ${dontRemindMe}`)}
+          title="Warning"
+          message="This action may have consequences. Are you sure you want to proceed?"
+          confirmText="Proceed"
+          cancelText="Cancel"
+          confirmVariant="warning"
+        />
+        <Button fullWidth onClick={() => setIsErrorModalOpen(true)}>
+          Open Error Modal
+        </Button>
+        <ErrorModal
+          isOpen={isErrorModalOpen}
+          onClose={() => setIsErrorModalOpen(false)}
+          title="Error"
+          message="An error occurred. Please try again."
+          confirmText="OK"
+          confirmVariant="danger"
+        />
+        <Button fullWidth onClick={() => setIsInfoModalOpen(true)}>
+          Open Info Modal
+        </Button>
+        <InfoModal
+          isOpen={isInfoModalOpen}
+          onClose={() => setIsInfoModalOpen(false)}
+          title="Information"
+          message="This is an informational message."
+          confirmText="OK"
+          confirmVariant="primary"
+        />
+      </Row>
+
+      <Divider />
+      <h2>Toast Messages</h2>
+      <Row padding='0px' margin='0px' fitContent>
+        <Button fullWidth onClick={() => addToast('This is a success message!', 'success')}>
+          Show Success Toast
+        </Button>
+        <Button fullWidth onClick={() => addToast('This is an error message!', 'error')}>
+          Show Error Toast
+        </Button>
+        <Button fullWidth onClick={() => addToast('This is a warning message!', 'warning')}>
+          Show Warning Toast
+        </Button>
+        <Button fullWidth onClick={() => addToast('This is an info message!', 'info')}>
+          Show Info Toast
+        </Button>
+        <Button fullWidth onClick={() => addToast(
+          <div style={{
+            background: "white",
+            padding: "10px 15px",
+            borderRadius: "6px",
+            border: "1px solid #ddd",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
+          }}>
+            <strong>Uploading...</strong>
+            <progress value="30" max="100"></progress>
+          </div>,
+          "blank"
+        )}>
+          Show Blank/Custom Toast
+        </Button>
+      </Row>
 
     </div>
   );
 };
 
 export default ComponentDemo;
+

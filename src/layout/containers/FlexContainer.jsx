@@ -13,6 +13,7 @@ function FlexContainer({
   align = 'flex-start',
   justify = 'flex-start',
   className = '',
+  margin = '',
   backgroundColor 
 }) {
   return (
@@ -21,6 +22,7 @@ function FlexContainer({
       style={{
         gap,
         padding,
+        margin,
         width,
         height,
         flexDirection: direction,

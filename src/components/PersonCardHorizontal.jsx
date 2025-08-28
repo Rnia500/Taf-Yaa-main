@@ -9,7 +9,7 @@ import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBa
 import Spacer from "./Spacer";
 //variants are root, directline, spouce, dead
 
-function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'viewer', profileImage, onAdd, onClick }) {
+function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', profileImage, onAdd, onClick }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -22,6 +22,11 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
   };
 
   const finalRole = (role) => {
+
+    if(role === 'null'){
+      return null;
+    }
+
     if (role === 'admin') {
       return <AdminBadge scared position="top-right" margin="-1px -13px 0px 0px" />;
     }

@@ -239,16 +239,16 @@ export function layoutVertical(nodesMap, marriages, initialEdges) {
 
   if (root.marriage?.marriageType === 'polygamous') {
     const husbandNode = finalNodesMap.get(root.marriage.husbandId);
-    if (husbandNode) husbandNode.data.variant = 'root';
+    if (husbandNode) husbandNode.data.variant = husbandNode.data.deathDate ? 'dead' : 'root';
     for (const w of root.marriage.wives || []) {
-      const wf = finalNodesMap.get(w.wifeId); if (wf) wf.data.variant = 'root';
+      const wf = finalNodesMap.get(w.wifeId); if (wf) wf.data.variant = wf.data.deathDate ? 'dead' : 'root';
     }
   } else if (root.marriage?.marriageType === 'monogamous') {
     for (const s of root.marriage.spouses || []) {
-      const sn = finalNodesMap.get(s); if (sn) sn.data.variant = 'root';
+      const sn = finalNodesMap.get(s); if (sn) sn.data.variant = sn.data.deathDate? 'dead' : 'root';
     }
   } else {
-    const r = finalNodesMap.get(root.id); if (r) r.data.variant = 'root';
+    const r = finalNodesMap.get(root.id); if (r) r.data.variant = r.data.deathDate? 'dead' : 'root';
   }
 
   const edges = createEdges(processedMarriages, finalNodesMap);

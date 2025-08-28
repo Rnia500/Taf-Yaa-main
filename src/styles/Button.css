@@ -77,13 +77,11 @@
 .btn-secondary {
   background-color: var(--color-secondary2);
   color: var(--color-gray-light);
-  border: 1px solid var(--color-secondary2);
 }
 
 
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--color-secondary1);
-  border-color: var(--color-secondary1);
 }
 
 
@@ -93,6 +91,20 @@
   box-shadow: none;
 }
 
+.btn-warning {
+  background-color: var(--color-warning1);
+  color: var(--color-dark);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background-color: var(--color-warning2);
+}
+
+.btn-warning:focus,
+.btn-warning:active {
+  outline: none;
+  box-shadow: none;
+}
 
 .btn-danger {
   background-color: var(--color-danger);
@@ -151,8 +163,8 @@
 
 /* Spinner */
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 0.5rem;
+  height: 0.5rem;
   border: 2px solid white;
   border-top: 2px solid transparent;
   border-radius: 50%;

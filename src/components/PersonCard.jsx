@@ -8,7 +8,7 @@ import Row from "../layout/containers/Row";
 import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBadge";
 //variants are root, directline, spouce, dead
 
-function PersonCard({ variant = "default", style, name, sex, birthDate, deathDate, role = 'viewer', profileImage, onAdd, onClick }) {
+function PersonCard({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', profileImage, onAdd, onClick }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -21,6 +21,11 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
   };
 
   const finalRole = (role) => {
+
+    if(role === 'null'){
+      return null;
+    }
+
     if (role === 'admin') {
       return <AdminBadge position="top-right" margin="-1px -1px 0px 0px" />;
     }

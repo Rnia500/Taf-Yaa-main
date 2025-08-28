@@ -139,12 +139,12 @@ function formatPersonData(person, marriages, handleToggleCollapse, handleOpenPro
   );
   return {
     id: person.id,
-    name: person.name,
+    name: person.id,
     profileImage: person.photoUrl,
     sex: person.gender === "male" ? "M" : "F",
     birthDate: person.dob,
     deathDate: person.dod,
-    role: person.role || "viewer",
+    role: person.role,
     isCollapsed: person.isCollapsed,
     hasChildren,
     onToggleCollapse: () => handleToggleCollapse(person.id),

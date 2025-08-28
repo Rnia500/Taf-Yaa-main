@@ -2,16 +2,13 @@
 import dataService from "../../services/dataService";
 import { generateId } from "../../utils/personUtils/idGenerator";
 
-/**
- * Add a spouse (monogamous or polygamous).
- * Always uses the spouses[] array (clean schema).
- */
+
 export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
   try {
     const existingSpouse = await dataService.getPerson(existingSpouseId);
     if (!existingSpouse) throw new Error("Existing spouse not found");
 
-    // --- Create the new person for the new spouse ---
+    // Create the new person for the new spouse
     const newSpouseId = generateId("person");
     const newSpousePayload = {
       id: newSpouseId,
@@ -30,22 +27,22 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
     };
     await dataService.addPerson(newSpousePayload);
 
-    // --- Intelligent Marriage Logic ---
+
     const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
     const polygamousMarriage = existingMarriages.find(
       (m) => m.marriageType === "polygamous" && m.husbandId === existingSpouseId
     );
 
     if (polygamousMarriage) {
-      // --- Case 1: UPDATE existing polygamous marriage ---
+      // UPDATE existing polygamous marriage 
       console.log("Updating existing polygamous marriage...");
 
-      // Validation: only men can add multiple wives (no polyandry)
+      // only men can add multiple wives (no polyandry)
       if (existingSpouse.gender !== "male") {
         throw new Error("Only husbands can have multiple wives. Polyandry is not allowed.");
       }
 
-      // Validation: new spouse must be female
+      // new spouse must be female
       if (newSpouseData.gender !== "female") {
         throw new Error("In polygamous marriages, only female spouses are allowed.");
       }
@@ -71,11 +68,36 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
         marriage: updatedMarriage,
         marriageAction: "updated",
       };
+    } else if (newSpouseData.marriageType === "polygamous") {
+      // create new polygamous marriage
+      const marriageId = generateId("marriage");
+      const marriagePayload = {
+        id: marriageId,
+        treeId,
+        marriageType: "polygamous",
+        husbandId: existingSpouseId,
+        wives: [{
+          wifeId: newSpouseId,
+          order: newSpouseData.wifeOrder || 1,
+          startDate: newSpouseData.marriageDate || null,
+          location: newSpouseData.marriageLocation || null,
+          notes: newSpouseData.marriageNotes || null,
+          childrenIds: [],
+        }],
+        childrenIds: [],
+        startDate: newSpouseData.marriageDate || null,
+        location: newSpouseData.marriageLocation || null,
+        notes: newSpouseData.marriageNotes || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await dataService.addMarriage(marriagePayload);
+      return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
     } else {
-      // --- Case 2: CREATE a new monogamous marriage ---
+      // CREATE a new monogamous marriage 
       console.log("Creating new monogamous marriage...");
 
-      // ✅ Validation: block same-sex monogamous marriages
+      // block same-sex monogamous marriages
       if (existingSpouse.gender === newSpouseData.gender) {
         throw new Error("Same-sex marriages are not allowed.");
       }
@@ -121,13 +143,13 @@ export async function addChild(treeId, options) {
 
     await dataService.addPerson(childPayload);
 
-    // Case 1: Add under existing marriage
+    // Add under existing marriage
     if (marriageId) {
       await dataService.addChildToMarriage(marriageId, childId);
       return { child: childPayload, marriageId };
     }
 
-    // Case 2: Add under single parent → auto-create marriage with placeholder
+    // Add under single parent 
     if (parentId) {
       const placeholderId = generateId("person");
       const newMarriageId = generateId("marriage");
