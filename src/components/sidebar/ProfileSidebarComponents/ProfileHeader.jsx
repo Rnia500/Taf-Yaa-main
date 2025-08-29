@@ -22,7 +22,11 @@ export default function ProfileHeader({ profileName, profileImage, birthDate, de
         <ImageCard rounded={true} image={profileImage} size="100px" />
 
         <Text color='primary-text' variant='heading2'>{profileName}</Text>
-        <Text color='tertiary-text' align='center' variant='caption1'>Born on {birthDate} – Died on {deathDate}</Text>
+
+        {deathDate 
+          ? <Text color='tertiary-text' align='center' variant='caption1'>Born on {birthDate} - Died on {deathDate}</Text>
+          : <Text color='tertiary-text' align='center' variant='caption1'>Born on {birthDate}</Text>
+        }
         <Text color='tertiary-text' align='center' variant='caption1'>{statusIcons}</Text>
 
         <Spacer size='md' />

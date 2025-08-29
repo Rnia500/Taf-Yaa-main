@@ -9,7 +9,7 @@ export const people = [
 
   // Generation 2 - 6 people
   { id: "p010", treeId: "tree001", name: "Son S1", gender: "male", dob: "1965-01-01", dod: "2000-01-05", photoUrl: "https://i.pravatar.cc/150?u=p010", role:'viewer', isCollapsed: false },
-  { id: "p011", treeId: "tree001", name: "Daughter D1", gender: "female", dob: "1967-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p011", role:'null', isCollapsed: false },
+  { id: "p011", treeId: "tree001", name: "Daughter D1", gender: "female", dob: "1967-01-01", dod: "2000-01-05", photoUrl: "https://i.pravatar.cc/150?u=p011", role:'null', isCollapsed: false },
   { id: "p012", treeId: "tree001", name: "Son S2", gender: "male", dob: "1968-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p012", role:'null', isCollapsed: false },
   { id: "p013", treeId: "tree001", name: "Daughter D2", gender: "female", dob: "1970-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p013", role:'null', isCollapsed: false },
   { id: "p014", treeId: "tree001", name: "Son S3", gender: "male", dob: "1972-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p014", role:'null', isCollapsed: false },
@@ -17,8 +17,8 @@ export const people = [
 
   // Gen 2 Spouses - 5 people
   { id: "p020", treeId: "tree001", name: "Spouse for S1", gender: "female", dob: "1966-01-01", dod: "2010-05-08", photoUrl: "https://i.pravatar.cc/150?u=p020", role:'null', isCollapsed: false },
-  { id: "p021", treeId: "tree001", name: "Spouse for D1", gender: "male", dob: "1966-01-01", dod: "2010-05-08", photoUrl: "https://i.pravatar.cc/150?u=p021", role:'null', isCollapsed: false },
-  { id: "p022", treeId: "tree001", name: "Wife 1 for S2", gender: "female", dob: "1969-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p022", role:'null', isCollapsed: false },
+  { id: "p021", treeId: "tree001", name: "Spouse for D1", gender: "male", dob: "1966-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p021", role:'null', isCollapsed: false },
+  { id: "p022", treeId: "tree001", name: "Wife 1 for S2", gender: "female", dob: "1969-01-01", dod: "2005-05-20", photoUrl: "https://i.pravatar.cc/150?u=p022", role:'null', isCollapsed: false },
   { id: "p023", treeId: "tree001", name: "Wife 2 for S2", gender: "female", dob: "1971-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p023", role:'null', isCollapsed: false },
   { id: "p024", treeId: "tree001", name: "Spouse for S3", gender: "female", dob: "1973-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p024", role:'null', isCollapsed: false },
 
@@ -36,7 +36,7 @@ export const people = [
   { id: "p042", treeId: "tree001", name: "Spouse for GC1-S2", gender: "female", dob: "1995-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p042", role:'null', isCollapsed: false },
   
   // Generation 4 - 5 people
-  { id: "p050", treeId: "tree001", name: "GGC from S1", gender: "male", dob: "2015-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p050", role:'null', isCollapsed: false },
+  { id: "p050", treeId: "tree001", name: "GGC from S1", gender: "male", dob: "2015-01-01", dod: "2020-05-04", photoUrl: "https://i.pravatar.cc/150?u=p050", role:'null', isCollapsed: false },
   { id: "p051", treeId: "tree001", name: "GGC from D1", gender: "female", dob: "2016-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p051", role:'null', isCollapsed: false },
   { id: "p052", treeId: "tree001", name: "GGC2 from D1", gender: "male", dob: "2018-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p052", role:'null', isCollapsed: false },
   { id: "p053", treeId: "tree001", name: "GGC from S2", gender: "female", dob: "2017-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p053", role:'null', isCollapsed: false },
@@ -71,7 +71,7 @@ export const people = [
   { id: "p133", treeId: "tree001", name: "Wife 1 for GGC2-D1", gender: "female", dob: "2018-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p133", role:'null', isCollapsed: false },
   { id: "p134", treeId: "tree001", name: "Wife 2 for GGC2-D1", gender: "female", dob: "2020-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p134", role:'null', isCollapsed: false },
   { id: "p135", treeId: "tree001", name: "Child of GGC2-D1", gender: "male", dob: "2045-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p135", role:'null', isCollapsed: false },
-  { id: "p136", treeId: "tree001", name: "Child of GGGGC-D1", gender: "male", dob: "2092-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p136", role:'null', isCollapsed: false },
+  { id: "p136", treeId: "tree001", name: "Child of GGGGC-D1", gender: "male", dob: "2092-01-01", dod: "3000-05-12", photoUrl: "https://i.pravatar.cc/150?u=p136", role:'null', isCollapsed: false },
 
   // ✨ NEW SPOUSES TO REMOVE SINGLE PARENTHOOD - 4 people
   { id: "p200", treeId: "tree001", name: "Wife 3 for S2", gender: "female", dob: "1973-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p200", role:'null', isCollapsed: false },

@@ -4,11 +4,15 @@ import AddSpouseForm from "../../components/Add Relatives/Spouse/AddSpouseForm.j
 import * as treeController from "./treeController.js";
 import dataService from "../../services/dataService.js";
 import { MarriageModel } from "../../models/treeModels/MarriageModel.js";
+import useToastStore from "../../store/useToastStore";
+
 
 const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState(null);
   
+    const addToast = useToastStore((state) => state.addToast);
+
   const [formProps, setFormProps] = useState({
     husbandName: "",
     isFirstSpouse: false,
@@ -53,15 +57,20 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
     try {
       // Pass the prepared props along with the form data
       const finalData = { ...formData, ...formProps };
-      const result = await treeController.addSpouse(treeId, existingSpouseId, finalData);
+       const result = await treeController.addSpouse(treeId, existingSpouseId, finalData, {
+        onError: (message, type) => addToast(message, type)
+      });
+      
+      addToast('Spouse added successfully!', 'success');
+
       if (onSuccess) onSuccess(result);
     } catch (err) {
       setError(err.message || "Failed to add spouse");
       console.error("Error in AddSpouseController:", err);
-      // We don't set loading to false here, so the user can see the error and try again
+      
       setLoading(false);
     }
-    // Don't set loading to false in a finally block if you want the modal to close on success
+    
   };
 
   if (loading) return <div>Loading form...</div>;

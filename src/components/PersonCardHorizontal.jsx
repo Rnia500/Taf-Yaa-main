@@ -9,7 +9,7 @@ import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBa
 import Spacer from "./Spacer";
 //variants are root, directline, spouce, dead
 
-function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', profileImage, onAdd, onClick }) {
+function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', isDead = false, profileImage, onAdd, onClick }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -20,6 +20,7 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
       year: "numeric",
     });
   };
+
 
   const finalRole = (role) => {
 
@@ -42,7 +43,7 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
   return (
     <PersonCardHorizontalSVG className="person-card" style={style} variant={variant}>
       <div onClick={onClick}>
-        <Row padding="0px" margin="0px" gap="0.25rem" fitContent>
+        <Row padding="0px" margin="0px" gap="0.25rem" fitContent style={{overflowX :"hidden"}}>
 
           <Card positionType="relative" backgroundColor="var(--color-transparent)" padding="2px 0px 3px 3px"  margin="0px">
             <ImageCard overlay={deathDate ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : null} width="150px" height="87px" borderRadius="17px" image={profileImage} />
@@ -57,7 +58,7 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
             </Row>
 
 
-            <Row width="10rem" gap="0.25rem" padding="0px" style={{ justifyContent: "center" }}>
+            <Row width="12rem" gap="0.15rem" padding="0px" fitContent style={{ justifyContent: "center" }}>
               {deathDate ? (
                 <>
                   <Text as="span" bold variant="caption1" style={{ fontSize: "0.8em" }}>🎂</Text>
@@ -73,9 +74,7 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
                 </>
               )}
             </Row>
-
- 
-
+            
           </Card>
 
           <Spacer vertical size="10px"/>

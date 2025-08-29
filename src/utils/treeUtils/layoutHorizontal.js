@@ -109,9 +109,16 @@ function firstPass(node) {
 function secondPass(node, centerX, centerY, nodesMap) {
   const rfNode = nodesMap.get(node.id);
   if (rfNode) {
+    const isDead = !!rfNode.data?.deathDate;
     rfNode.position = { x: centerX, y: topLeftYFromCenterY(centerY) };
     rfNode.isPositioned = true;
-    rfNode.data = { ...(rfNode.data || {}), variant: rfNode.data?.variant ? (rfNode.data?.deathDate ? 'dead' : 'directline') : 'directline' };
+    rfNode.data = {
+      ...rfNode.data, 
+      isDead,
+      variant: isDead
+        ? "dead"
+        : rfNode.data?.variant || "directline",
+    };
   }
   const marriage = node.marriage;
   if (marriage?.marriageType === 'monogamous') {
@@ -123,9 +130,14 @@ function secondPass(node, centerX, centerY, nodesMap) {
     const spouseRF = nodesMap.get(spouseId);
     if (rfNode) rfNode.position.y = topLeftYFromCenterY(topC);
     if (spouseRF) {
+      const isDead = !!spouseRF.data?.deathDate;
       spouseRF.position = { x: centerX, y: topLeftYFromCenterY(botC) };
       spouseRF.isPositioned = true;
-      spouseRF.data = { ...(spouseRF.data || {}), variant: 'spouce' };
+      spouseRF.data = {
+        ...spouseRF.data,
+        isDead,
+        variant: isDead ? "dead" : "spouse",
+      };
     }
   }
   if (marriage?.marriageType === 'polygamous') {
@@ -136,9 +148,14 @@ function secondPass(node, centerX, centerY, nodesMap) {
     for (let i = above - 1; i >= 0; i--) {
       const wRF = nodesMap.get(wives[i].wifeId);
       if (wRF) {
+        const isDead = !!wRF.data?.deathDate;
         wRF.position = { x: centerX, y: topLeftYFromCenterY(slotC) };
         wRF.isPositioned = true;
-        wRF.data = { ...(wRF.data || {}), variant: 'spouce' };
+        wRF.data = {
+          ...wRF.data,
+          isDead,
+          variant: isDead ? "dead" : "spouse",
+        };
       }
       slotC += NODE_HEIGHT + GAP;
     }
@@ -147,10 +164,14 @@ function secondPass(node, centerX, centerY, nodesMap) {
     for (let i = above; i < wives.length; i++) {
       const wRF = nodesMap.get(wives[i].wifeId);
       if (wRF) {
+        const isDead = !!wRF.data?.deathDate;
         wRF.position = { x: centerX, y: topLeftYFromCenterY(slotC) };
         wRF.isPositioned = true;
-        wRF.data = { ...(wRF.data || {}), variant: 'spouce' };
-      }
+        wRF.data = {
+          ...wRF.data,
+          isDead,
+          variant: isDead ? "dead" : "spouse",
+        };      }
       slotC += NODE_HEIGHT + GAP;
     }
   }

@@ -144,6 +144,7 @@ function formatPersonData(person, marriages, handleToggleCollapse, handleOpenPro
     sex: person.gender === "male" ? "M" : "F",
     birthDate: person.dob,
     deathDate: person.dod,
+    isDead: person.dob ? true : false,
     role: person.role,
     isCollapsed: person.isCollapsed,
     hasChildren,

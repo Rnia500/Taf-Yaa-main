@@ -3,12 +3,14 @@ import dataService from "../../services/dataService";
 import { generateId } from "../../utils/personUtils/idGenerator";
 
 
-export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
+export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
+  const { onError } = options;
+
   try {
     const existingSpouse = await dataService.getPerson(existingSpouseId);
     if (!existingSpouse) throw new Error("Existing spouse not found");
 
-    // Create the new person for the new spouse
+    // Create the new spouse
     const newSpouseId = generateId("person");
     const newSpousePayload = {
       id: newSpouseId,
@@ -16,7 +18,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
       name: newSpouseData.fullName,
       gender: newSpouseData.gender,
       dob: newSpouseData.dateOfBirth || null,
-      isDeceased: newSpouseData.isDeceased,
+      isDeceased: newSpouseData.isDeceased || false,
       dod: newSpouseData.dateOfDeath || null,
       photoUrl: newSpouseData.profilePhoto || null,
       bio: newSpouseData.biography || "",
@@ -27,49 +29,48 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
     };
     await dataService.addPerson(newSpousePayload);
 
-
+    // Fetch existing marriages of the spouse
     const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
-    const polygamousMarriage = existingMarriages.find(
-      (m) => m.marriageType === "polygamous" && m.husbandId === existingSpouseId
-    );
 
-    if (polygamousMarriage) {
-      // UPDATE existing polygamous marriage 
-      console.log("Updating existing polygamous marriage...");
-
-      // only men can add multiple wives (no polyandry)
+    // ----------- Polygamous handling -----------
+    if (newSpouseData.marriageType === "polygamous") {
+      // Only men can have multiple wives
       if (existingSpouse.gender !== "male") {
-        throw new Error("Only husbands can have multiple wives. Polyandry is not allowed.");
+        const message = "Only husbands can have multiple wives. Polyandry is not allowed.";
+        if (onError) onError(message, 'error');
+        throw new Error(message);
       }
-
-      // new spouse must be female
       if (newSpouseData.gender !== "female") {
-        throw new Error("In polygamous marriages, only female spouses are allowed.");
+        const message = "In polygamous marriages, only female spouses are allowed.";
+        if (onError) onError(message, 'error');
+        throw new Error(message);
       }
 
-      const newWife = {
-        wifeId: newSpouseId,
-        order: newSpouseData.wifeOrder,
-        startDate: newSpouseData.marriageDate || null,
-        location: newSpouseData.marriageLocation || null,
-        notes: newSpouseData.marriageNotes || null,
-        childrenIds: [],
-      };
+      // Check if a polygamous marriage already exists
+      let polygamousMarriage = existingMarriages.find(
+        m => m.marriageType === "polygamous" && m.husbandId === existingSpouseId
+      );
 
-      polygamousMarriage.wives.push(newWife);
+      if (polygamousMarriage) {
+        // Add new wife to existing polygamous marriage
+        polygamousMarriage.wives.push({
+          wifeId: newSpouseId,
+          order: newSpouseData.wifeOrder || polygamousMarriage.wives.length + 1,
+          startDate: newSpouseData.marriageDate || null,
+          location: newSpouseData.marriageLocation || null,
+          notes: newSpouseData.marriageNotes || null,
+          childrenIds: [],
+        });
 
-      const updatedMarriage = await dataService.updateMarriage(polygamousMarriage.id, {
-        wives: polygamousMarriage.wives,
-        updatedAt: new Date().toISOString(),
-      });
+        const updatedMarriage = await dataService.updateMarriage(polygamousMarriage.id, {
+          wives: polygamousMarriage.wives,
+          updatedAt: new Date().toISOString(),
+        });
 
-      return {
-        spouse: newSpousePayload,
-        marriage: updatedMarriage,
-        marriageAction: "updated",
-      };
-    } else if (newSpouseData.marriageType === "polygamous") {
-      // create new polygamous marriage
+        return { spouse: newSpousePayload, marriage: updatedMarriage, marriageAction: "updated" };
+      }
+
+      // Otherwise, create a new polygamous marriage
       const marriageId = generateId("marriage");
       const marriagePayload = {
         id: marriageId,
@@ -93,34 +94,54 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData) {
       };
       await dataService.addMarriage(marriagePayload);
       return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
-    } else {
-      // CREATE a new monogamous marriage 
-      console.log("Creating new monogamous marriage...");
-
-      // block same-sex monogamous marriages
-      if (existingSpouse.gender === newSpouseData.gender) {
-        throw new Error("Same-sex marriages are not allowed.");
-      }
-
-      const marriageId = generateId("marriage");
-      const marriagePayload = {
-        id: marriageId,
-        treeId,
-        marriageType: "monogamous",
-        spouses: [existingSpouseId, newSpouseId],
-        childrenIds: [],
-        startDate: newSpouseData.marriageDate || null,
-        location: newSpouseData.marriageLocation || null,
-        notes: newSpouseData.marriageNotes || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      await dataService.addMarriage(marriagePayload);
-
-      return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
     }
+
+    // ----------- Monogamous handling -----------
+    if (existingSpouse.gender === newSpouseData.gender) {
+      const message = "Same-sex marriages are not allowed.";
+      if (onError) onError(message, 'error');
+      throw new Error(message);
+    }
+
+    // Check if an existing monogamous marriage with this spouse exists
+    let existingMonogamous = existingMarriages.find(
+      m => m.marriageType === "monogamous" && m.spouses.includes(existingSpouseId)
+    );
+
+    if (existingMonogamous) {
+      // Update the marriage with the new spouse
+      existingMonogamous.spouses.push(newSpouseId);
+      const updatedMarriage = await dataService.updateMarriage(existingMonogamous.id, {
+        spouses: existingMonogamous.spouses,
+        updatedAt: new Date().toISOString(),
+      });
+
+      return { spouse: newSpousePayload, marriage: updatedMarriage, marriageAction: "updated" };
+    }
+
+    // Otherwise, create a new monogamous marriage
+    const marriageId = generateId("marriage");
+    const marriagePayload = {
+      id: marriageId,
+      treeId,
+      marriageType: "monogamous",
+      spouses: [existingSpouseId, newSpouseId],
+      childrenIds: [],
+      startDate: newSpouseData.marriageDate || null,
+      location: newSpouseData.marriageLocation || null,
+      notes: newSpouseData.marriageNotes || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await dataService.addMarriage(marriagePayload);
+
+    return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
+
   } catch (err) {
     console.error("Error adding spouse:", err);
+    if (onError && !err.message.includes("not allowed")) {
+      onError(err.message || 'An unexpected error occurred.', 'error');
+    }
     throw err;
   }
 }

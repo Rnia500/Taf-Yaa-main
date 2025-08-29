@@ -20,9 +20,6 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
     });
   };
 
-
-  const isPersonDead = deathDate != null || isDead === true;
-  
   const finalRole = (role) => {
 
     if(role === 'null'){
@@ -45,14 +42,14 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
     <PersonCardSVG className="person-card" style={style} variant={variant}>
       <div onClick={onClick}>
       <Card positionType="relative" backgroundColor="var(--color-transparent)" padding="3px 3px 0px 3px">
-        <ImageCard overlay={isPersonDead ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : null} width="100%" height="83px" borderRadius="17px" image={profileImage} />
+        <ImageCard overlay={deathDate ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : null} width="100%" height="83px" borderRadius="17px" image={profileImage} />
         {finalRole(role)}
         <Row fitContent gap="0.10rem" padding="4px 0px 0px 0px" >
           {sex === "M" ? <Mars size={20} strokeWidth={3} color="var(--color-male)" /> : <Venus strokeWidth={3} size={25} color="var(--color-female)" />}
           <Text as="p" ellipsis variant="body1" bold>{name}</Text>
         </Row>
         <Row fitContent gap="0.25rem" padding="0px" style={{ justifyContent: "center" }}>
-          {isPersonDead ? (
+          {deathDate ? (
             <>
               <Text as="span" bold variant="caption1" style={{fontSize: "0.8em"}}>🎂</Text>
               <Text as="span" bold variant="caption1">{birthDate ? new Date(birthDate).getFullYear() : "?"}</Text>
