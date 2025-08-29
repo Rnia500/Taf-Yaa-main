@@ -30,8 +30,8 @@ export default function BaseLayout() {
           <Text variant='heading1'>Welcome to Taf'Yaa</Text>
         </Card> */}
 
-        {/* <FamilyTreePage /> */}
-         <ComponentDemo setSidebarOpen={() => {}} />
+        <FamilyTreePage />
+         {/* <ComponentDemo setSidebarOpen={() => {}} /> */}
       </>
     </PageFrame>
   );

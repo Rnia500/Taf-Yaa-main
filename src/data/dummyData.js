@@ -16,8 +16,8 @@ export const people = [
   { id: "p015", treeId: "tree001", name: "Daughter D3", gender: "female", dob: "1975-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p015", role:'null', isCollapsed: false },
 
   // Gen 2 Spouses - 5 people
-  { id: "p020", treeId: "tree001", name: "Spouse for S1", gender: "female", dob: "1966-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p020", role:'null', isCollapsed: false },
-  { id: "p021", treeId: "tree001", name: "Spouse for D1", gender: "male", dob: "1966-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p021", role:'null', isCollapsed: false },
+  { id: "p020", treeId: "tree001", name: "Spouse for S1", gender: "female", dob: "1966-01-01", dod: "2010-05-08", photoUrl: "https://i.pravatar.cc/150?u=p020", role:'null', isCollapsed: false },
+  { id: "p021", treeId: "tree001", name: "Spouse for D1", gender: "male", dob: "1966-01-01", dod: "2010-05-08", photoUrl: "https://i.pravatar.cc/150?u=p021", role:'null', isCollapsed: false },
   { id: "p022", treeId: "tree001", name: "Wife 1 for S2", gender: "female", dob: "1969-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p022", role:'null', isCollapsed: false },
   { id: "p023", treeId: "tree001", name: "Wife 2 for S2", gender: "female", dob: "1971-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p023", role:'null', isCollapsed: false },
   { id: "p024", treeId: "tree001", name: "Spouse for S3", gender: "female", dob: "1973-01-01", dod: null, photoUrl: "https://i.pravatar.cc/150?u=p024", role:'null', isCollapsed: false },

@@ -8,7 +8,7 @@ import Row from "../layout/containers/Row";
 import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBadge";
 //variants are root, directline, spouce, dead
 
-function PersonCard({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', profileImage, onAdd, onClick }) {
+function PersonCard({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', profileImage, isDead = false, onClick }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -20,6 +20,9 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
     });
   };
 
+
+  const isPersonDead = deathDate != null || isDead === true;
+  
   const finalRole = (role) => {
 
     if(role === 'null'){
@@ -42,14 +45,14 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
     <PersonCardSVG className="person-card" style={style} variant={variant}>
       <div onClick={onClick}>
       <Card positionType="relative" backgroundColor="var(--color-transparent)" padding="3px 3px 0px 3px">
-        <ImageCard overlay={deathDate ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : null} width="100%" height="83px" borderRadius="17px" image={profileImage} />
+        <ImageCard overlay={isPersonDead ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : null} width="100%" height="83px" borderRadius="17px" image={profileImage} />
         {finalRole(role)}
         <Row fitContent gap="0.10rem" padding="4px 0px 0px 0px" >
           {sex === "M" ? <Mars size={20} strokeWidth={3} color="var(--color-male)" /> : <Venus strokeWidth={3} size={25} color="var(--color-female)" />}
           <Text as="p" ellipsis variant="body1" bold>{name}</Text>
         </Row>
         <Row fitContent gap="0.25rem" padding="0px" style={{ justifyContent: "center" }}>
-          {deathDate ? (
+          {isPersonDead ? (
             <>
               <Text as="span" bold variant="caption1" style={{fontSize: "0.8em"}}>🎂</Text>
               <Text as="span" bold variant="caption1">{birthDate ? new Date(birthDate).getFullYear() : "?"}</Text>
@@ -64,19 +67,6 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
             </>
           )}
         </Row>
-
-        {/* {deathDate
-
-            ?<Card rounded onClick={onAdd} positionType="absolute" position="bottom-right" margin="0px 47.5px -34px 0px" backgroundColor="var(--color-transparent)" size={18} padding="0px" >
-                <Plus size={13} />
-            </Card>
-
-            :<Card rounded onClick={onAdd} positionType="absolute" position="bottom-right" margin="0px 47.5px -32px 0px" backgroundColor="var(--color-transparent)" size={18} padding="0px" >
-                <Plus size={13} />
-            </Card>
-        
-        } */}
-
       </Card>
       </div>
     </PersonCardSVG>

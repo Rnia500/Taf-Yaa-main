@@ -139,7 +139,7 @@ function formatPersonData(person, marriages, handleToggleCollapse, handleOpenPro
   );
   return {
     id: person.id,
-    name: person.id,
+    name: person.name,
     profileImage: person.photoUrl,
     sex: person.gender === "male" ? "M" : "F",
     birthDate: person.dob,
@@ -240,8 +240,7 @@ export function calculateLayout(
     }
   });
 
-  // Step 3: Generational Sorting - Now runs on the CLEANED, fully connected data
-  // (The simple child-based BFS is now sufficient and robust)
+  // Step 3: Generational Sorting The simple child-based BFS is now sufficient and robust
   const getMarriagesByGeneration = () => {
       const sortedMarriages = [];
       const queue = [rootId];
