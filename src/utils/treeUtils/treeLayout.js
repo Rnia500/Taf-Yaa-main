@@ -77,6 +77,8 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
   const visiblePeopleIds = new Set();
   const queue = [rootId];
 
+  console.log("filterFamilyByRoot called with rootId:", rootId);
+
   while (queue.length > 0) {
     const currentPersonId = queue.shift();
     if (visiblePeopleIds.has(currentPersonId)) continue;
@@ -117,9 +119,23 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
     }
   });
 
+  console.log("Visible People IDs:", Array.from(visiblePeopleIds));
+  console.log("Visible Marriages IDs:", allMarriages.filter(m => {
+    if (m.marriageType === 'monogamous') {
+      if (m.spouses.some(id => !id)) return false;
+      return m.spouses.every(id => visiblePeopleIds.has(id));
+    }
+    if (m.marriageType === 'polygamous') return visiblePeopleIds.has(m.husbandId);
+    return false;
+  }).map(m => m.id));
+
   const visiblePeople = allPeople.filter(p => visiblePeopleIds.has(p.id));
   const visibleMarriages = allMarriages.filter(m => {
-    if (m.marriageType === 'monogamous') return m.spouses.every(id => visiblePeopleIds.has(id));
+    if (m.marriageType === 'monogamous') {
+      // Filter out marriages with any empty or falsy spouse IDs
+      if (m.spouses.some(id => !id)) return false;
+      return m.spouses.every(id => visiblePeopleIds.has(id));
+    }
     if (m.marriageType === 'polygamous') return visiblePeopleIds.has(m.husbandId);
     return false;
   });

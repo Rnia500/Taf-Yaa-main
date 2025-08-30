@@ -5,12 +5,6 @@ import { useEffect, useState, useCallback } from "react";
 import { people as dummyPeople, marriages as dummyMarriages } from "../data/dummyData.js";
 
 const STORAGE_KEY = "familyDB";
-
-// Firebase imports (used only when USE_LOCAL = false) 
-// import { collection, onSnapshot, query } from "firebase/firestore"; 
-// import { db } from "../firebase";
-
-// Toggle for local testing
 const USE_LOCAL = true;
 
 export function useFamilyData(treeId) {
@@ -19,19 +13,21 @@ export function useFamilyData(treeId) {
   const [loading, setLoading] = useState(true);
 
   const loadLocal = useCallback(() => {
+    console.log("DBG:useFamilyData.loadLocal -> start");
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        console.log("DBG:useFamilyData.loadLocal -> loaded parsed saved DB counts:", (parsed.people || []).length, (parsed.marriages || []).length);
         setPeople(parsed.people || []);
         setMarriages(parsed.marriages || []);
         setLoading(false);
         return;
       } catch (err) {
-        console.error("Failed to parse local DB:", err);
+        console.error("DBG:useFamilyData.loadLocal -> Failed to parse local DB:", err);
       }
     }
-    // fallback to dummyData
+    console.log("DBG:useFamilyData.loadLocal -> fallback to dummy data");
     setPeople(dummyPeople);
     setMarriages(dummyMarriages);
     setLoading(false);

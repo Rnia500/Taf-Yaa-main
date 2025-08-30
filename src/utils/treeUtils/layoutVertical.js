@@ -25,17 +25,19 @@ const GAP = HORIZONTAL_SPACING; // In vertical, the gap between siblings is hori
    Universal Placeholder Creation (Same as horizontal, but with vertical node type)
 ----------------------------------------------------------- */
 function createAndInjectPlaceholders(nodesMap, marriages) {
+  console.log("DBG:layoutVertical.createAndInjectPlaceholders -> start", { nodesKeys: Array.from(nodesMap.keys()), marriagesCount: marriages.length });
+
   const processedMarriages = JSON.parse(JSON.stringify(marriages));
 
   for (const marriage of processedMarriages) {
     if (marriage.marriageType === 'monogamous') {
-      // Only inject placeholder if a spouse ID is missing
       const emptyIndex = marriage.spouses.findIndex(id => !id);
       if (emptyIndex !== -1) {
         const knownSpouseId = marriage.spouses.find(id => id);
         const knownSpouseNode = nodesMap.get(knownSpouseId);
         const knownSpouse = knownSpouseNode?.data;
         const placeholderId = `placeholder-spouse-${marriage.id}`;
+        console.log("DBG:layoutVertical -> injecting placeholder for marriage", marriage.id, "placeholderId:", placeholderId);
         if (!nodesMap.has(placeholderId)) {
           nodesMap.set(placeholderId, {
             id: placeholderId,
@@ -58,6 +60,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
     if (marriage.marriageType === 'polygamous') {
       if (!marriage.husbandId) {
         const placeholderId = `placeholder-husband-${marriage.id}`;
+        console.log("DBG:layoutVertical -> injecting polygamous husband placeholder for marriage", marriage.id);
         if (!nodesMap.has(placeholderId)) {
           nodesMap.set(placeholderId, {
             id: placeholderId,
@@ -73,6 +76,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         for (let i = 0; i < marriage.wives.length; i++) {
           if (!marriage.wives[i].wifeId) {
             const placeholderId = `placeholder-wife-${marriage.id}-${i}`;
+            console.log("DBG:layoutVertical -> injecting polygamous wife placeholder for marriage", marriage.id, "index", i);
             if (!nodesMap.has(placeholderId)) {
               nodesMap.set(placeholderId, {
                 id: placeholderId,
@@ -100,12 +104,17 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         }
         return false;
       });
-      if (!isConnected) nodesMap.delete(id);
+      if (!isConnected) {
+        console.log("DBG:layoutVertical -> removing unlinked placeholder node:", id);
+        nodesMap.delete(id);
+      }
     }
   }
 
+  console.log("DBG:layoutVertical.createAndInjectPlaceholders -> done; nodesMap keys:", Array.from(nodesMap.keys()));
   return { processedMarriages, nodesMap };
 }
+
 
 
 /* ------------ Helpers (Orientation-Swapped) ------------ */
@@ -339,7 +348,7 @@ export function layoutVertical(nodesMap, marriages, initialEdges) {
   const edges = createEdges(processedMarriages, updatedNodesMap);
 
   // 7️⃣ Filter out unlinked placeholders
-  const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
+const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
     if (!node.data?.isPlaceholder) return true;
     return processedMarriages.some(m => {
       if (m.marriageType === "monogamous") return m.spouses.includes(node.id);
@@ -351,6 +360,7 @@ export function layoutVertical(nodesMap, marriages, initialEdges) {
     });
   });
 
+  console.log("DBG:layoutVertical -> final filtered nodes count:", filteredNodes.length, "edges count:", edges?.length || 0);
   return { nodes: filteredNodes, edges };
 }
 

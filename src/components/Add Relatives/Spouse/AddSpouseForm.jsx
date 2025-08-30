@@ -11,8 +11,8 @@ import Button from '../../Button';
 import { User, Heart, Shield, BookOpen } from 'lucide-react';
 import { MarriageModel } from '../../../models/treeModels/MarriageModel';
 
-const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1 }) => {
-  
+const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1, loading = false }) => {
+
 
 
   const [formData, setFormData] = useState({
@@ -33,7 +33,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     audioURL: null,
 
     // Section 3: Marriage Information
-    marriageType: 'monogamous', 
+    marriageType: 'monogamous',
     marriageDate: '',
     marriageLocation: '',
     marriageNotes: '',
@@ -67,7 +67,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    onSubmit(formData); 
+    onSubmit(formData);
   };
 
   const genderOptions = [
@@ -81,18 +81,18 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     { value: 'public', label: 'Public' }
   ];
 
-    const marriageTypeOptions = [
+  const marriageTypeOptions = [
     { value: 'monogamous', label: 'Monogamous' },
     { value: 'polygamous', label: 'Polygamous' }
   ];
 
   return (
     <form onSubmit={handleSubmit} className="premium-form">
-      
+
       {/* Display the husband's name at the top of the form */}
       {husbandName && (
-        <div className="husband-name-display" style={{marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
-          <h3 style={{margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600'}}>Spouse of {husbandName}</h3>
+        <div className="husband-name-display" style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
+          <h3 style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600' }}>Spouse of {husbandName}</h3>
         </div>
       )}
 
@@ -250,7 +250,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
               />
             </div>
           )}
-          
+
           <div className="form-group">
             <label className="form-label">Marriage Date</label>
             <DateInput
@@ -315,8 +315,8 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
         <Button fullWidth variant='danger' onClick={onCancel}>
           Cancel
         </Button>
-        <Button fullWidth type="submit">
-          Add Spouse
+        <Button fullWidth type="submit" disabled={loading}>
+          {loading ? "Adding..." : "Add Spouse"}
         </Button>
       </Row>
     </form>

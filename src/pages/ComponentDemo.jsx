@@ -32,14 +32,6 @@ import InfoModal from '../components/modals/InfoModal';
 import useToastStore from '../store/useToastStore';
 
 
-
-
-
-
-
-
-
-
 const ComponentDemo = ({ setSidebarOpen }) => {
   const [checked, setChecked] = useState(false);
   const [date, setDate] = useState('');

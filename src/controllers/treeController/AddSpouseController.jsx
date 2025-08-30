@@ -6,12 +6,10 @@ import dataService from "../../services/dataService.js";
 import { MarriageModel } from "../../models/treeModels/MarriageModel.js";
 import useToastStore from "../../store/useToastStore";
 
-
 const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) => {
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-    const addToast = useToastStore((state) => state.addToast);
+  const addToast = useToastStore((state) => state.addToast);
 
   const [formProps, setFormProps] = useState({
     husbandName: "",
@@ -24,7 +22,7 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
       try {
         const targetPerson = await dataService.getPerson(existingSpouseId);
         if (!targetPerson) throw new Error("Target person not found");
-        
+
         const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
         const isFirstSpouse = existingMarriages.length === 0;
 
@@ -43,7 +41,7 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
 
       } catch (err) {
         setError("Failed to load data for the form.");
-        console.error("Error preparing form:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -55,22 +53,22 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
     setLoading(true);
     setError(null);
     try {
-      // Pass the prepared props along with the form data
       const finalData = { ...formData, ...formProps };
-       const result = await treeController.addSpouse(treeId, existingSpouseId, finalData, {
+      console.log("DBG:AddSpouseController.handleSubmit -> finalData:", finalData);
+      
+      const result = await treeController.addSpouse(treeId, existingSpouseId, finalData, {
         onError: (message, type) => addToast(message, type)
       });
-      
+
+      console.log("DBG:AddSpouseController.handleSubmit -> result:", result);
       addToast('Spouse added successfully!', 'success');
 
       if (onSuccess) onSuccess(result);
     } catch (err) {
       setError(err.message || "Failed to add spouse");
-      console.error("Error in AddSpouseController:", err);
-      
+      console.error("DBG:AddSpouseController.handleSubmit -> error:", err);
       setLoading(false);
     }
-    
   };
 
   if (loading) return <div>Loading form...</div>;
@@ -78,12 +76,7 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
   return (
     <>
       {error && <div style={{ color: "red", marginBottom: '1rem' }}>{error}</div>}
-
-      <AddSpouseForm 
-        onSubmit={handleSubmit} 
-        onCancel={onCancel}
-        {...formProps}
-      />
+      <AddSpouseForm onSubmit={handleSubmit} onCancel={onCancel} {...formProps}  loading={loading}/>
     </>
   );
 };

@@ -56,85 +56,71 @@ export function insertIntoOccupancy(occupancy, y, startX, width, height, preferr
 }
 
 
+// src/utils/layoutHelpers.js
 function createTreeNode(id, marriage, NODE_WIDTH, NODE_HEIGHT, isSpouse = false) {
   return {
     id: id,
     children: [],
     marriage: marriage,
     isSpouse: isSpouse,
-    
-    // R-T algorithm properties
-    x: 0,
-    y: 0,
-    width: NODE_WIDTH,
-    height: NODE_HEIGHT,
-    modifier: 0, 
+    x: 0, y: 0, width: NODE_WIDTH, height: NODE_HEIGHT, modifier: 0,
   };
 }
 
-/**
- * Converts a flat list of people and marriages into a hierarchical tree.
- * This is a common pre-processing step for tidy-tree layout algorithms.
- * @param {Map} nodesMap - The React Flow nodesMap.
- * @param {Array} marriages - The generation-sorted list of marriages.
- * @param {number} NODE_WIDTH - The width of a single node.
- * @param {number} NODE_HEIGHT - The height of a single node.
- * @returns {Object} - An object containing the root of the tree and a map of all created tree nodes.
- */
 export function buildTree(nodesMap, marriages, NODE_WIDTH, NODE_HEIGHT) {
   const treeNodes = new Map();
   let root = null;
 
-  // First, create a tree node for every person
   for (const id of nodesMap.keys()) {
     treeNodes.set(id, createTreeNode(id, null, NODE_WIDTH, NODE_HEIGHT));
   }
+  console.log("DBG:buildTree -> created treeNodes keys:", Array.from(treeNodes.keys()));
 
-  // Link children to parents based on marriages
+  // Link children to parents
   for (const marriage of marriages) {
     let parents = [];
     let childrenIds = [];
 
     if (marriage.marriageType === 'polygamous') {
       parents = [treeNodes.get(marriage.husbandId)];
-      childrenIds = marriage.wives.flatMap(w => w.childrenIds);
-    } else { // Monogamous
-      const [p1, p2] = marriage.spouses;
+      childrenIds = marriage.wives.flatMap(w => w.childrenIds || []);
+    } else {
+      const [p1, p2] = marriage.spouses || [];
       const parent1 = treeNodes.get(p1);
       const parent2 = treeNodes.get(p2);
-      
+
       if (parent1 && !parent1.isSpouse) parents.push(parent1);
       if (parent2 && !parent2.isSpouse) parents.push(parent2);
       if (parents.length === 0 && parent1) parents.push(parent1);
 
-      childrenIds = marriage.childrenIds;
+      childrenIds = marriage.childrenIds || [];
     }
     
     const primaryParent = parents[0];
-    if (!primaryParent) continue;
+    if (!primaryParent) {
+      console.warn("DBG:buildTree -> skipping marriage without primary parent or node missing:", marriage.id);
+      continue;
+    }
 
     primaryParent.marriage = marriage;
 
     for (const childId of childrenIds) {
       const childNode = treeNodes.get(childId);
       if (childNode) {
-        // Mark the other spouse in a monogamous marriage as a "spouse" node
         if (marriage.marriageType === 'monogamous') {
-          const [p1, p2] = marriage.spouses;
+          const [p1, p2] = marriage.spouses || [];
           const spouseId = primaryParent.id === p1 ? p2 : p1;
           const spouseNode = treeNodes.get(spouseId);
-          if(spouseNode) spouseNode.isSpouse = true;
+          if (spouseNode) spouseNode.isSpouse = true;
         }
         primaryParent.children.push(childNode);
+      } else {
+        console.log("DBG:buildTree -> child node missing for childId:", childId, "in marriage:", marriage.id);
       }
     }
   }
 
-  // Find the ultimate root of the tree
-  const allChildrenIds = new Set(
-    Array.from(treeNodes.values()).flatMap(n => n.children.map(c => c.id))
-  );
-
+  const allChildrenIds = new Set(Array.from(treeNodes.values()).flatMap(n => n.children.map(c => c.id)));
   for (const node of treeNodes.values()) {
     if (!allChildrenIds.has(node.id)) {
       root = node;
@@ -142,10 +128,14 @@ export function buildTree(nodesMap, marriages, NODE_WIDTH, NODE_HEIGHT) {
     }
   }
 
-  // Fallback if no clear root is found (e.g., a circular reference or small isolated tree)
   if (!root && treeNodes.size > 0) {
     root = treeNodes.values().next().value;
+    console.log("DBG:buildTree -> fallback root selected:", root.id);
+  } else if (root) {
+    console.log("DBG:buildTree -> root selected:", root.id);
+  } else {
+    console.log("DBG:buildTree -> no nodes in treeNodes");
   }
-  
+
   return { root, treeNodes };
 }
