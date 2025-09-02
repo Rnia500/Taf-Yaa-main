@@ -4,26 +4,52 @@ import { generateId } from "../../utils/personUtils/idGenerator";
 
 
 
+
 export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
-  const { onError } = options;
+  const { onError, confirmConvert } = options;
   console.log("DBG:addSpouse -> start", { treeId, existingSpouseId, newSpouseData });
 
   try {
+    // -------------------------------------------------------
+    // 1. Validate existing spouse
+    // -------------------------------------------------------
     const existingSpouse = await dataService.getPerson(existingSpouseId);
-    console.log("DBG:addSpouse -> existingSpouse fetched:", existingSpouse);
-
     if (!existingSpouse) {
-      const message = "Existing spouse not found";
-      if (onError) onError(message, "error");
-      throw new Error(message);
+      throw new Error("Existing spouse not found");
     }
 
     // -------------------------------------------------------
-    // 1. Try to find an already existing person (avoid duplicates)
+    // 2. Load marriages for this spouse
     // -------------------------------------------------------
-    let newSpousePayload;
-    let newSpouseId;
+    const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
 
+    // -------------------------------------------------------
+    // 3. Handle monogamous conversion check BEFORE creating new person
+    // -------------------------------------------------------
+    const existingMonogamous = existingMarriages.find(m => m.marriageType === "monogamous");
+
+    if (existingMonogamous) {
+      // Already married to this person → noop
+      if (existingMonogamous.spouses.includes(newSpouseData.id)) {
+        return { spouse: null, marriage: existingMonogamous, marriageAction: "noop" };
+      }
+
+      // Prompt conversion
+      if (confirmConvert) {
+        const shouldConvert = await confirmConvert(existingMonogamous);
+        if (!shouldConvert) {
+          if (onError) onError("User cancelled spouse addition.", "warning");
+          return null; // Nothing written
+        }
+      } else {
+        throw new Error("Existing marriage is monogamous. Conversion required.");
+      }
+    }
+
+    // -------------------------------------------------------
+    // 4. Create or reuse spouse (safe: only now we write data)
+    // -------------------------------------------------------
+    let newSpouseId, newSpousePayload;
     const possibleMatch = await dataService.findPersonByFields?.({
       treeId,
       name: newSpouseData.fullName,
@@ -32,9 +58,8 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
     });
 
     if (possibleMatch) {
-      console.log("DBG:addSpouse -> spouse already exists, reusing:", possibleMatch.id);
-      newSpousePayload = possibleMatch;
       newSpouseId = possibleMatch.id;
+      newSpousePayload = possibleMatch;
     } else {
       newSpouseId = generateId("person");
       newSpousePayload = {
@@ -52,30 +77,18 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      console.log("DBG:addSpouse -> creating person:", newSpousePayload);
       await dataService.addPerson(newSpousePayload);
     }
 
     // -------------------------------------------------------
-    // 2. Get existing marriages of the existing spouse
-    // -------------------------------------------------------
-    const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
-    console.log("DBG:addSpouse -> existingMarriages:", existingMarriages.map(m => ({ id: m.id, type: m.marriageType })));
-
-    // -------------------------------------------------------
-    // 3. Polygamous path
+    // 5. Handle Polygamous case
     // -------------------------------------------------------
     if (newSpouseData.marriageType === "polygamous") {
-      console.log("DBG:addSpouse -> polygamous branch");
       if (existingSpouse.gender !== "male") {
-        const message = "Only husbands can have multiple wives. Polyandry is not allowed.";
-        if (onError) onError(message, "error");
-        throw new Error(message);
+        throw new Error("Only husbands can have multiple wives. Polyandry is not allowed.");
       }
       if (newSpouseData.gender !== "female") {
-        const message = "In polygamous marriages, only female spouses are allowed.";
-        if (onError) onError(message, "error");
-        throw new Error(message);
+        throw new Error("In polygamous marriages, only female spouses are allowed.");
       }
 
       let polygamousMarriage = existingMarriages.find(
@@ -83,11 +96,12 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
       );
 
       if (polygamousMarriage) {
+        // Prevent duplicates
         if (polygamousMarriage.wives.some(w => w.wifeId === newSpouseId)) {
-          console.log("DBG:addSpouse -> wife already in marriage, skipping");
           return { spouse: newSpousePayload, marriage: polygamousMarriage, marriageAction: "noop" };
         }
 
+        // Add new wife
         polygamousMarriage.wives.push({
           wifeId: newSpouseId,
           order: newSpouseData.wifeOrder || polygamousMarriage.wives.length + 1,
@@ -95,6 +109,8 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
           location: newSpouseData.marriageLocation || null,
           notes: newSpouseData.marriageNotes || null,
           childrenIds: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
 
         const updatedMarriage = await dataService.updateMarriage(polygamousMarriage.id, {
@@ -102,11 +118,10 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
           updatedAt: new Date().toISOString(),
         });
 
-        console.log("DBG:addSpouse -> updated polygamous marriage:", updatedMarriage);
         return { spouse: newSpousePayload, marriage: updatedMarriage, marriageAction: "updated" };
       }
 
-      // New polygamous marriage
+      // Create new polygamous marriage
       const marriageId = generateId("marriage");
       const marriagePayload = {
         id: marriageId,
@@ -120,46 +135,68 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
           location: newSpouseData.marriageLocation || null,
           notes: newSpouseData.marriageNotes || null,
           childrenIds: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }],
-        childrenIds: [],
-        startDate: newSpouseData.marriageDate || null,
-        location: newSpouseData.marriageLocation || null,
-        notes: newSpouseData.marriageNotes || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      console.log("DBG:addSpouse -> creating new polygamous marriage:", marriagePayload);
+
       await dataService.addMarriage(marriagePayload);
       return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
     }
 
     // -------------------------------------------------------
-    // 4. Monogamous path
+    // 6. Handle Monogamous (new marriage or conversion)
     // -------------------------------------------------------
-    console.log("DBG:addSpouse -> monogamous branch");
-    if (existingSpouse.gender === newSpouseData.gender) {
-      const message = "Same-sex marriages are not allowed.";
-      if (onError) onError(message, "error");
-      throw new Error(message);
-    }
-
-    let existingMonogamous = existingMarriages.find(
-      m => m.marriageType === "monogamous" && m.spouses.includes(newSpouseId)
-    );
-
     if (existingMonogamous) {
-      console.log("DBG:addSpouse -> marriage already exists, skipping");
-      return { spouse: newSpousePayload, marriage: existingMonogamous, marriageAction: "noop" };
+      // Convert existing monogamous → polygamous
+      const [sp1, sp2] = existingMonogamous.spouses;
+      const sp1Person = await dataService.getPerson(sp1);
+      const sp2Person = await dataService.getPerson(sp2);
+
+      const husbandId = sp1Person.gender === "male" ? sp1 : (sp2Person.gender === "male" ? sp2 : null);
+      if (!husbandId) {
+        throw new Error("Invalid marriage: no male spouse found for polygamous conversion.");
+      }
+      const wifeId = husbandId === sp1 ? sp2 : sp1;
+
+      const polygamousMarriage = {
+        ...existingMonogamous,
+        marriageType: "polygamous",
+        husbandId,
+        wives: [
+          {
+            wifeId,
+            order: 1,
+            startDate: existingMonogamous.startDate || null,
+            location: existingMonogamous.location || null,
+            notes: existingMonogamous.notes || null,
+            childrenIds: existingMonogamous.childrenIds || [],
+            createdAt: existingMonogamous.createdAt,
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            wifeId: newSpouseId,
+            order: 2,
+            startDate: newSpouseData.marriageDate || null,
+            location: newSpouseData.marriageLocation || null,
+            notes: newSpouseData.marriageNotes || null,
+            childrenIds: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+        ],
+        spouses: undefined, // remove old field
+        childrenIds: [],
+        updatedAt: new Date().toISOString(),
+      };
+
+      await dataService.updateMarriage(polygamousMarriage.id, polygamousMarriage);
+      return { spouse: newSpousePayload, marriage: polygamousMarriage, marriageAction: "converted" };
     }
 
-    if (!newSpouseData || !newSpouseData.fullName || !newSpouseData.gender) {
-      const message = "Invalid spouse data: fullName and gender are required.";
-      console.error("DBG:addSpouse ->", message, newSpouseData);
-      if (onError) onError(message, "error");
-      throw new Error(message);
-    }
-
-    // New monogamous marriage
+    // Create new monogamous marriage
     const marriageId = generateId("marriage");
     const marriagePayload = {
       id: marriageId,
@@ -174,23 +211,19 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
       updatedAt: new Date().toISOString(),
     };
 
-    console.log("DBG:addSpouse -> creating new monogamous marriage:", marriagePayload);
     await dataService.addMarriage(marriagePayload);
-
-    console.log("DBG:addSpouse -> completed creation", { newSpouseId, marriageId });
     return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
 
   } catch (err) {
-    console.error("DBG:addSpouse -> Error adding spouse:", err);
-    if (onError) onError(err.message || "An unexpected error occurred.", "error");
+    console.error("DBG:addSpouse -> Error:", err);
+    if (onError) onError(err.message || "Unexpected error.", "error");
     throw err;
   }
 }
 
 
-
 /**
- * Add a child under a marriage or under a single parent (with placeholder partner if needed).
+ * Add a child under a marriage or single parent (with placeholder partner).
  */
 export async function addChild(treeId, options) {
   try {
@@ -202,17 +235,16 @@ export async function addChild(treeId, options) {
       treeId,
       ...childData,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     await dataService.addPerson(childPayload);
 
-    // Add under existing marriage
     if (marriageId) {
       await dataService.addChildToMarriage(marriageId, childId);
       return { child: childPayload, marriageId };
     }
 
-    // Add under single parent 
     if (parentId) {
       const placeholderId = generateId("person");
       const newMarriageId = generateId("marriage");
@@ -223,6 +255,7 @@ export async function addChild(treeId, options) {
         fullName: "Partner",
         isPlaceholder: true,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       const marriagePayload = {
@@ -231,6 +264,7 @@ export async function addChild(treeId, options) {
         spouses: [parentId, placeholderId],
         childrenIds: [childId],
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       await dataService.addPerson(placeholderPayload);
@@ -263,6 +297,7 @@ export async function addParent(treeId, childId, parentData) {
       treeId,
       ...parentData,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const placeholderId = generateId("person");
@@ -272,6 +307,7 @@ export async function addParent(treeId, childId, parentData) {
       fullName: "Partner",
       isPlaceholder: true,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const marriagePayload = {
@@ -280,6 +316,7 @@ export async function addParent(treeId, childId, parentData) {
       spouses: [parentId, placeholderId],
       childrenIds: [childId],
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     await dataService.addPerson(parentPayload);

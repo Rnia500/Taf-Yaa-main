@@ -99,16 +99,40 @@ function clearLocalDB() {
   console.log("DBG:dataService.clearLocalDB -> reset to dummy data");
 }
 
-// Export API
+async function addPersonFirebase(person) {
+  throw new Error("Firebase addPerson not implemented yet");
+}
+async function addMarriageFirebase(marriage) {
+  throw new Error("Firebase addMarriage not implemented yet");
+}
+async function addChildToMarriageFirebase(marriageId, childId) {
+  throw new Error("Firebase addChildToMarriage not implemented yet");
+}
+async function getPersonFirebase(id) {
+  throw new Error("Firebase getPerson not implemented yet");
+}
+async function getMarriageFirebase(id) {
+  throw new Error("Firebase getMarriage not implemented yet");
+}
+
+async function getMarriagesByPersonIdFirebase(personId) { 
+  throw new Error("Not implemented"); 
+}
+async function updateMarriageFirebase(marriageId, data) { 
+  throw new Error("Not implemented"); 
+}
+
+
+// --- Export API ---
 const dataService = {
-  addPerson: USE_LOCAL ? addPerson : () => Promise.reject(new Error("Not available")),
-  addMarriage: USE_LOCAL ? addMarriage : () => Promise.reject(new Error("Not available")),
-  addChildToMarriage: USE_LOCAL ? addChildToMarriage : () => Promise.reject(new Error("Not available")),
-  getPerson: USE_LOCAL ? getPerson : () => Promise.reject(new Error("Not available")),
-  getMarriage: USE_LOCAL ? getMarriage : () => Promise.reject(new Error("Not available")),
-  getMarriagesByPersonId: USE_LOCAL ? getMarriagesByPersonId : () => Promise.reject(new Error("Not available")),
-  updateMarriage: USE_LOCAL ? updateMarriage : () => Promise.reject(new Error("Not available")),
-  clearLocalDB,
+  addPerson: USE_LOCAL ? addPerson : addPersonFirebase,
+  addMarriage: USE_LOCAL ? addMarriage : addMarriageFirebase,
+  addChildToMarriage: USE_LOCAL ? addChildToMarriage : addChildToMarriageFirebase,
+  getPerson: USE_LOCAL ? getPerson : getPersonFirebase,
+  getMarriage: USE_LOCAL ? getMarriage : getMarriageFirebase,
+  getMarriagesByPersonId: USE_LOCAL ? getMarriagesByPersonId : getMarriagesByPersonIdFirebase,
+  updateMarriage: USE_LOCAL ? updateMarriage : updateMarriageFirebase,
+  clearLocalDB, // helpful for dev reset
 };
 
 export default dataService;

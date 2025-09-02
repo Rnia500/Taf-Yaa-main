@@ -14,23 +14,29 @@ function FlexContainer({
   justify = 'flex-start',
   className = '',
   margin = '',
-  backgroundColor 
+  backgroundColor,
+  style
 }) {
+
+
+  const combinedStyle = {
+    gap,
+    padding,
+    margin,
+    width,
+    height,
+    flexDirection: direction,
+    flexWrap: wrap ? 'wrap' : 'nowrap',
+    alignItems: align,
+    justifyContent: justify,
+    backgroundColor,
+    ...style
+  }
+
   return (
     <div
       className={`responsive-container ${direction} ${className}`}
-      style={{
-        gap,
-        padding,
-        margin,
-        width,
-        height,
-        flexDirection: direction,
-        flexWrap: wrap ? 'wrap' : 'nowrap',
-        alignItems: align,
-        justifyContent: justify,
-        backgroundColor
-      }}
+      style={combinedStyle}
     >
       {children}
     </div>

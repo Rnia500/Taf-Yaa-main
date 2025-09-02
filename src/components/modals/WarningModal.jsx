@@ -6,6 +6,7 @@ import FlexContainer from '../../layout/containers/FlexContainer';
 import Divider from '../Divider';
 import Row from '../../layout/containers/Row';
 import ToggleSwitch from '../ToggleSwitch';
+import Card from '../../layout/containers/Card';
 
 const WarningModal = ({
   isOpen,
@@ -26,10 +27,14 @@ const WarningModal = ({
     onClose();
   };
 
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} {...modalProps}>
-     <FlexContainer padding='0.5rem'  direction="column" gap="5px">
-        <Text variant="h3">{title}</Text>
+    <Modal style={{overvlowX: 'hidden', padding: '0px'}} isOpen={isOpen} onClose={onClose} showCLoseIcon = {false} {...modalProps}>
+     
+     <Card alignItems='start' padding='0px 0px 0px 20px' margin='0px' borderRadius='0px' style={{minHeight : '60px'}}   backgroundColor="var(--color-ModalWaring)">
+        <Text variant="heading3">{title}</Text>
+     </Card>
+     <FlexContainer style={{overvlowX: 'hidden'}} padding='5px 16px 16px 16px'  direction="column" gap="5px"> 
         <Divider />
         <Text variant="p">{message}</Text>
 

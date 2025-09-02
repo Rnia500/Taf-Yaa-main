@@ -11,7 +11,7 @@ import Button from '../../Button';
 import { User, Heart, Shield, BookOpen } from 'lucide-react';
 import { MarriageModel } from '../../../models/treeModels/MarriageModel';
 
-const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1, loading = false }) => {
+const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1, isSubmitting = false }) => {
 
 
 
@@ -71,6 +71,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
   };
 
   const genderOptions = [
+    { value: '', label: 'Select a Gender'},
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' }
   ];
@@ -312,11 +313,11 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
       </div>
 
       <Row className="button-group">
-        <Button fullWidth variant='danger' onClick={onCancel}>
+        <Button fullWidth variant='danger' onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button fullWidth type="submit" disabled={loading}>
-          {loading ? "Adding..." : "Add Spouse"}
+        <Button fullWidth type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Add Spouse"}
         </Button>
       </Row>
     </form>

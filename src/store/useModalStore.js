@@ -8,7 +8,8 @@ const useModalStore = create((set) => ({
     settingsModal: false,
     profileModal: false,
     addSpouseModal: false,
-    addChildModal: false
+    addChildModal: false,
+    confirmationModal: false,  
   },
   
   // Modal data
@@ -20,7 +21,12 @@ const useModalStore = create((set) => ({
       targetNodeId: null,
       parent1Id: null,
       parent2Id: null
-    }
+    },
+    confirmationModal: {        // <-- add this
+      title: '',
+      message: '',
+      onConfirm: null,
+    },
   },
   
   // Open a specific modal with optional data
@@ -46,7 +52,8 @@ const useModalStore = create((set) => ({
       settingsModal: false,
       profileModal: false,
       addSpouseModal: false,
-      addChildModal: false
+      addChildModal: false,
+      confirmationModal: false
     }
   }),
 }));

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './styles/Colors.css'; 
 import ComponentDemo from './pages/ComponentDemo';
 import BaseLayout from './pages/BaseLayout';
+import GlobalModals from './pages/GlobalModals';
 
 
 function App() {
@@ -16,8 +17,10 @@ function App() {
     //     <Route path="/base" element={<BaseLayout />} />
     //   </Routes>
     // </Router>
-
-    <BaseLayout />
+    <>
+      <BaseLayout />
+      <GlobalModals />
+    </>
   );
 }
 
