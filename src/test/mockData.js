@@ -3,44 +3,53 @@ export const mockMembers = {
     id: 'member_1',
     name: 'John Doe',
     birthDate: '1980-05-15',
-    birthPlace: 'Bamenda',
+    dob: '1980-05-15', // Keep both for compatibility
+    birthPlace: 'Douala, Cameroon',
+    location: 'Douala, Cameroon',
     tribe: 'Bamileke',
+    gender: 'male',
     treeId: 'tree_1'
   },
   member2: {
     id: 'member_2',
-    name: 'John Doh',
+    name: 'John Doh', // Similar name for testing
     birthDate: '1980-05-16',
-    birthPlace: 'Bamenda',
+    dob: '1980-05-16',
+    birthPlace: 'Douala, Cameroon',
+    location: 'Douala, Cameroon',
     tribe: 'Bamileke',
-    treeId: 'tree_2'
+    gender: 'male',
+    treeId: 'tree_1'
   },
   member3: {
     id: 'member_3',
     name: 'Jane Smith',
-    birthDate: '1975-03-20',
-    birthPlace: 'Douala',
-    tribe: 'Duala',
-    treeId: 'tree_3'
+    birthDate: '1990-12-01',
+    dob: '1990-12-01',
+    birthPlace: 'Yaounde, Cameroon',
+    location: 'Yaounde, Cameroon',
+    tribe: 'Ewondo',
+    gender: 'female',
+    treeId: 'tree_1'
   }
 };
 
 export const mockPublicMatchPool = [
   {
-    memberId: 'member_2',
-    treeId: 'tree_2',
-    name: 'John Doh',
-    birthDate: '1980-05-16',
-    birthPlace: 'Bamenda',
-    tribe: 'Bamileke'
+    memberId: 'external_1',
+    name: 'John Doe Jr',
+    birthDate: '1980-05-20',
+    birthPlace: 'Douala, Cameroon',
+    tribe: 'Bamileke',
+    treeId: 'tree_2'
   },
   {
-    memberId: 'member_3',
-    treeId: 'tree_3',
-    name: 'Jane Smith',
-    birthDate: '1975-03-20',
-    birthPlace: 'Douala',
-    tribe: 'Duala'
+    memberId: 'external_2',
+    name: 'Marie Kameni',
+    birthDate: '1975-03-10',
+    birthPlace: 'Bafang, Cameroon',
+    tribe: 'Bamileke',
+    treeId: 'tree_3'
   }
 ];
 
@@ -58,3 +67,5 @@ export const mockSuggestions = [
     requiresApproval: true
   }
 ];
+
+

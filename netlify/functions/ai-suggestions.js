@@ -1,13 +1,41 @@
 const admin = require('firebase-admin');
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    }),
-  });
+// Add comprehensive environment validation
+const requiredEnvVars = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error(`Missing environment variables: ${missingVars.join(', ')}`);
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({ error: 'Server configuration error' })
+  };
+}
+
+// Fix private key formatting issues
+const privateKey = process.env.FIREBASE_PRIVATE_KEY
+  .replace(/\\n/g, '\n')
+  .replace(/"/g, '');
+
+// Add try-catch for Firebase initialization
+try {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: privateKey,
+      }),
+    });
+  }
+} catch (error) {
+  console.error('Firebase initialization failed:', error);
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({ error: 'Database connection failed' })
+  };
 }
 
 const db = admin.firestore();
@@ -212,3 +240,7 @@ function generateEvidence(member1, member2) {
   
   return evidence;
 }
+
+
+
+

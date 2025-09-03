@@ -17,27 +17,52 @@ export const suggestionService = {
     try {
       const suggestions = [];
       
-      // Get all people in the tree
-      const treeMembers = await this.getTreeMembers(treeId);
-      const targetPerson = treeMembers.find(p => p.id === personId);
-      
-      if (!targetPerson) return [];
-      
-      // Internal suggestions (within same tree)
-      const internalSuggestions = this.findInternalMatches(targetPerson, treeMembers);
-      suggestions.push(...internalSuggestions);
-      
-      // External suggestions (from public match pool)
-      const externalSuggestions = await this.findExternalMatches(targetPerson, treeId);
-      suggestions.push(...externalSuggestions);
-      
-      // Store suggestions
-      for (const suggestion of suggestions) {
-        await this.storeSuggestion(suggestion);
+      // Get all people in the tree with error handling
+      let treeMembers;
+      try {
+        treeMembers = await this.getTreeMembers(treeId);
+      } catch (error) {
+        console.error('Failed to get tree members:', error);
+        throw new Error('Unable to access family tree data');
       }
       
-      return suggestions;
+      const targetPerson = treeMembers.find(p => p.id === personId);
+      if (!targetPerson) {
+        throw new Error('Person not found in family tree');
+      }
+      
+      // Internal suggestions with error handling
+      try {
+        const internalSuggestions = this.findInternalMatches(targetPerson, treeMembers);
+        suggestions.push(...internalSuggestions);
+      } catch (error) {
+        console.error('Internal matching failed:', error);
+        // Continue with external matching even if internal fails
+      }
+      
+      // External suggestions with error handling
+      try {
+        const externalSuggestions = await this.findExternalMatches(targetPerson, treeId);
+        suggestions.push(...externalSuggestions);
+      } catch (error) {
+        console.error('External matching failed:', error);
+        // Continue even if external matching fails
+      }
+      
+      // Store suggestions with batch error handling
+      const successfulStores = [];
+      for (const suggestion of suggestions) {
+        try {
+          await this.storeSuggestion(suggestion);
+          successfulStores.push(suggestion);
+        } catch (error) {
+          console.error('Failed to store suggestion:', suggestion.id, error);
+        }
+      }
+      
+      return successfulStores;
     } catch (error) {
+      console.error('Generate suggestions error:', error);
       throw new Error(`Failed to generate suggestions: ${error.message}`);
     }
   },
@@ -114,88 +139,97 @@ export const suggestionService = {
 
   // Calculate match score between two people
   calculateMatchScore(person1, person2) {
-    let score = 0;
-    let factors = 0;
-    
-    // Name similarity
+    let totalScore = 0;
+    let maxPossibleScore = 0;
+
+    // Name similarity (40% weight)
     if (person1.name && person2.name) {
-      const nameSimilarity = this.calculateStringSimilarity(
-        person1.name.toLowerCase(),
-        person2.name.toLowerCase()
+      const similarity = this.calculateStringSimilarity(
+        person1.name.toLowerCase().trim(),
+        person2.name.toLowerCase().trim()
       );
-      score += nameSimilarity * 0.4;
-      factors += 0.4;
+      totalScore += similarity * 0.4;
+      maxPossibleScore += 0.4;
     }
-    
-    // Birth date proximity
-    if (person1.dob && person2.dob) {
-      const dateProximity = this.calculateDateProximity(person1.dob, person2.dob);
-      score += dateProximity * 0.3;
-      factors += 0.3;
+
+    // Birth date proximity (30% weight) - handle both dob and birthDate
+    const date1 = person1.dob || person1.birthDate;
+    const date2 = person2.dob || person2.birthDate;
+    if (date1 && date2) {
+      const proximity = this.calculateDateProximity(date1, date2);
+      totalScore += proximity * 0.3;
+      maxPossibleScore += 0.3;
     }
-    
-    // Gender match
-    if (person1.gender && person2.gender) {
-      score += (person1.gender === person2.gender ? 1 : 0) * 0.1;
-      factors += 0.1;
+
+    // Location similarity (20% weight)
+    const location1 = person1.birthPlace || person1.location;
+    const location2 = person2.birthPlace || person2.location;
+    if (location1 && location2) {
+      const locationSimilarity = this.calculateStringSimilarity(
+        location1.toLowerCase().trim(),
+        location2.toLowerCase().trim()
+      );
+      totalScore += locationSimilarity * 0.2;
+      maxPossibleScore += 0.2;
     }
-    
-    // Location/village similarity (if available in bio)
-    if (person1.bio && person2.bio) {
-      const locationSimilarity = this.extractLocationSimilarity(person1.bio, person2.bio);
-      score += locationSimilarity * 0.2;
-      factors += 0.2;
+
+    // Tribe similarity (10% weight)
+    if (person1.tribe && person2.tribe) {
+      const tribeSimilarity = person1.tribe.toLowerCase() === person2.tribe.toLowerCase() ? 1 : 0;
+      totalScore += tribeSimilarity * 0.1;
+      maxPossibleScore += 0.1;
     }
-    
-    return factors > 0 ? score / factors : 0;
+
+    return maxPossibleScore > 0 ? totalScore / maxPossibleScore : 0;
   },
 
-  // Calculate string similarity using Levenshtein distance
+  // Add all missing helper methods
   calculateStringSimilarity(str1, str2) {
+    if (!str1 || !str2) return 0;
+    if (str1 === str2) return 1;
+    
     const maxLength = Math.max(str1.length, str2.length);
     if (maxLength === 0) return 1;
     
     const distance = this.levenshteinDistance(str1, str2);
-    return 1 - (distance / maxLength);
+    return Math.max(0, 1 - (distance / maxLength));
   },
 
-  // Levenshtein distance algorithm
   levenshteinDistance(str1, str2) {
-    const matrix = [];
+    const matrix = Array(str2.length + 1).fill().map(() => Array(str1.length + 1).fill(0));
     
-    for (let i = 0; i <= str2.length; i++) {
-      matrix[i] = [i];
-    }
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
     
-    for (let j = 0; j <= str1.length; j++) {
-      matrix[0][j] = j;
-    }
-    
-    for (let i = 1; i <= str2.length; i++) {
-      for (let j = 1; j <= str1.length; j++) {
-        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
-        }
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j - 1][i] + 1,     // deletion
+          matrix[j][i - 1] + 1,     // insertion
+          matrix[j - 1][i - 1] + cost // substitution
+        );
       }
     }
     
     return matrix[str2.length][str1.length];
   },
 
-  // Calculate date proximity
   calculateDateProximity(date1, date2) {
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-    const daysDiff = Math.abs((d1 - d2) / (1000 * 60 * 60 * 24));
-    
-    // Same date = 1, 1 year apart = ~0.5, 5+ years apart = 0
-    return Math.max(0, 1 - (daysDiff / 1825));
+    try {
+      const d1 = new Date(date1);
+      const d2 = new Date(date2);
+      
+      if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+      
+      const daysDiff = Math.abs((d1 - d2) / (1000 * 60 * 60 * 24));
+      const maxDays = 365 * 5; // 5 years threshold
+      
+      return Math.max(0, 1 - (daysDiff / maxDays));
+    } catch (error) {
+      console.error('Date proximity calculation error:', error);
+      return 0;
+    }
   },
 
   // Extract location similarity from bio text
@@ -312,12 +346,13 @@ export const suggestionService = {
   },
 
   // Get tree members
-  async getTreeMembers(treeId) {
+  async getTreeMembers(treeId, limit = 1000) {
     try {
       const membersQuery = query(
         collection(db, 'people'),
         where('treeId', '==', treeId),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(limit) // Add limit to prevent memory issues
       );
 
       const snapshot = await getDocs(membersQuery);
@@ -405,6 +440,58 @@ export const suggestionService = {
       return suggestions;
     } catch (error) {
       console.error('Cross-tree matching error:', error);
+      return [];
+    }
+  },
+
+  // Process suggestions in batches
+  async findExternalMatches(person, treeId, batchSize = 100) {
+    try {
+      const publicPoolQuery = query(
+        collection(db, 'publicMatchPool'),
+        where('isActive', '==', true),
+        limit(batchSize) // Process in smaller batches
+      );
+      
+      const snapshot = await getDocs(publicPoolQuery);
+      const publicMatches = snapshot.docs.map(doc => doc.data());
+      
+      const suggestions = [];
+      
+      // Process matches in chunks to avoid memory issues
+      for (let i = 0; i < publicMatches.length; i += 50) {
+        const chunk = publicMatches.slice(i, i + 50);
+        
+        for (const match of chunk) {
+          const matchScore = this.calculateExternalMatchScore(person, match);
+          
+          if (matchScore > 0.8) {
+            suggestions.push({
+              id: `external_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+              type: 'external',
+              sourcePersonId: person.id,
+              targetPersonId: match.personId,
+              sourceTreeId: person.treeId,
+              targetTreeId: match.treeId,
+              matchScore: matchScore,
+              suggestedRelation: this.determineSuggestedRelation(person, match),
+              evidence: this.generateEvidence(person, match),
+              status: 'pending',
+              requiresApproval: true,
+              createdAt: new Date().toISOString()
+            });
+          }
+        }
+        
+        // Allow garbage collection between chunks
+        if (i % 200 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+      }
+      
+      return suggestions;
+    } catch (error) {
+      console.error('Error finding external matches:', error);
       return [];
     }
   }

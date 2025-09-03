@@ -1,31 +1,37 @@
-import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import '@testing-library/jest-dom';
 
-// Set React 19 environment flag
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+// Mock Firebase completely
+vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(),
+  collection: vi.fn(),
+  doc: vi.fn(),
+  getDocs: vi.fn(),
+  getDoc: vi.fn(),
+  setDoc: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn(),
+  orderBy: vi.fn(),
+  serverTimestamp: vi.fn(() => new Date())
+}));
 
-// Mock Firebase config
-vi.mock('../config/firebase', () => {
-  return import('./mocks/firebase.js');
-});
+vi.mock('firebase/auth', () => ({
+  getAuth: vi.fn(),
+  createUserWithEmailAndPassword: vi.fn(),
+  signInWithEmailAndPassword: vi.fn(),
+  signOut: vi.fn()
+}));
 
-// Mock Firebase Firestore functions
-vi.mock('firebase/firestore', () => {
-  return import('./mocks/firebase.js');
-});
+vi.mock('../config/firebase', () => ({
+  db: {},
+  auth: {}
+}));
 
-// Mock Netlify functions
+// Mock fetch for API calls
 global.fetch = vi.fn();
 
-// Setup test environment variables for Firebase with valid PEM format
-process.env.FIREBASE_PROJECT_ID = 'test-project';
-process.env.FIREBASE_CLIENT_EMAIL = 'test@test.com';
-process.env.FIREBASE_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKB\nwxBjRb7VnPiGXgwwgHGjRoyz6nFe5PRiGe/WwddvVBrqZdjdxTxw0XpbBvr0rCs8\nkTrHlHs2wgTNiNqBUN9xhcxzK8YqbHAQvj2hSWxfEtRt6zx0Tnq0VeRi8CrRjKqI\nqVhcKr7ykAPaVYdiwt1fSyfa5IS2d+aLu/Zg4N2ewdXkRhCuFy5KvDei+X3Fpd4U\n+KQENF6cAa5MdVfwwjN0cRBcYGUzEQIDAQABAoIBAD4f4/c2HqBqGRD+g6CtqKqk\n-----END PRIVATE KEY-----';
-
-// Setup other test environment variables
-process.env.REACT_APP_CLOUDINARY_CLOUD_NAME = 'test-cloud';
-process.env.REACT_APP_CLOUDINARY_API_KEY = 'test-key';
-process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET = 'test-preset';
+// Set test environment
+process.env.NODE_ENV = 'test';
 
 // Mock console methods to reduce test noise
 global.console = {
@@ -33,6 +39,8 @@ global.console = {
   warn: vi.fn(),
   error: vi.fn(),
 };
+
+
 
 
 
