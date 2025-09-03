@@ -1,3 +1,4 @@
+// src/components/Modals/ConfirmationModal.jsx
 import React, { useState } from 'react';
 import Modal from '../../layout/containers/Modal';
 import Button from '../Button';
@@ -11,6 +12,7 @@ const ConfirmationModal = ({
   isOpen,
   onClose,
   onConfirm,
+  onCancel,   
   title = 'Confirm Action',
   message = 'Are you sure you want to proceed?',
   confirmText = 'Confirm',
@@ -22,13 +24,18 @@ const ConfirmationModal = ({
   const [rememberChoice, setRememberChoice] = useState(false);
 
   const handleConfirm = () => {
-    onConfirm(rememberChoice);
+    if (onConfirm) onConfirm(rememberChoice); 
+    onClose();
+  };
+
+  const handleCancel = () => {
+    if (onCancel) onCancel(); // ✅ trigger parent callback
     onClose();
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} {...modalProps}>
-      <FlexContainer padding='0.5rem'  direction="column" gap="5px">
+      <FlexContainer padding='0.5rem' direction="column" gap="5px">
         <Text variant="h3">{title}</Text>
         <Divider />
         <Text variant="p">{message}</Text>
@@ -40,9 +47,9 @@ const ConfirmationModal = ({
           />
           <Text variant="caption">Remember my choice for this action</Text>
         </Row>
-       
+
         <Row padding='0px' justifyContent="flex-end" gap="10px" margin='20px 0px 0px 0px'>
-          <Button fullWidth variant={cancelVariant} onClick={onClose}>
+          <Button fullWidth variant={cancelVariant} onClick={handleCancel}>
             {cancelText}
           </Button>
           <Button fullWidth variant={confirmVariant} onClick={handleConfirm}>

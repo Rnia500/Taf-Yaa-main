@@ -1,7 +1,8 @@
 // src/components/Modals/GlobalModals.jsx
 import React from "react";
-import { modalRegistry } from "../components/registry/ModalRegistry";
-import useModalStore from "../store/useModalStore";
+import { modalRegistry } from "../components/registry/ModalRegistry";  
+import useModalStore from "../store/useModalStore"; 
+
 
 export default function GlobalModals() {
   const { modals, modalData, closeModal } = useModalStore();
@@ -18,8 +19,10 @@ export default function GlobalModals() {
           <ModalComponent
             key={key}
             isOpen={isOpen}
-            {...data}
+            {...data} 
             onClose={() => closeModal(key)}
+            onConfirm={data.onConfirm} 
+            onCancel={data.onCancel}  
           />
         );
       })}

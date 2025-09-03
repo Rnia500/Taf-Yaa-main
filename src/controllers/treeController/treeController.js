@@ -149,6 +149,11 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
     // -------------------------------------------------------
     // 6. Handle Monogamous (new marriage or conversion)
     // -------------------------------------------------------
+
+    if (existingSpouse.gender === newSpouseData.gender) {
+      throw new Error("Same-sex marriages are not allowed.");
+    }
+
     if (existingMonogamous) {
       // Convert existing monogamous → polygamous
       const [sp1, sp2] = existingMonogamous.spouses;
@@ -225,26 +230,66 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
 /**
  * Add a child under a marriage or single parent (with placeholder partner).
  */
+// src/controllers/treeController.js (excerpt)
 export async function addChild(treeId, options) {
-  try {
-    const { marriageId, parentId, childData } = options;
-    const childId = generateId("person");
+  const { marriageId, parentId, childData, motherId } = options;
 
+  try {
+    // -------------------------------------------------------
+    // 1. Build child payload
+    // -------------------------------------------------------
+    const childId = generateId("person");
     const childPayload = {
       id: childId,
       treeId,
-      ...childData,
+      name: childData.fullName,
+      gender: childData.gender,
+      dob: childData.dateOfBirth || null,
+      isDeceased: childData.isDeceased || false,
+      dod: childData.dateOfDeath || null,
+      photoUrl: childData.profilePhoto || null,
+      bio: childData.biography || "",
+      tribe: childData.tribe || "",
+      language: childData.language || "",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     await dataService.addPerson(childPayload);
 
+    // -------------------------------------------------------
+    // 2. If adding to an existing marriage
+    // -------------------------------------------------------
     if (marriageId) {
-      await dataService.addChildToMarriage(marriageId, childId);
+      const marriage = await dataService.getMarriage(marriageId);
+      if (!marriage) throw new Error("Marriage not found.");
+
+      if (marriage.marriageType === "polygamous") {
+        // ✅ strict validation: require motherId
+        if (!motherId) {
+          throw new Error(
+            "Polygamous marriage requires specifying the mother of the child."
+          );
+        }
+
+        const wifeExists = marriage.wives.some((w) => w.wifeId === motherId);
+        if (!wifeExists) {
+          throw new Error("Selected mother does not belong to this marriage.");
+        }
+
+        await dataService.addChildToMarriage(marriageId, childId, motherId);
+      } else if (marriage.marriageType === "monogamous") {
+        await dataService.addChildToMarriage(marriageId, childId, null);
+      } else {
+        throw new Error(`Unsupported marriage type: ${marriage.marriageType}`);
+      }
+
       return { child: childPayload, marriageId };
     }
 
+    // -------------------------------------------------------
+    // 3. If single parent (no marriage yet)
+    // -------------------------------------------------------
     if (parentId) {
       const placeholderId = generateId("person");
       const newMarriageId = generateId("marriage");
@@ -252,7 +297,7 @@ export async function addChild(treeId, options) {
       const placeholderPayload = {
         id: placeholderId,
         treeId,
-        fullName: "Partner",
+        name: "Partner",
         isPlaceholder: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -261,6 +306,7 @@ export async function addChild(treeId, options) {
       const marriagePayload = {
         id: newMarriageId,
         treeId,
+        marriageType: "monogamous",
         spouses: [parentId, placeholderId],
         childrenIds: [childId],
         createdAt: new Date().toISOString(),
@@ -277,12 +323,16 @@ export async function addChild(treeId, options) {
       };
     }
 
+    // -------------------------------------------------------
+    // 4. If neither marriageId nor parentId provided
+    // -------------------------------------------------------
     throw new Error("addChild requires either marriageId or parentId");
   } catch (err) {
-    console.error("Error adding child:", err);
+    console.error("DBG:addChild -> Error:", err);
     throw err;
   }
 }
+
 
 /**
  * Add a parent to a single child (with placeholder partner).

@@ -15,7 +15,7 @@ import {
   traceLineage,
   filterFamilyByRoot,
 } from "../../utils/treeUtils/treeLayout";
-import * as treeController from "../../controllers/treeController/treeController";
+
 
 import MarriageNode from "./nodes/MarriageNode";
 import FlowPersonNode from "./nodes/FlowPersonNode";
@@ -95,7 +95,7 @@ function TreeCanvasComponent() {
   const { fitView } = useReactFlow();
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
-  const { openModal } = useModalStore();
+  const { openModal, modals, closeModal } = useModalStore();
 
   // ---- State ----
   const [peopleWithCollapseState, setPeopleWithCollapseState] =
@@ -219,19 +219,7 @@ function TreeCanvasComponent() {
   if (loading) return <div>Loading family tree…</div>;
 
   // ---- Child Submit ----
-  const handleAddChildSubmit = async (formData) => {
-    try {
-      if (!targetNodeId) return;
-      await treeController.addChild("tree001", {
-        parentId: targetNodeId,
-        childData: formData,
-      });
-      reload();
-      setTargetNodeId(null);
-    } catch (err) {
-      console.error("Error adding child:", err);
-    }
-  };
+  // Removed unused handleAddChildSubmit to fix eslint warning
 
   // =======================
   // Render
@@ -254,7 +242,10 @@ function TreeCanvasComponent() {
           if (person) setPartnerName(person.name);
           openModal("addSpouseModal", { targetNodeId: personId });
         }}
-        onAddChild={(personId) => setTargetNodeId(personId)}
+        onAddChild={(personId) => {
+          setTargetNodeId(personId);
+          openModal("addChildModal", { targetNodeId: personId });
+        }}
       />
 
       {/* Modals */}
@@ -266,7 +257,10 @@ function TreeCanvasComponent() {
           setTargetNodeId(null);
         }}
       />
-      <AddChildModal onSubmit={handleAddChildSubmit} />
+      <AddChildModal onSuccess={() => {
+        reload();
+        setTargetNodeId(null);
+      }} />
 
       {/* Reset button */}
       <Button

@@ -19,7 +19,7 @@
   --color-overlay: rgba(0, 0, 0, 0.5);  
   --color-disabled-bg: rgba(0, 0, 0, 0.05);
 
-  /* Danger & Info */
+  /* Danger, Default & Info */
   --color-danger: #ef4444;
   --color-success: #22c55e;
   --color-danger-hover: #dc2626;
@@ -31,7 +31,8 @@
   --color-link: #2563eb;
   --color-link-hover: #7c0786;
   
-  /* Extended color palette for audio components */
+
+  --color-defaultCardbg: #f8f9fa;
   --color-primary: var(--color-primary1);
   --color-primary-dark: #15803d;
   --color-primary-light: #bbf7d0;

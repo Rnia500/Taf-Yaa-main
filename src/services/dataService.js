@@ -42,12 +42,25 @@ function addMarriage(marriage) {
   return Promise.resolve(marriage);
 }
 
-function addChildToMarriage(marriageId, childId) {
-  console.log(`DBG:dataService.addChildToMarriage -> marriageId=${marriageId} childId=${childId}`);
+
+function addChildToMarriage(marriageId, childId, motherId = null) {
+  console.log(`DBG:dataService.addChildToMarriage -> marriageId=${marriageId} childId=${childId} motherId=${motherId}`);
   const marriage = localDB.marriages.find((m) => m.id === marriageId);
+
   if (marriage) {
-    marriage.childrenIds = marriage.childrenIds || [];
-    marriage.childrenIds.push(childId);
+    if (marriage.marriageType === 'monogamous') {
+      marriage.childrenIds = marriage.childrenIds || [];
+      marriage.childrenIds.push(childId);
+    } else if (marriage.marriageType === 'polygamous' && motherId) {
+      const wife = marriage.wives.find(w => w.wifeId === motherId);
+      if (wife) {
+        wife.childrenIds = wife.childrenIds || [];
+        wife.childrenIds.push(childId);
+        wife.updatedAt = new Date().toISOString();
+      } else {
+        console.error(`Could not find mother with ID ${motherId} in marriage ${marriageId}`);
+      }
+    }
     saveLocalDB();
   }
   return Promise.resolve(marriage);

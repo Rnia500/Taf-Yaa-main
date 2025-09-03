@@ -8,8 +8,10 @@ import AudioUploadCard from '../../AudioUploadCard';
 import Row from '../../../layout/containers/Row';
 import Button from '../../Button';
 import { User, BookOpen, Shield } from 'lucide-react';
+import Card from '../../../layout/containers/Card';
+import Text from '../../Text';
 
-const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name }) => {
+const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = [], defaultMotherId }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     gender: '',
@@ -23,7 +25,8 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name }) => {
     storyTitle: '',
     audioFile: null,
     audioURL: null,
-    privacy: 'membersOnly'
+    privacy: 'membersOnly',
+    motherId: defaultMotherId || ''
   });
 
   const [errors, setErrors] = useState({});
@@ -50,10 +53,11 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    onSubmit(formData); 
+    onSubmit(formData);
   };
 
   const genderOptions = [
+    { value: '', label: 'Select a Gender'},
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' }
   ];
@@ -66,13 +70,27 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name }) => {
 
   return (
     <form onSubmit={handleSubmit} className="premium-form">
-      
+
       {/* Display the parents' names at the top of the form */}
-      {parent1Name && parent2Name && (
-        <div className="parents-name-display" style={{marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef'}}>
-          <h3 style={{margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600'}}>Child of {parent1Name} and {parent2Name}</h3>
-        </div>
-      )}
+      <Card  margin='0px 0px 20px 0px'>
+        {wives.length > 0 ? (
+          <Row padding='0px' margin='0px' fitContent alignItems='center' justifyContent='start' gap='10px'>
+            <Text variant='heading3'>Child of {parent1Name} and</Text>
+            <SelectDropdown
+              value={formData.motherId}
+              onChange={(e) => setFormData(prev => ({ ...prev, motherId: e.target.value }))}
+              options={[
+                { value: '', label: 'Select a wife please' },
+                ...wives.map(w => ({ value: w.id, label: w.name }))
+              ]}
+            />
+          </Row>
+        ) : (
+          <h3 style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600' }}>
+            Child of {parent1Name} and {parent2Name}
+          </h3>
+        )}
+      </Card>
 
       {/* Section 1: Personal Information */}
       <div className="section-card">
