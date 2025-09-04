@@ -14,7 +14,7 @@ export default function ParentChildEdge({
   markerStart,
   markerEnd,
 }) {
-  const { getNodes, setNodes } = useReactFlow();
+  const { getNodes } = useReactFlow();
 
   const [edgePath] = getBezierPath({
     sourceX,
@@ -25,35 +25,25 @@ export default function ParentChildEdge({
     targetPosition,
   });
 
-  // ✨ This function is called when the user clicks the circle marker.
+  // This function is called when the user clicks the circle marker.
   const onCollapseClick = (event) => {
     event.stopPropagation(); // Prevents the canvas from being dragged
 
-    // --- This is where the magic happens ---
-    // In a real app, you would call a function to update Firebase.
-    // For our dummy data, we will simulate this by directly changing the node data.
-    
-    setNodes((nodes) =>
-      nodes.map((node) => {
-        if (node.id === source) {
-          // Find the source node and toggle its `isCollapsed` data property
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              isCollapsed: !node.data.isCollapsed,
-            },
-          };
-        }
-        return node;
-      })
-    );
+    const nodes = getNodes();
+    const sourceNode = nodes.find((n) => n.id === source);
 
-    console.log(`Toggled collapse for node: ${source}`);
+    if (sourceNode && sourceNode.data && typeof sourceNode.data.onToggleCollapse === 'function') {
+      sourceNode.data.onToggleCollapse();
+      console.log(`Called centralized onToggleCollapse for node: ${source}`);
+    } else {
+      console.warn(
+        `No centralized onToggleCollapse found for node ${source}; collapse not toggled.`
+      );
+    }
   };
 
   return (
-    // We use an SVG group <g> to group the edge and the clickable area.
+    //use an SVG group <g> to group the edge and the clickable area.
     <g>
       <BaseEdge 
         path={edgePath}

@@ -95,7 +95,7 @@ function TreeCanvasComponent() {
   const { fitView } = useReactFlow();
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
-  const { openModal, modals, closeModal } = useModalStore();
+  const { openModal } = useModalStore();
 
   // ---- State ----
   const [peopleWithCollapseState, setPeopleWithCollapseState] =
@@ -212,7 +212,11 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
 
   // ---- Effects ----
   useEffect(() => {
-    setPeopleWithCollapseState(allPeople);
+    // Ensure every person has an explicit isCollapsed boolean so code works
+    // even when the data model doesn't include that field.
+    setPeopleWithCollapseState(
+      allPeople.map((p) => ({ ...p, isCollapsed: p.isCollapsed ?? false }))
+    );
   }, [allPeople]);
 
   if (loading) return <div>Loading family tree…</div>;
