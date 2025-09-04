@@ -11,12 +11,15 @@ export interface Person {
   bio?: string;
   tribe?: string;
   language?: string;
-  linkedUserId?: string | null; // If linked to a user account
+  linkedUserId?: string | null; 
   isDeceased: boolean;
+  isSpouse: boolean;
   publicConsent: boolean;
+  isPlaceholder?: boolean;      
   createdAt: string;            
   updatedAt: string;            
 }
+
 
 // --- Helpers ---
 

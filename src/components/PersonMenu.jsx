@@ -5,7 +5,7 @@ import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoun
 import '../styles/PersonMenu.css';
 
 function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild }) {
-  const { isOpen, targetNodeId, position, actions } = usePersonMenuStore();
+  const { isOpen, targetNodeId, position, actions, targetPerson } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
   const submenuRef = useRef(null);
@@ -84,11 +84,14 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
       actions.closeMenu();
       setShowSubmenu(false);
       
+      
       // Trigger the onAddSpouse prop to open the modal
       onAddSpouse(currentTargetNodeId);
       
       // Log for debugging
       console.log('Adding spouse for node:', currentTargetNodeId);
+      console.log('Target person data',targetPerson)
+
     } else if (relativeType === 'child') {
       const currentTargetNodeId = targetNodeId;
       actions.closeMenu();
@@ -175,10 +178,12 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
           </div>
           
           <div className="person-menu-items">
-            <button className="person-menu-item" onClick={() => handleAddRelative('spouse')}>
-              <Heart size={15} />
-              <span className="person-menu-text">Add Spouse</span>
-            </button>
+            {!targetPerson?.isSpouse && (
+              <button className="person-menu-item" onClick={() => handleAddRelative('spouse')}>
+                <Heart size={15} />
+                <span className="person-menu-text">Add Spouse</span>
+              </button>
+            )}
             <button className="person-menu-item" onClick={() => handleAddRelative('child')}>
               <Baby size={15} />
               <span className="person-menu-text">Add Child</span>

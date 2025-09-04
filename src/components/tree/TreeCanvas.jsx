@@ -113,18 +113,17 @@ function TreeCanvasComponent() {
   const [targetNodeId, setTargetNodeId] = useState(null);
 
   // ---- Derived data (filter people & marriages) ----
-  const { visiblePeople, visibleMarriages } = useMemo(() => {
-    const peopleWithState = allPeople.map((p) => {
-      const stateful = peopleWithCollapseState.find((sp) => sp.id === p.id);
-      return stateful || p;
-    });
+const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
+  const peopleWithState = allPeople.map((p) => {
+    const stateful = peopleWithCollapseState.find((sp) => sp.id === p.id);
+    return stateful || p;
+  });
 
-    if (rootPersonId === "p001") {
-      return { visiblePeople: peopleWithState, visibleMarriages: allMarriages };
-    }
-    return filterFamilyByRoot(rootPersonId, peopleWithState, allMarriages);
-  }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
-
+  if (rootPersonId === "p001") {
+    return { people: peopleWithState, marriages: allMarriages };
+  }
+  return filterFamilyByRoot(rootPersonId, peopleWithState, allMarriages);
+}, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
 
   // ---- Handlers ----
   const handleToggleCollapse = useCallback((personId) => {

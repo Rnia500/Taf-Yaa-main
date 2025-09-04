@@ -22,7 +22,7 @@ const NODE_HEIGHT = VERTICAL_NODE_HEIGHT;
 const GAP = HORIZONTAL_SPACING; // In vertical, the gap between siblings is horizontal
 
 /* -----------------------------------------------------------
-   Universal Placeholder Creation (Same as horizontal, but with vertical node type)
+   Universal Placeholder Creation 
 ----------------------------------------------------------- */
 function createAndInjectPlaceholders(nodesMap, marriages) {
   console.log("DBG:layoutVertical.createAndInjectPlaceholders -> start", { nodesKeys: Array.from(nodesMap.keys()), marriagesCount: marriages.length });

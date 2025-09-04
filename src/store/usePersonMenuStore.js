@@ -6,10 +6,24 @@ const usePersonMenuStore = create((set) => ({
   position: { x: 0, y: 0 },
   targetNodeId: null,
   targetNodeName: null,
-  
+  targetPerson: null, 
+
   actions: {
-    openMenu: (nodeId, nodeName, position) => set({ isOpen: true, targetNodeId: nodeId, targetNodeName: nodeName, position }),
-    closeMenu: () => set({ isOpen: false, targetNodeId: null, targetNodeName: null }),
+    openMenu: (nodeId, nodeName, position, person) =>
+      set({
+        isOpen: true,
+        targetNodeId: nodeId,
+        targetNodeName: nodeName,
+        position,
+        targetPerson: person, 
+      }),
+    closeMenu: () =>
+      set({
+        isOpen: false,
+        targetNodeId: null,
+        targetNodeName: null,
+        targetPerson: null,
+      }),
   },
 }));
 

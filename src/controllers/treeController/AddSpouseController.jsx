@@ -62,7 +62,7 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
       openModal("confirmationModal", {
         title: "Convert to Polygamous Marriage?",
         message:
-          "This person is currently in a monogamous marriage. Do you want to convert it to a polygamous one to add this new spouse?",
+          "This is currently in a monogamous marriage. Do you want to convert it to a polygamous one to add this new spouse?",
         confirmText: "Yes, Convert",
         cancelText: "No, Cancel",
         onConfirm: () => {
@@ -80,34 +80,47 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
   // -----------------------------
   // Form Submit
   // -----------------------------
-  const handleSubmit = async (formData) => {
-    if (isSubmitting || hasSubmitted.current) return;
+const handleSubmit = async (formData) => {
+  if (isSubmitting || hasSubmitted.current) return;
 
-    setIsSubmitting(true);
-    setError(null);
+  setIsSubmitting(true);
+  setError(null);
 
-    try {
-      const result = await treeController.addSpouse(treeId, existingSpouseId, formData, {
-        onError: (msg, type) => addToast(msg, type),
-        confirmConvert: confirmConvertMarriage,
-      });
+  try {
+    const result = await treeController.addSpouse(treeId, existingSpouseId, formData, {
+      onError: (msg, type) => {
+        // Always show toast for errors
+        addToast(msg, type || "error");
+      },
+      confirmConvert: confirmConvertMarriage,
+    });
 
-      if (result && !hasSubmitted.current) {
-        hasSubmitted.current = true;
-        addToast("Spouse added successfully!", "success");
-        onSuccess?.(result);
-      } else if (!result) {
-        addToast("Operation cancelled.", "info");
-      }
-    } catch (err) {
-      if (!hasSubmitted.current) {
-        setError(err.message || "Failed to add spouse");
-      }
-      console.error("AddSpouseController.handleSubmit:", err);
-    } finally {
-      if (!hasSubmitted.current) setIsSubmitting(false);
+    if (result && !hasSubmitted.current) {
+      hasSubmitted.current = true;
+      addToast("Spouse added successfully!", "success");
+      onSuccess?.(result);
+      closeModal("addSpouse"); 
+    } else if (!result && !hasSubmitted.current) {
+      // Null result = either rule violation OR user cancelled
+      setIsSubmitting(false); // Re-enable form
+      // Optionally set a generic error if not already set
+      setError("Operation could not be completed. Please check the rules.");
+      // Modal can be closed here if you want, or let user see error
+      closeModal("addSpouse");
     }
-  };
+  } catch (err) {
+    if (!hasSubmitted.current) {
+      setError(err.message || "Failed to add spouse");
+      addToast(err.message || "Unexpected error", "error");
+    }
+    console.error("AddSpouseController.handleSubmit:", err);
+  } finally {
+    if (!hasSubmitted.current) {
+      setIsSubmitting(false);
+    }
+  }
+};
+
 
   // -----------------------------
   // Render

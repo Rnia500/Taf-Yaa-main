@@ -3,8 +3,7 @@ import dataService from "../../services/dataService";
 import { generateId } from "../../utils/personUtils/idGenerator";
 
 
-
-
+// src/controllers/treeController.js
 export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
   const { onError, confirmConvert } = options;
   console.log("DBG:addSpouse -> start", { treeId, existingSpouseId, newSpouseData });
@@ -14,40 +13,72 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
     // 1. Validate existing spouse
     // -------------------------------------------------------
     const existingSpouse = await dataService.getPerson(existingSpouseId);
-    if (!existingSpouse) {
-      throw new Error("Existing spouse not found");
+    if (!existingSpouse) throw new Error("Existing spouse not found");
+
+    // Rule 1: Prevent adding spouse to someone who is only a spouse
+    if (existingSpouse.isSpouse) {
+      const msg = "❌ Cannot add a spouse to a spouse. Only directline members can initiate marriages.";
+      console.warn("DBG:addSpouse -> blocked:", msg);
+      onError?.(msg, "error");
+      return null;
+    }
+
+    const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
+    const existingMonogamous = existingMarriages.find(m => m.marriageType === "monogamous");
+
+    // Rule 2: Prevent adding more than one spouse to a directline female
+    if (existingSpouse.gender === "female" && existingMarriages.length >= 1) {
+      const msg = "❌ Directline females cannot have more than one spouse.";
+      console.warn("DBG:addSpouse -> blocked:", msg);
+      onError?.(msg, "error");
+      return null;
     }
 
     // -------------------------------------------------------
-    // 2. Load marriages for this spouse
+    // 2. Configurable relationship rules
     // -------------------------------------------------------
-    const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
+    const rules = {
+      allowSameSexMarriage: false,
+      allowPolyandry: false,
+      allowPolygyny: true,
+    };
+
+    // Block same-sex if disabled
+    if (!rules.allowSameSexMarriage && existingSpouse.gender === newSpouseData.gender) {
+      throw new Error("❌ Same-sex marriages are not allowed.");
+    }
+
+    // If trying to add polygamous marriage
+    if (newSpouseData.marriageType === "polygamous") {
+      if (existingSpouse.gender !== "male" && !rules.allowPolyandry) {
+        throw new Error("❌ Only husbands can have multiple wives. Polyandry is not allowed.");
+      }
+      if (newSpouseData.gender !== "female" && !rules.allowSameSexMarriage) {
+        throw new Error("❌ Polygamous marriages must add female wives.");
+      }
+    }
 
     // -------------------------------------------------------
     // 3. Handle monogamous conversion check BEFORE creating new person
     // -------------------------------------------------------
-    const existingMonogamous = existingMarriages.find(m => m.marriageType === "monogamous");
-
     if (existingMonogamous) {
-      // Already married to this person → noop
       if (existingMonogamous.spouses.includes(newSpouseData.id)) {
         return { spouse: null, marriage: existingMonogamous, marriageAction: "noop" };
       }
 
-      // Prompt conversion
       if (confirmConvert) {
         const shouldConvert = await confirmConvert(existingMonogamous);
         if (!shouldConvert) {
-          if (onError) onError("User cancelled spouse addition.", "warning");
-          return null; // Nothing written
+          onError?.("User cancelled spouse addition.", "warning");
+          return null;
         }
       } else {
-        throw new Error("Existing marriage is monogamous. Conversion required.");
+        throw new Error("❌ Existing marriage is monogamous. Conversion required.");
       }
     }
 
     // -------------------------------------------------------
-    // 4. Create or reuse spouse (safe: only now we write data)
+    // 4. Create or reuse spouse 
     // -------------------------------------------------------
     let newSpouseId, newSpousePayload;
     const possibleMatch = await dataService.findPersonByFields?.({
@@ -74,23 +105,18 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         bio: newSpouseData.biography || "",
         tribe: newSpouseData.tribe || "",
         language: newSpouseData.language || "",
+        isSpouse: true, 
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       await dataService.addPerson(newSpousePayload);
     }
 
+
     // -------------------------------------------------------
-    // 5. Handle Polygamous case
+    // 6. Handle Polygamous marriage
     // -------------------------------------------------------
     if (newSpouseData.marriageType === "polygamous") {
-      if (existingSpouse.gender !== "male") {
-        throw new Error("Only husbands can have multiple wives. Polyandry is not allowed.");
-      }
-      if (newSpouseData.gender !== "female") {
-        throw new Error("In polygamous marriages, only female spouses are allowed.");
-      }
-
       let polygamousMarriage = existingMarriages.find(
         m => m.marriageType === "polygamous" && m.husbandId === existingSpouseId
       );
@@ -101,7 +127,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
           return { spouse: newSpousePayload, marriage: polygamousMarriage, marriageAction: "noop" };
         }
 
-        // Add new wife
+        // Add wife
         polygamousMarriage.wives.push({
           wifeId: newSpouseId,
           order: newSpouseData.wifeOrder || polygamousMarriage.wives.length + 1,
@@ -147,15 +173,10 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
     }
 
     // -------------------------------------------------------
-    // 6. Handle Monogamous (new marriage or conversion)
+    // 7. Handle Monogamous (new marriage or conversion)
     // -------------------------------------------------------
-
-    if (existingSpouse.gender === newSpouseData.gender) {
-      throw new Error("Same-sex marriages are not allowed.");
-    }
-
     if (existingMonogamous) {
-      // Convert existing monogamous → polygamous
+      // Convert monogamous → polygamous
       const [sp1, sp2] = existingMonogamous.spouses;
       const sp1Person = await dataService.getPerson(sp1);
       const sp2Person = await dataService.getPerson(sp2);
@@ -174,25 +195,25 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
           {
             wifeId,
             order: 1,
+            childrenIds: existingMonogamous.childrenIds || [],
             startDate: existingMonogamous.startDate || null,
             location: existingMonogamous.location || null,
             notes: existingMonogamous.notes || null,
-            childrenIds: existingMonogamous.childrenIds || [],
             createdAt: existingMonogamous.createdAt,
             updatedAt: new Date().toISOString(),
           },
           {
             wifeId: newSpouseId,
             order: 2,
+            childrenIds: [],
             startDate: newSpouseData.marriageDate || null,
             location: newSpouseData.marriageLocation || null,
             notes: newSpouseData.marriageNotes || null,
-            childrenIds: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           }
         ],
-        spouses: undefined, // remove old field
+        spouses: undefined,
         childrenIds: [],
         updatedAt: new Date().toISOString(),
       };
@@ -201,7 +222,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
       return { spouse: newSpousePayload, marriage: polygamousMarriage, marriageAction: "converted" };
     }
 
-    // Create new monogamous marriage
+    // Brand new monogamous marriage
     const marriageId = generateId("marriage");
     const marriagePayload = {
       id: marriageId,
@@ -221,16 +242,17 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
 
   } catch (err) {
     console.error("DBG:addSpouse -> Error:", err);
-    if (onError) onError(err.message || "Unexpected error.", "error");
+    onError?.(err.message || "Unexpected error.", "error");
     throw err;
   }
 }
 
 
+
 /**
  * Add a child under a marriage or single parent (with placeholder partner).
  */
-// src/controllers/treeController.js (excerpt)
+
 export async function addChild(treeId, options) {
   const { marriageId, parentId, childData, motherId } = options;
 
@@ -251,6 +273,9 @@ export async function addChild(treeId, options) {
       bio: childData.biography || "",
       tribe: childData.tribe || "",
       language: childData.language || "",
+      isSpouse: false,            // children are never spouses
+      isPlaceholder: false,       // real child, not placeholder
+      publicConsent: true,        // default: real people are public
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -265,11 +290,8 @@ export async function addChild(treeId, options) {
       if (!marriage) throw new Error("Marriage not found.");
 
       if (marriage.marriageType === "polygamous") {
-        // ✅ strict validation: require motherId
         if (!motherId) {
-          throw new Error(
-            "Polygamous marriage requires specifying the mother of the child."
-          );
+          throw new Error("Polygamous marriage requires specifying the mother of the child.");
         }
 
         const wifeExists = marriage.wives.some((w) => w.wifeId === motherId);
@@ -298,7 +320,10 @@ export async function addChild(treeId, options) {
         id: placeholderId,
         treeId,
         name: "Partner",
-        isPlaceholder: true,
+        gender: null, 
+        isSpouse: true,         // placeholders act as spouses
+        isPlaceholder: true,    // mark clearly
+        publicConsent: false,   // placeholders should never be public
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -333,7 +358,6 @@ export async function addChild(treeId, options) {
   }
 }
 
-
 /**
  * Add a parent to a single child (with placeholder partner).
  */
@@ -346,6 +370,9 @@ export async function addParent(treeId, childId, parentData) {
       id: parentId,
       treeId,
       ...parentData,
+      isSpouse: false,         // real directline parent
+      isPlaceholder: false,    // actual person
+      publicConsent: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -354,8 +381,10 @@ export async function addParent(treeId, childId, parentData) {
     const placeholderPayload = {
       id: placeholderId,
       treeId,
-      fullName: "Partner",
-      isPlaceholder: true,
+      name: "Partner",
+      isSpouse: true,          // partner role
+      isPlaceholder: true,     // clearly fake
+      publicConsent: false,    // never public
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -363,6 +392,7 @@ export async function addParent(treeId, childId, parentData) {
     const marriagePayload = {
       id: marriageId,
       treeId,
+      marriageType: "monogamous",
       spouses: [parentId, placeholderId],
       childrenIds: [childId],
       createdAt: new Date().toISOString(),

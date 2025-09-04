@@ -74,10 +74,18 @@ export function traceLineage(personId, people, marriages) {
 }
 
 export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
+  if (!rootId) {
+    throw new Error("filterFamilyByRoot: rootId is required");
+  }
+  if (!Array.isArray(allPeople)) {
+    throw new Error("filterFamilyByRoot: allPeople must be an array");
+  }
+  if (!Array.isArray(allMarriages)) {
+    throw new Error("filterFamilyByRoot: allMarriages must be an array");
+  }
+
   const visiblePeopleIds = new Set();
   const queue = [rootId];
-
-  console.log("filterFamilyByRoot called with rootId:", rootId);
 
   while (queue.length > 0) {
     const currentPersonId = queue.shift();
@@ -85,64 +93,37 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
     visiblePeopleIds.add(currentPersonId);
 
     const personMarriages = allMarriages.filter(m =>
-      (m.marriageType === 'monogamous' && m.spouses.includes(currentPersonId)) ||
-      (m.marriageType === 'polygamous' && m.husbandId === currentPersonId)
+      (m.marriageType === "monogamous" && m.spouses.includes(currentPersonId)) ||
+      (m.marriageType === "polygamous" && m.husbandId === currentPersonId)
     );
 
     for (const marriage of personMarriages) {
-        // Also add the other spouse(s) to the visible set immediately
-        if (marriage.marriageType === 'monogamous') {
-            marriage.spouses.forEach(id => visiblePeopleIds.add(id));
-        } else { //polygamous
-            marriage.wives.forEach(w => visiblePeopleIds.add(w.wifeId));
-        }
+      if (marriage.marriageType === "monogamous") {
+        marriage.spouses.forEach(id => visiblePeopleIds.add(id));
+      } else {
+        marriage.wives.forEach(w => visiblePeopleIds.add(w.wifeId));
+      }
 
-        const children = marriage.marriageType === 'monogamous'
-            ? marriage.childrenIds
-            : marriage.wives.flatMap(w => w.childrenIds);
-        children.forEach(childId => queue.push(childId));
+      const children = marriage.marriageType === "monogamous"
+        ? marriage.childrenIds
+        : marriage.wives.flatMap(w => w.childrenIds);
+
+      children.forEach(childId => queue.push(childId));
     }
   }
-  
-  // This second loop is no longer strictly necessary, but we leave it for safety.
-  // The logic inside the while loop now handles this.
-  allMarriages.forEach(m => {
-    if (m.marriageType === 'monogamous') {
-      const [p1, p2] = m.spouses;
-      if (visiblePeopleIds.has(p1) || visiblePeopleIds.has(p2)) {
-        visiblePeopleIds.add(p1); visiblePeopleIds.add(p2);
-      }
-    } else if (m.marriageType === 'polygamous') {
-      if (visiblePeopleIds.has(m.husbandId)) {
-        m.wives.forEach(w => visiblePeopleIds.add(w.wifeId));
-      }
-    }
-  });
-
-  console.log("Visible People IDs:", Array.from(visiblePeopleIds));
-  console.log("Visible Marriages IDs:", allMarriages.filter(m => {
-    if (m.marriageType === 'monogamous') {
-      if (m.spouses.some(id => !id)) return false;
-      return m.spouses.every(id => visiblePeopleIds.has(id));
-    }
-    if (m.marriageType === 'polygamous') return visiblePeopleIds.has(m.husbandId);
-    return false;
-  }).map(m => m.id));
 
   const visiblePeople = allPeople.filter(p => visiblePeopleIds.has(p.id));
   const visibleMarriages = allMarriages.filter(m => {
-    if (m.marriageType === 'monogamous') {
-      // Filter out marriages with any empty or falsy spouse IDs
+    if (m.marriageType === "monogamous") {
       if (m.spouses.some(id => !id)) return false;
       return m.spouses.every(id => visiblePeopleIds.has(id));
     }
-    if (m.marriageType === 'polygamous') return visiblePeopleIds.has(m.husbandId);
+    if (m.marriageType === "polygamous") return visiblePeopleIds.has(m.husbandId);
     return false;
   });
 
   return { people: visiblePeople, marriages: visibleMarriages };
 }
-
 function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile) {
   if (!person) return {};
   const hasChildren = marriages.some(m =>
@@ -219,6 +200,22 @@ export function calculateLayout(
   orientation = "vertical"
 ) {
   
+  if (!rootId) {
+    throw new Error("calculateLayout: rootId is required");
+  }
+  if (!Array.isArray(people)) {
+    throw new Error("calculateLayout: people must be an array");
+  }
+  if (!Array.isArray(marriages)) {
+    throw new Error("calculateLayout: marriages must be an array");
+  }
+  if (typeof handleToggleCollapse !== "function") {
+    throw new Error("calculateLayout: handleToggleCollapse must be a function");
+  }
+  if (typeof handleOpenProfile !== "function") {
+    throw new Error("calculateLayout: handleOpenProfile must be a function");
+  }
+
   const { people: visiblePeople, marriages: visibleMarriages } = filterFamilyByRoot(rootId, people, marriages);
 
   const isVertical = orientation === "vertical";
