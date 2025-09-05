@@ -9,7 +9,7 @@ function FlowPersonNodeHorizontal({ id, data }) {
   const handleLeftClick = () => { if (data.onOpenProfile) data.onOpenProfile(); };
   const handleRightClick = (event) => {
     event.preventDefault();
-    actions.openMenu(id, data.name, { x: event.clientX, y: event.clientY });
+    actions.openMenu(id, data.name, { x: event.clientX, y: event.clientY }, data);
   };
   const handleStyle = { background: 'transparent', border: 'none', width: 1, height: 1 };
 

@@ -284,11 +284,17 @@ export async function addChild(treeId, options) {
       const placeholderId = generateId("person");
       const newMarriageId = generateId("marriage");
 
+      // Determine placeholder gender as the opposite of the known parent when possible
+      const parentPerson = await dataService.getPerson(parentId);
+      const placeholderGender = parentPerson && parentPerson.gender
+        ? (parentPerson.gender === 'male' ? 'female' : 'male')
+        : null;
+
       const placeholderPayload = {
         id: placeholderId,
         treeId,
         name: "Partner",
-        gender: null, 
+        gender: placeholderGender,
         isSpouse: true,         // placeholders act as spouses
         isPlaceholder: true,    // mark clearly
         publicConsent: false,   // placeholders should never be public
@@ -346,10 +352,16 @@ export async function addParent(treeId, childId, parentData) {
     };
 
     const placeholderId = generateId("person");
+    // Determine placeholder gender as opposite of the parent being added
+    const placeholderGender = parentPayload.gender
+      ? (parentPayload.gender === 'male' ? 'female' : 'male')
+      : null;
+
     const placeholderPayload = {
       id: placeholderId,
       treeId,
       name: "Partner",
+      gender: placeholderGender,
       isSpouse: true,          // partner role
       isPlaceholder: true,     // clearly fake
       publicConsent: false,    // never public

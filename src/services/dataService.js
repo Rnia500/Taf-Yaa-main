@@ -168,33 +168,149 @@ function updateMarriage(marriageId, updatedMarriageData) {
   return Promise.reject(err);
 }
 
+function updatePerson(personId, updatedPersonData) {
+  console.log("DBG:dataService.updatePerson ->", personId, updatedPersonData);
+  const idx = localDB.people.findIndex(p => p.id === personId);
+  if (idx === -1) {
+    const err = new Error("Person not found");
+    console.warn("DBG:dataService.updatePerson -> person not found:", personId);
+    return Promise.reject(err);
+  }
+  const updated = { ...localDB.people[idx], ...updatedPersonData, updatedAt: new Date().toISOString() };
+  localDB.people[idx] = updated;
+  saveLocalDB();
+  console.log("DBG:dataService.updatePerson -> updated:", updated);
+  return Promise.resolve(updated);
+}
+
+function deleteMarriage(marriageId) {
+  console.log("DBG:dataService.deleteMarriage ->", marriageId);
+  const idx = localDB.marriages.findIndex(m => m.id === marriageId);
+  if (idx === -1) {
+    const err = new Error("Marriage not found");
+    console.warn("DBG:dataService.deleteMarriage -> marriage not found:", marriageId);
+    return Promise.reject(err);
+  }
+  const removed = localDB.marriages.splice(idx, 1)[0];
+  saveLocalDB();
+  console.log("DBG:dataService.deleteMarriage -> removed:", removed);
+  return Promise.resolve(removed);
+}
+
+function deletePerson(personId) {
+  console.log("DBG:dataService.deletePerson ->", personId);
+  const personIdx = localDB.people.findIndex(p => p.id === personId);
+  if (personIdx === -1) {
+    const err = new Error("Person not found");
+    console.warn("DBG:dataService.deletePerson -> person not found:", personId);
+    return Promise.reject(err);
+  }
+
+  // Remove or update marriages that reference this person
+  const marriagesToRemove = [];
+  for (let i = localDB.marriages.length - 1; i >= 0; i--) {
+    const m = localDB.marriages[i];
+    if (!m) continue;
+    // monogamous: if spouses include the person, remove the marriage
+    if (m.marriageType === 'monogamous') {
+      if (Array.isArray(m.spouses) && m.spouses.includes(personId)) {
+        marriagesToRemove.push(m.id);
+        localDB.marriages.splice(i, 1);
+      }
+    } else if (m.marriageType === 'polygamous') {
+      // if person is husband -> remove marriage
+      if (m.husbandId === personId) {
+        marriagesToRemove.push(m.id);
+        localDB.marriages.splice(i, 1);
+        continue;
+      }
+      // if person is one of the wives -> remove that wife entry
+      if (Array.isArray(m.wives)) {
+        const wifeIdx = m.wives.findIndex(w => w.wifeId === personId);
+        if (wifeIdx !== -1) {
+          m.wives.splice(wifeIdx, 1);
+        }
+      }
+    }
+  }
+
+  // Finally remove the person
+  const removedPerson = localDB.people.splice(personIdx, 1)[0];
+  saveLocalDB();
+  console.log("DBG:dataService.deletePerson -> removed person:", removedPerson, "removed marriages:", marriagesToRemove);
+  return Promise.resolve({ person: removedPerson, removedMarriageIds: marriagesToRemove });
+}
+
+function getAllPeople() {
+  return Promise.resolve([...localDB.people]);
+}
+
+function getAllMarriages() {
+  return Promise.resolve([...localDB.marriages]);
+}
+
+function findPeopleByName(query) {
+  if (!query) return Promise.resolve([]);
+  const q = String(query).trim().toLowerCase();
+  const results = localDB.people.filter(p => (p.name || '').toLowerCase().includes(q));
+  return Promise.resolve(results);
+}
+
+function getPeopleByTreeId(treeId) {
+  if (!treeId) return Promise.resolve([]);
+  const results = localDB.people.filter(p => p.treeId === treeId);
+  return Promise.resolve(results);
+}
+
 function clearLocalDB() {
   localDB = { people: [...dummyPeople], marriages: [...dummyMarriages] };
   saveLocalDB();
   console.log("DBG:dataService.clearLocalDB -> reset to dummy data");
 }
 
-async function addPersonFirebase(person) {
+async function addPersonFirebase() {
   throw new Error("Firebase addPerson not implemented yet");
 }
-async function addMarriageFirebase(marriage) {
+async function addMarriageFirebase() {
   throw new Error("Firebase addMarriage not implemented yet");
 }
-async function addChildToMarriageFirebase(marriageId, childId) {
+async function addChildToMarriageFirebase() {
   throw new Error("Firebase addChildToMarriage not implemented yet");
 }
-async function getPersonFirebase(id) {
+async function getPersonFirebase() {
   throw new Error("Firebase getPerson not implemented yet");
 }
-async function getMarriageFirebase(id) {
+async function getMarriageFirebase() {
   throw new Error("Firebase getMarriage not implemented yet");
 }
 
-async function getMarriagesByPersonIdFirebase(personId) { 
-  throw new Error("Not implemented"); 
+async function getMarriagesByPersonIdFirebase() {
+  throw new Error("Not implemented");
 }
-async function updateMarriageFirebase(marriageId, data) { 
-  throw new Error("Not implemented"); 
+async function updateMarriageFirebase() {
+  throw new Error("Not implemented");
+}
+
+async function updatePersonFirebase() {
+  throw new Error("Not implemented");
+}
+async function deletePersonFirebase() {
+  throw new Error("Not implemented");
+}
+async function deleteMarriageFirebase() {
+  throw new Error("Not implemented");
+}
+async function getAllPeopleFirebase() {
+  throw new Error("Not implemented");
+}
+async function getAllMarriagesFirebase() {
+  throw new Error("Not implemented");
+}
+async function findPeopleByNameFirebase() {
+  throw new Error("Not implemented");
+}
+async function getPeopleByTreeIdFirebase() {
+  throw new Error("Not implemented");
 }
 
 
@@ -207,6 +323,13 @@ const dataService = {
   getMarriage: USE_LOCAL ? getMarriage : getMarriageFirebase,
   getMarriagesByPersonId: USE_LOCAL ? getMarriagesByPersonId : getMarriagesByPersonIdFirebase,
   updateMarriage: USE_LOCAL ? updateMarriage : updateMarriageFirebase,
+  updatePerson: USE_LOCAL ? updatePerson : updatePersonFirebase,
+  deletePerson: USE_LOCAL ? deletePerson : deletePersonFirebase,
+  deleteMarriage: USE_LOCAL ? deleteMarriage : deleteMarriageFirebase,
+  getAllPeople: USE_LOCAL ? getAllPeople : getAllPeopleFirebase,
+  getAllMarriages: USE_LOCAL ? getAllMarriages : getAllMarriagesFirebase,
+  findPeopleByName: USE_LOCAL ? findPeopleByName : findPeopleByNameFirebase,
+  getPeopleByTreeId: USE_LOCAL ? getPeopleByTreeId : getPeopleByTreeIdFirebase,
   clearLocalDB, // helpful for dev reset
 };
 

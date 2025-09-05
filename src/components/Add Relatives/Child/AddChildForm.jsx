@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { TextInput, TextArea } from '../../Input';
 import SelectDropdown from '../../SelectDropdown';
 import DateInput from '../../DateInput';
@@ -29,6 +29,15 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
     motherId: defaultMotherId || ''
   });
 
+   useEffect(() => {
+    if (defaultMotherId) {
+      setFormData(prev => ({
+        ...prev,
+        motherId: defaultMotherId
+      }));
+    }
+  }, [defaultMotherId]);
+
   const [errors, setErrors] = useState({});
 
   const handleInputChange = (field, value) => {
@@ -36,6 +45,7 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
       ...prev,
       [field]: value
     }));
+  if (typeof window !== 'undefined') window.__ADD_CHILD_FORM_LAST_UPDATE__ = { field, value };
   };
 
   const validateForm = () => {

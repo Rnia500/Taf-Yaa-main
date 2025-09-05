@@ -10,12 +10,19 @@ const usePersonMenuStore = create((set) => ({
 
   actions: {
     openMenu: (nodeId, nodeName, position, person) =>
-      set({
-        isOpen: true,
-        targetNodeId: nodeId,
-        targetNodeName: nodeName,
-        position,
-        targetPerson: person, 
+  set(() => {
+        const next = {
+          isOpen: true,
+          targetNodeId: nodeId,
+          targetNodeName: nodeName,
+          position,
+          targetPerson: person,
+        };
+        if (typeof window !== 'undefined') {
+          console.log('DBG:usePersonMenuStore.openMenu -> targetPerson:', person);
+          window.__PERSON_MENU__ = next;
+        }
+        return next;
       }),
     closeMenu: () =>
       set({

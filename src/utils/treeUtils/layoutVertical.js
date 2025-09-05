@@ -62,10 +62,19 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         const placeholderId = `placeholder-husband-${marriage.id}`;
         console.log("DBG:layoutVertical -> injecting polygamous husband placeholder for marriage", marriage.id);
         if (!nodesMap.has(placeholderId)) {
+          // Try to derive husband gender as opposite of a known wife's gender if available
+          let derivedGender = 'male';
+          if (marriage.wives && marriage.wives.length > 0) {
+            const firstWifeId = marriage.wives[0].wifeId;
+            const wifeNode = nodesMap.get(firstWifeId);
+            const wifeGender = wifeNode?.data?.gender;
+            if (wifeGender) derivedGender = wifeGender === 'male' ? 'female' : 'male';
+            else derivedGender = 'male';
+          }
           nodesMap.set(placeholderId, {
             id: placeholderId,
             type: 'person',
-            data: { id: placeholderId, name: "Unknown Husband", gender: "male", isPlaceholder: true, variant: 'placeholder' },
+            data: { id: placeholderId, name: "Unknown Husband", gender: derivedGender, isPlaceholder: true, variant: 'placeholder' },
             position: { x: 0, y: 0 },
             isPositioned: false
           });
@@ -78,10 +87,16 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
             const placeholderId = `placeholder-wife-${marriage.id}-${i}`;
             console.log("DBG:layoutVertical -> injecting polygamous wife placeholder for marriage", marriage.id, "index", i);
             if (!nodesMap.has(placeholderId)) {
+              // Try to derive wife gender as opposite of the known husband's gender if available
+              let derivedGender = 'female';
+              const husbandNode = nodesMap.get(marriage.husbandId);
+              const husbandGender = husbandNode?.data?.gender;
+              if (husbandGender) derivedGender = husbandGender === 'male' ? 'female' : 'male';
+
               nodesMap.set(placeholderId, {
                 id: placeholderId,
                 type: 'person',
-                data: { id: placeholderId, name: "Unknown Wife", gender: "female", isPlaceholder: true, variant: 'placeholder' },
+                data: { id: placeholderId, name: "Unknown Wife", gender: derivedGender, isPlaceholder: true, variant: 'placeholder' },
                 position: { x: 0, y: 0 },
                 isPositioned: false
               });

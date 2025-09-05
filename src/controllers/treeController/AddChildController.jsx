@@ -65,6 +65,11 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
         }
 
         setFormProps(props);
+        // Debug: expose prepared props for the add-child form
+        try {
+          console.log('DBG:AddChildController -> prepared form props:', props);
+          window.__ADD_CHILD_PREPARED_PROPS__ = props;
+  } catch { /* ignore in non-browser test env */ }
       } catch (err) {
         setError("Failed to load data for the form.");
         console.error("Error preparing form:", err);
@@ -99,6 +104,10 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
       setLoading(false);
     }
   };
+
+  if (isLoadingForm) {
+    return <div>Loading form...</div>;
+  }
 
   return (
     <>

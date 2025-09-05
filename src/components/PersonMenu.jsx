@@ -1,6 +1,7 @@
 // src/components/PersonMenu.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
+import dataService from '../services/dataService';
 import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight  } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
@@ -9,6 +10,11 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
   const submenuRef = useRef(null);
+  const [isSpouse, setIsSpouse] = useState(false)
+
+  
+
+  
 
   useEffect(() => {
     if (!isOpen) return;
@@ -28,7 +34,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   }, [isOpen, actions, showSubmenu]);
 
   useEffect(() => {
-    if (!isOpen) return;
+  if (!isOpen) return;
     const handleEscapeKey = (event) => {
       if (event.key === 'Escape') {
         if (showSubmenu) {
@@ -47,6 +53,41 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
       setShowSubmenu(false);
     }
   }, [isOpen]);
+
+  // When the menu opens fetch the canonical person model (from dataService)
+  // so we can determine authoritative flags like `isSpouse` which the
+  // rendered node `data` may not include.
+  useEffect(() => {
+    let cancelled = false;
+    if (!isOpen || !targetNodeId) {
+      setIsSpouse(false);
+      return;
+    }
+
+    // Try to fetch the canonical person model. If not available fall back to
+    // whatever was passed in `targetPerson` (node-level data) and finally
+    // infer from the node's `variant`.
+    dataService
+      .getPerson(targetNodeId)
+      .then((personModel) => {
+        if (cancelled) return;
+        if (personModel) {
+          setIsSpouse(Boolean(personModel.isSpouse));
+        } else if (targetPerson && typeof targetPerson.isSpouse !== 'undefined') {
+          setIsSpouse(Boolean(targetPerson.isSpouse));
+        } else {
+          setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, targetNodeId, targetPerson]);
 
   if (!isOpen) return null;
 
@@ -78,12 +119,12 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     setShowSubmenu(false);
   };
 
+ 
   const handleAddRelative = (relativeType) => {
     if (relativeType === 'spouse') {
       const currentTargetNodeId = targetNodeId;
       actions.closeMenu();
       setShowSubmenu(false);
-      
       
       // Trigger the onAddSpouse prop to open the modal
       onAddSpouse(currentTargetNodeId);
@@ -178,7 +219,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
           </div>
           
           <div className="person-menu-items">
-            {!targetPerson?.isSpouse && (
+            {!isSpouse && (
               <button className="person-menu-item" onClick={() => handleAddRelative('spouse')}>
                 <Heart size={15} />
                 <span className="person-menu-text">Add Spouse</span>

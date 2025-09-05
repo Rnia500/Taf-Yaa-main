@@ -36,9 +36,10 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
       const placeholderId = `placeholder-spouse-${marriage.id}`;
 
       if (!nodesMap.has(placeholderId)) {
+        const derivedGender = knownSpouse?.gender ? (knownSpouse.gender === 'male' ? 'female' : 'male') : null;
         nodesMap.set(placeholderId, {
           id: placeholderId, type: 'personHorizontal',
-          data: { id: placeholderId, name: "Unknown Partner", gender: knownSpouse?.gender === 'male' ? 'female' : 'male', isPlaceholder: true, variant: 'placeholder' },
+          data: { id: placeholderId, name: "Unknown Partner", gender: derivedGender, isPlaceholder: true, variant: 'placeholder' },
           position: { x: 0, y: 0 }, isPositioned: false,
         });
       }
@@ -49,9 +50,16 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
       if (!marriage.husbandId) {
         const placeholderId = `placeholder-husband-${marriage.id}`;
         if (!nodesMap.has(placeholderId)) {
+          // derive husband's gender from the first known wife if possible
+          let derivedGender = 'male';
+          if (marriage.wives && marriage.wives.length > 0) {
+            const firstWife = nodesMap.get(marriage.wives[0].wifeId);
+            const wifeGender = firstWife?.data?.gender;
+            if (wifeGender) derivedGender = wifeGender === 'male' ? 'female' : 'male';
+          }
           nodesMap.set(placeholderId, {
             id: placeholderId, type: 'personHorizontal',
-            data: { id: placeholderId, name: "Unknown Husband", gender: "male", isPlaceholder: true, variant: 'placeholder' },
+            data: { id: placeholderId, name: "Unknown Husband", gender: derivedGender, isPlaceholder: true, variant: 'placeholder' },
             position: { x: 0, y: 0 }, isPositioned: false,
           });
         }
@@ -62,9 +70,14 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
           if (!marriage.wives[i].wifeId) {
             const placeholderId = `placeholder-wife-${marriage.id}-${i}`;
             if (!nodesMap.has(placeholderId)) {
+              // derive wife's gender from known husband if possible
+              let derivedGender = 'female';
+              const husbandNode = nodesMap.get(marriage.husbandId);
+              const husbandGender = husbandNode?.data?.gender;
+              if (husbandGender) derivedGender = husbandGender === 'male' ? 'female' : 'male';
               nodesMap.set(placeholderId, {
                 id: placeholderId, type: 'personHorizontal',
-                data: { id: placeholderId, name: "Unknown Wife", gender: "female", isPlaceholder: true, variant: 'placeholder' },
+                data: { id: placeholderId, name: "Unknown Wife", gender: derivedGender, isPlaceholder: true, variant: 'placeholder' },
                 position: { x: 0, y: 0 }, isPositioned: false,
               });
             }
