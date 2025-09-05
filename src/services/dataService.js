@@ -1,5 +1,6 @@
 // src/services/dataService.js
 import { people as dummyPeople, marriages as dummyMarriages } from "../data/dummyData.js";
+import { generateId } from "../utils/personUtils/idGenerator.js";
 
 const USE_LOCAL = true;
 const STORAGE_KEY = "familyDB";
@@ -10,13 +11,49 @@ function loadLocalDB() {
     try {
       const parsed = JSON.parse(saved);
       console.log("DBG:dataService -> loaded local DB from localStorage", parsed);
+      normalizeLocalDBIds(parsed);
       return parsed;
     } catch (err) {
       console.error("DBG:dataService -> Failed to parse local DB:", err);
     }
   }
   console.log("DBG:dataService -> using dummy DB");
-  return { people: [...dummyPeople], marriages: [...dummyMarriages] };
+  const db = { people: [...dummyPeople], marriages: [...dummyMarriages] };
+  normalizeLocalDBIds(db);
+  return db;
+}
+
+function normalizeLocalDBIds(db) {
+  if (!db || !Array.isArray(db.people) || !Array.isArray(db.marriages)) return;
+  const seen = new Set();
+  const oldToNew = {};
+
+  for (const person of db.people) {
+    if (!person || !person.id) continue;
+    if (seen.has(person.id)) {
+      const newId = generateId("person");
+      console.warn("DBG:dataService.normalizeLocalDBIds -> duplicate person id detected, reassigning:", person.id, "->", newId);
+      oldToNew[person.id] = newId;
+      person.id = newId;
+    }
+    seen.add(person.id);
+  }
+
+  if (Object.keys(oldToNew).length === 0) return;
+
+  // Update marriages references
+  for (const m of db.marriages) {
+    if (!m) continue;
+    if (m.husbandId && oldToNew[m.husbandId]) m.husbandId = oldToNew[m.husbandId];
+    if (Array.isArray(m.spouses)) m.spouses = m.spouses.map(id => (oldToNew[id] ? oldToNew[id] : id));
+    if (Array.isArray(m.childrenIds)) m.childrenIds = m.childrenIds.map(id => (oldToNew[id] ? oldToNew[id] : id));
+    if (Array.isArray(m.wives)) {
+      for (const w of m.wives) {
+        if (w.wifeId && oldToNew[w.wifeId]) w.wifeId = oldToNew[w.wifeId];
+        if (Array.isArray(w.childrenIds)) w.childrenIds = w.childrenIds.map(id => (oldToNew[id] ? oldToNew[id] : id));
+      }
+    }
+  }
 }
 
 let localDB = loadLocalDB();
@@ -30,6 +67,14 @@ function saveLocalDB() {
 // --- Local implementations ---
 function addPerson(person) {
   console.log("DBG:dataService.addPerson -> adding person:", person);
+  // Prevent duplicate IDs in the in-memory DB (common during rapid dev/test flows)
+  const exists = localDB.people.find(p => p.id === person.id);
+  if (exists) {
+    console.warn("DBG:dataService.addPerson -> duplicate person id detected:", person.id);
+    const newId = generateId("person");
+    console.log(`DBG:dataService.addPerson -> assigning new id ${newId} to incoming person to avoid collision`);
+    person = { ...person, id: newId };
+  }
   localDB.people.push(person);
   saveLocalDB();
   return Promise.resolve(person);
@@ -37,6 +82,23 @@ function addPerson(person) {
 
 function addMarriage(marriage) {
   console.log("DBG:dataService.addMarriage -> adding marriage:", marriage);
+
+  // Invariant: a husband with a polygamous marriage cannot create a monogamous marriage
+  if (marriage.marriageType === "monogamous") {
+    const [a, b] = marriage.spouses || [];
+    const aHasPoly = localDB.marriages.some(m => m.marriageType === "polygamous" && m.husbandId === a);
+    const bHasPoly = localDB.marriages.some(m => m.marriageType === "polygamous" && m.husbandId === b);
+    if (aHasPoly || bHasPoly) {
+      console.error("DBG:dataService.addMarriage -> blocked: monogamous requested but polygamous already exists for one spouse");
+      throw new Error("Invariant violation: cannot create monogamous marriage when a polygamous marriage exists for a spouse.");
+    }
+  }
+
+  const exists = localDB.marriages.find(m => m.id === marriage.id);
+  if (exists) {
+    console.warn("DBG:dataService.addMarriage -> duplicate marriage id detected:", marriage.id);
+    marriage = { ...marriage, id: `${marriage.id}_${Date.now()}` };
+  }
   localDB.marriages.push(marriage);
   saveLocalDB();
   return Promise.resolve(marriage);

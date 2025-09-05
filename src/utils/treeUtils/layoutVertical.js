@@ -260,7 +260,8 @@ function createEdges(marriages, nodesMap) {
       const { husbandId, wives = [] } = marriage;
       for (const w of wives) {
         const e = createEdgeWithGuard(
-          createPolygamousEdge, nodesMap, husbandId, w.wifeId,
+          // pass marriage.id as the third argument (same shape as layoutHorizontal)
+          createPolygamousEdge, nodesMap, husbandId, w.wifeId, marriage.id,
           { orientation: 'vertical', sourceHandle: 'source-top', targetHandle: 'target-top' }
         );
         if (e) edges.push(e);
