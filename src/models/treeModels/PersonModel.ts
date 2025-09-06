@@ -6,7 +6,11 @@ export interface Person {
   name: string;
   gender: "male" | "female";
   dob?: string | null;          
-  dod?: string | null;          
+  dod?: string | null;
+  nationality?: string | null;
+  countryOfResidence?: string | null;
+  placeOfBirth?: string | null;
+  placeOfDeath?: string | null;          
   photoUrl?: string | null;
   bio?: string;
   tribe?: string;
@@ -14,7 +18,8 @@ export interface Person {
   linkedUserId?: string | null; 
   isDeceased: boolean;
   isSpouse: boolean;
-  publicConsent: boolean;
+  allowGlobalMatching?: boolean;
+  privacyLevel: "public" | "membersOnly" | "authenticated"| "private";
   isPlaceholder?: boolean;      
   createdAt: string;            
   updatedAt: string;            

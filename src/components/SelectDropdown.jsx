@@ -1,17 +1,97 @@
-import React from 'react';
-import '../styles/SelectDropdown.css';
+import React from "react";
+import Select from "react-select";
 
-function SelectDropdown({ label, options = [], value, onChange }) {
+function SelectDropdown({ label, options = [], value, onChange, placeholder }) {
+  // normalize options
+  const formattedOptions = options.map(opt =>
+    typeof opt === "string" ? { value: opt, label: opt } : opt
+  );
+
+  // find selected option
+  const selectedOption =
+    formattedOptions.find(opt => opt.value === value) || null;
+
+  // normalize onChange (to mimic e.target.value)
+  const handleChange = (selected) => {
+    onChange({ target: { value: selected ? selected.value : "" } });
+  };
+
+  // custom inline styles for react-select
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      padding: "4px 4px",
+      border: `2px solid ${state.isFocused ? "var(--color-primary)" : "var(--color-gray-light)"}`,
+      borderRadius: "12px",
+      fontSize: "1rem",
+      background: "var(--color-white)",
+      color: "var(--color-text-primary)",
+      fontFamily: "inherit",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      boxShadow: state.isFocused ? "0 0 0 2px var(--color-primary-light)" : "none",
+      "&:hover": {
+        borderColor: "var(--color-primary-light)"
+      }
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: "12px",
+      marginTop: "4px",
+      zIndex: 100
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999
+    }),
+    option: (base, state) => ({
+      ...base,
+      padding: "12px",
+      background: state.isSelected
+        ? "var(--color-primary)"
+        : state.isFocused
+          ? "var(--color-primary-light)"
+          : "var(--color-white)",
+      color: state.isSelected || state.isFocused
+        ? "var(--color-white)"
+        : "var(--color-text-primary)",
+      cursor: "pointer"
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "var(--color-gray-dark)"
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "var(--color-text-primary)"
+    })
+  };
+
   return (
-    <div className="select-wrapper">
-      {label && <label className="select-label">{label}</label>}
-      <select className="select-field" value={value} onChange={onChange}>
-        {options.map((opt, idx) => (
-          <option key={idx} value={opt.value || opt}>
-            {opt.label || opt}
-          </option>
-        ))}
-      </select>
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      {label && (
+        <label
+          style={{
+            marginBottom: "8px",
+            fontWeight: 200,
+            color: "var(--color-text-primary)",
+            fontSize: "0.8rem"
+          }}
+        >
+          {label}
+        </label>
+      )}
+      <Select
+        options={formattedOptions}
+        value={selectedOption}
+        onChange={handleChange}
+        placeholder={placeholder}
+        isClearable
+        isSearchable
+        styles={customStyles}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+        menuPosition="fixed"
+      />
     </div>
   );
 }

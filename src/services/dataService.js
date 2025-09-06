@@ -18,7 +18,7 @@ function loadLocalDB() {
     }
   }
   console.log("DBG:dataService -> using dummy DB");
-  const db = { people: [...dummyPeople], marriages: [...dummyMarriages] };
+  const db = { people: [...dummyPeople], marriages: [...dummyMarriages], stories: [], events: [] };
   normalizeLocalDBIds(db);
   return db;
 }
@@ -54,14 +54,61 @@ function normalizeLocalDBIds(db) {
       }
     }
   }
+
+  // Update stories references (personId or personIds)
+  if (Array.isArray(db.stories)) {
+    for (const s of db.stories) {
+      if (!s) continue;
+      if (s.personId && oldToNew[s.personId]) s.personId = oldToNew[s.personId];
+      if (Array.isArray(s.personIds)) s.personIds = s.personIds.map(id => (oldToNew[id] ? oldToNew[id] : id));
+    }
+  }
+
+  // Update events references (personIds)
+  if (Array.isArray(db.events)) {
+    for (const ev of db.events) {
+      if (!ev) continue;
+      if (Array.isArray(ev.personIds)) ev.personIds = ev.personIds.map(id => (oldToNew[id] ? oldToNew[id] : id));
+    }
+  }
 }
 
 let localDB = loadLocalDB();
 
 function saveLocalDB() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(localDB));
-  console.log("DBG:dataService -> saved localDB (people count:", localDB.people.length, "marriages count:", localDB.marriages.length + ")");
-  window.dispatchEvent(new Event('familyDataChanged'));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(localDB));
+    console.log("DBG:dataService -> saved localDB (people:", localDB.people.length, "marriages:", localDB.marriages.length, "stories:", (localDB.stories||[]).length, "events:", (localDB.events||[]).length, ")");
+    window.dispatchEvent(new Event('familyDataChanged'));
+    return;
+  } catch (err) {
+
+    console.warn('DBG:dataService.saveLocalDB -> initial save failed, attempting to prune file data and retry:', err && err.message ? err.message : err);
+    try {
+      if (Array.isArray(localDB.files) && localDB.files.length > 0) {
+        // Remove stored binary payloads to free space, but keep file metadata
+        localDB.files = localDB.files.map(f => ({ ...f, data: null }));
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localDB));
+      console.log('DBG:dataService -> saved localDB after pruning file data');
+      window.dispatchEvent(new Event('familyDataChanged'));
+      return;
+    } catch (err2) {
+      console.error('DBG:dataService.saveLocalDB -> retry after pruning file data failed:', err2 && err2.message ? err2.message : err2);
+      try {
+        // As a last resort, drop the files array entirely and try once more.
+        delete localDB.files;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(localDB));
+        console.log('DBG:dataService -> saved localDB after removing files array');
+        window.dispatchEvent(new Event('familyDataChanged'));
+        return;
+      } catch (err3) {
+        // If still failing, surface the error so callers can handle it.
+        console.error('DBG:dataService.saveLocalDB -> final save attempt failed:', err3 && err3.message ? err3.message : err3);
+        throw err3;
+      }
+    }
+  }
 }
 
 // --- Local implementations ---
@@ -126,6 +173,134 @@ function addChildToMarriage(marriageId, childId, motherId = null) {
     saveLocalDB();
   }
   return Promise.resolve(marriage);
+}
+
+/* ---------------- Stories ---------------- */
+function addStory(story) {
+  console.log("DBG:dataService.addStory -> adding story:", story);
+  const exists = (localDB.stories || []).find(s => s.storyId === story.storyId);
+  if (exists) {
+    console.warn("DBG:dataService.addStory -> duplicate story id detected:", story.storyId);
+    story = { ...story, storyId: `${story.storyId}_${Date.now()}` };
+  }
+  localDB.stories = localDB.stories || [];
+  localDB.stories.push(story);
+  saveLocalDB();
+  return Promise.resolve(story);
+}
+
+/* ---------------- Events ---------------- */
+function addEvent(event) {
+  console.log("DBG:dataService.addEvent -> adding event:", event);
+  localDB.events = localDB.events || [];
+  const exists = localDB.events.find(e => e.id === event.id);
+  if (exists) {
+    console.warn("DBG:dataService.addEvent -> duplicate event id detected:", event.id);
+    event = { ...event, id: `${event.id}_${Date.now()}` };
+  }
+  localDB.events.push(event);
+  saveLocalDB();
+  return Promise.resolve(event);
+}
+
+function getEvent(eventId) {
+  const ev = (localDB.events || []).find(e => e.id === eventId);
+  console.log("DBG:dataService.getEvent ->", eventId, ev);
+  return Promise.resolve(ev);
+}
+
+function getEventsByPersonId(personId) {
+  const evts = (localDB.events || []).filter(e => Array.isArray(e.personIds) && e.personIds.includes(personId));
+  console.log(`DBG:dataService.getEventsByPersonId -> for ${personId}, found:`, evts.map(x => x.id));
+  return Promise.resolve(evts);
+}
+
+function updateEvent(eventId, updatedData) {
+  const idx = (localDB.events || []).findIndex(e => e.id === eventId);
+  if (idx === -1) {
+    const err = new Error("Event not found");
+    console.warn("DBG:dataService.updateEvent -> event not found:", eventId);
+    return Promise.reject(err);
+  }
+  const updated = { ...localDB.events[idx], ...updatedData, updatedAt: new Date().toISOString() };
+  localDB.events[idx] = updated;
+  saveLocalDB();
+  console.log("DBG:dataService.updateEvent -> updated:", updated);
+  return Promise.resolve(updated);
+}
+
+function deleteEvent(eventId) {
+  const idx = (localDB.events || []).findIndex(e => e.id === eventId);
+  if (idx === -1) {
+    const err = new Error("Event not found");
+    console.warn("DBG:dataService.deleteEvent -> event not found:", eventId);
+    return Promise.reject(err);
+  }
+  const removed = localDB.events.splice(idx, 1)[0];
+  saveLocalDB();
+  console.log("DBG:dataService.deleteEvent -> removed:", removed);
+  return Promise.resolve(removed);
+}
+
+function getAllEvents() {
+  return Promise.resolve([...(localDB.events || [])]);
+}
+
+function findEventsByTitle(query) {
+  if (!query) return Promise.resolve([]);
+  const q = String(query).trim().toLowerCase();
+  const results = (localDB.events || []).filter(e => (e.title || '').toLowerCase().includes(q));
+  return Promise.resolve(results);
+}
+
+function getStory(storyId) {
+  const s = (localDB.stories || []).find(st => st.storyId === storyId);
+  console.log("DBG:dataService.getStory ->", storyId, s);
+  return Promise.resolve(s);
+}
+
+function getStoriesByPersonId(personId) {
+  const stories = (localDB.stories || []).filter(s => s.personId === personId || (Array.isArray(s.personIds) && s.personIds.includes(personId)));
+  console.log(`DBG:dataService.getStoriesByPersonId -> for ${personId}, found:`, (stories||[]).map(x => x.storyId));
+  return Promise.resolve(stories);
+}
+
+function updateStory(storyId, updatedData) {
+  const idx = (localDB.stories || []).findIndex(s => s.storyId === storyId);
+  if (idx === -1) {
+    const err = new Error("Story not found");
+    console.warn("DBG:dataService.updateStory -> story not found:", storyId);
+    return Promise.reject(err);
+  }
+  const updated = { ...localDB.stories[idx], ...updatedData, updatedAt: new Date().toISOString() };
+  localDB.stories[idx] = updated;
+  saveLocalDB();
+  console.log("DBG:dataService.updateStory -> updated:", updated);
+  return Promise.resolve(updated);
+}
+
+function deleteStory(storyId) {
+  const idx = (localDB.stories || []).findIndex(s => s.storyId === storyId);
+  if (idx === -1) {
+    const err = new Error("Story not found");
+    console.warn("DBG:dataService.deleteStory -> story not found:", storyId);
+    return Promise.reject(err);
+  }
+  const removed = localDB.stories.splice(idx, 1)[0];
+  saveLocalDB();
+  console.log("DBG:dataService.deleteStory -> removed:", removed);
+  return Promise.resolve(removed);
+}
+
+function getAllStories() {
+  return Promise.resolve([...(localDB.stories || [])]);
+}
+
+function findStoriesByTitle(query) {
+  if (!query) return Promise.resolve([]);
+  const q = String(query).trim().toLowerCase();
+  const results = (localDB.stories || []).filter(s => (s.title || '').toLowerCase().includes(q));
+  return Promise.resolve(results);
 }
 
 function getPerson(id) {
@@ -262,8 +437,60 @@ function getPeopleByTreeId(treeId) {
   return Promise.resolve(results);
 }
 
+
+// --- file(audio/image) uploads (local) ---
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(null);
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+
+async function uploadFileLocal(file, type) {
+  console.log(`DBG:dataService.uploadFileLocal -> ${type}`, file && file.name);
+  const id = generateId("file");
+  const name = (file && file.name) ? file.name : `${type}_${id}`;
+
+  let dataUrl = null;
+  if (typeof file === "string") {
+    dataUrl = file; // already base64
+  } else {
+    try {
+      dataUrl = await readFileAsDataURL(file);
+    } catch (err) {
+      console.error(`DBG:dataService.uploadFileLocal -> read error`, err);
+      dataUrl = null;
+    }
+  }
+
+  const url = dataUrl || `/${type}s/${id}_${name}`;
+  localDB.files = localDB.files || [];
+
+  const shouldStoreData = !(typeof url === "string" && url.startsWith("data:"));
+  localDB.files.push({
+    id,
+    name,
+    url,
+    type,
+    // data: shouldStoreData ? dataUrl : null,
+    createdAt: new Date().toISOString(),
+  });
+  saveLocalDB();
+
+  return { id, url, type };
+}
+
 function clearLocalDB() {
-  localDB = { people: [...dummyPeople], marriages: [...dummyMarriages] };
+  localDB = { people: [...dummyPeople], marriages: [...dummyMarriages], stories: [] };
   saveLocalDB();
   console.log("DBG:dataService.clearLocalDB -> reset to dummy data");
 }
@@ -313,6 +540,24 @@ async function getPeopleByTreeIdFirebase() {
   throw new Error("Not implemented");
 }
 
+async function addStoryFirebase() { throw new Error("Not implemented"); }
+async function getStoryFirebase() { throw new Error("Not implemented"); }
+async function getStoriesByPersonIdFirebase() { throw new Error("Not implemented"); }
+async function updateStoryFirebase() { throw new Error("Not implemented"); }
+async function deleteStoryFirebase() { throw new Error("Not implemented"); }
+async function getAllStoriesFirebase() { throw new Error("Not implemented"); }
+async function findStoriesByTitleFirebase() { throw new Error("Not implemented"); }
+
+async function addEventFirebase() { throw new Error("Not implemented"); }
+async function getEventFirebase() { throw new Error("Not implemented"); }
+async function getEventsByPersonIdFirebase() { throw new Error("Not implemented"); }
+async function updateEventFirebase() { throw new Error("Not implemented"); }
+async function deleteEventFirebase() { throw new Error("Not implemented"); }
+async function getAllEventsFirebase() { throw new Error("Not implemented"); }
+async function findEventsByTitleFirebase() { throw new Error("Not implemented"); }
+async function uploadFileFirebase(file, type) {throw new Error(`Cloud upload for ${type} not implemented yet`);}
+
+
 
 // --- Export API ---
 const dataService = {
@@ -330,6 +575,23 @@ const dataService = {
   getAllMarriages: USE_LOCAL ? getAllMarriages : getAllMarriagesFirebase,
   findPeopleByName: USE_LOCAL ? findPeopleByName : findPeopleByNameFirebase,
   getPeopleByTreeId: USE_LOCAL ? getPeopleByTreeId : getPeopleByTreeIdFirebase,
+  // Stories API
+  addStory: USE_LOCAL ? addStory : addStoryFirebase,
+  getStory: USE_LOCAL ? getStory : getStoryFirebase,
+  getStoriesByPersonId: USE_LOCAL ? getStoriesByPersonId : getStoriesByPersonIdFirebase,
+  updateStory: USE_LOCAL ? updateStory : updateStoryFirebase,
+  deleteStory: USE_LOCAL ? deleteStory : deleteStoryFirebase,
+  getAllStories: USE_LOCAL ? getAllStories : getAllStoriesFirebase,
+  findStoriesByTitle: USE_LOCAL ? findStoriesByTitle : findStoriesByTitleFirebase,
+  // Events API
+  addEvent: USE_LOCAL ? addEvent : addEventFirebase,
+  getEvent: USE_LOCAL ? getEvent : getEventFirebase,
+  getEventsByPersonId: USE_LOCAL ? getEventsByPersonId : getEventsByPersonIdFirebase,
+  updateEvent: USE_LOCAL ? updateEvent : updateEventFirebase,
+  deleteEvent: USE_LOCAL ? deleteEvent : deleteEventFirebase,
+  getAllEvents: USE_LOCAL ? getAllEvents : getAllEventsFirebase,
+  findEventsByTitle: USE_LOCAL ? findEventsByTitle : findEventsByTitleFirebase,
+  uploadFile: USE_LOCAL ? uploadFileLocal : uploadFileFirebase,
   clearLocalDB, // helpful for dev reset
 };
 

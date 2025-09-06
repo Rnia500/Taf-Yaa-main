@@ -273,6 +273,7 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
         variant="danger"
         onClick={() => {
           dataService.clearLocalDB();
+          // dataService.deletePerson()
           window.location.reload();
         }}
       >

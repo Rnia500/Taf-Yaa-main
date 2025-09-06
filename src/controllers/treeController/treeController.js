@@ -3,24 +3,41 @@ import dataService from "../../services/dataService";
 import { generateId } from "../../utils/personUtils/idGenerator";
 
 
-// src/controllers/treeController.js
+/**
+ * Add a Spouse to a marriage or create a new marriage with a spouse.
+ */
 export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
   const { onError, confirmConvert } = options;
   try {
     const existingSpouse = await dataService.getPerson(existingSpouseId);
     if (!existingSpouse) throw new Error("Existing spouse not found");
     if (existingSpouse.isPlaceholder) {
-      onError?.("Cannot add a spouse to a placeholder partner. Only directline members can initiate marriages.", "error");
+      onError?.(
+        "Cannot add a spouse to a placeholder partner. Only directline members can initiate marriages.",
+        "error"
+      );
       return null;
+    }
+
+    // --- 🔹 Handle photo upload first ---
+    let uploadedPhotoUrl = null;
+    if (newSpouseData.profilePhoto) {
+      try {
+        const uploaded = await dataService.uploadFile(newSpouseData.profilePhoto, "image");
+        uploadedPhotoUrl = uploaded.url;
+      } catch (err) {
+        console.error("DBG:addSpouse -> photo upload failed", err);
+        uploadedPhotoUrl = null;
+      }
     }
 
     const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
     console.log("DBG:addSpouse existingMarriages:", JSON.parse(JSON.stringify(existingMarriages)));
 
     // Detect existing marriage types for this person
-    const existingMonogamous = existingMarriages.find(m => m.marriageType === "monogamous");
+    const existingMonogamous = existingMarriages.find((m) => m.marriageType === "monogamous");
     const existingPolygamousForHusband = existingMarriages.find(
-      m => m.marriageType === "polygamous" && m.husbandId === existingSpouseId
+      (m) => m.marriageType === "polygamous" && m.husbandId === existingSpouseId
     );
 
     // If a polygamous marriage already exists for this husband, we ALWAYS append to it,
@@ -36,14 +53,14 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
           onError?.("User cancelled spouse addition.", "warning");
           return null;
         }
-  // User confirmed conversion: treat the requested operation as polygamous
-  newSpouseData = { ...newSpouseData, marriageType: "polygamous" };
+        // User confirmed conversion: treat the requested operation as polygamous
+        newSpouseData = { ...newSpouseData, marriageType: "polygamous" };
       } else {
         throw new Error(" Existing marriage is monogamous. Conversion required.");
       }
     }
 
-    // Relationship rules 
+    // Relationship rules
     const rules = { allowSameSexMarriage: false, allowPolyandry: false, allowPolygyny: true };
     if (!rules.allowSameSexMarriage && existingSpouse.gender === newSpouseData.gender) {
       throw new Error(" Same-sex marriages are not allowed.");
@@ -76,9 +93,15 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         name: newSpouseData.fullName,
         gender: newSpouseData.gender,
         dob: newSpouseData.dateOfBirth || null,
+        placeOfBirth: newSpouseData.placeOfBirth || newSpouseData.birthPlace || "",
+        placeOfDeath: newSpouseData.placeOfDeath || newSpouseData.deathPlace || "",
+        nationality: newSpouseData.nationality || "",
+        countryOfResidence: newSpouseData.countryOfResidence || "",
+        privacyLevel: newSpouseData.privacyLevel || "membersOnly",
+        allowGlobalMatching: newSpouseData.allowGlobalMatching || true,
         isDeceased: newSpouseData.isDeceased || false,
         dod: newSpouseData.dateOfDeath || null,
-        photoUrl: newSpouseData.profilePhoto || null,
+        photoUrl: uploadedPhotoUrl, // 🔹 use uploaded URL here
         bio: newSpouseData.biography || "",
         tribe: newSpouseData.tribe || "",
         language: newSpouseData.language || "",
@@ -87,6 +110,98 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         updatedAt: new Date().toISOString(),
       };
       await dataService.addPerson(newSpousePayload);
+
+      // Create birth/death events for the newly created spouse if dates available
+      try {
+        if (newSpousePayload.dob) {
+          const eventId = generateId("event");
+          const ev = {
+            id: eventId,
+            treeId,
+            personIds: [newSpouseId],
+            type: "birth",
+            title: "Birth",
+            date: newSpousePayload.dob,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          await dataService.addEvent(ev);
+        }
+        if (newSpousePayload.dod) {
+          const eventId = generateId("event");
+          const ev = {
+            id: eventId,
+            treeId,
+            personIds: [newSpouseId],
+            type: "death",
+            title: "Death",
+            date: newSpousePayload.dod,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          await dataService.addEvent(ev);
+        }
+      } catch (e) {
+        console.error("DBG:addSpouse -> failed to create birth/death events for new spouse", e);
+      }
+    }
+
+    // --- 🔹 Handle audio story upload before creating story ---
+    try {
+      let audioUrl = null;
+      if (newSpouseData.audioFile || newSpouseData.audioURL) {
+        const fileToUpload = newSpouseData.audioFile || newSpouseData.audioURL;
+        try {
+          const uploaded = await dataService.uploadFile(fileToUpload, "audio");
+          audioUrl = uploaded.url;
+        } catch (err) {
+          console.error("DBG:addSpouse -> audio upload failed", err);
+        }
+      }
+
+      if (newSpouseData && (audioUrl || newSpouseData.storyTitle)) {
+        const storyId = generateId("story");
+        const storyPayload = {
+          storyId,
+          treeId,
+          personId: newSpouseId,
+          title: newSpouseData.storyTitle || "Oral History",
+          type: "audio",
+          language: newSpouseData.language || null,
+          text: null,
+          audioUrl, // 🔹 use uploaded URL here
+          addedBy: newSpouseData.addedBy || "system",
+          timestamp: new Date().toISOString(),
+        };
+        await dataService.addStory(storyPayload);
+
+        if (typeof window !== "undefined" && window) window.__LAST_ADDED_STORY__ = storyPayload;
+      }
+    } catch (err) {
+      console.error("DBG:addSpouse -> failed to persist story:", err);
+    }
+
+    // Persist any event entries included with the spouse payload
+    try {
+      if (newSpouseData && Array.isArray(newSpouseData.events) && newSpouseData.events.length) {
+        for (const ev of newSpouseData.events) {
+          const eventPayload = {
+            ...ev,
+            id: ev.id || generateId("event"),
+            treeId,
+            personIds: [newSpouseId],
+            createdAt: ev.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          try {
+            await dataService.addEvent(eventPayload);
+          } catch (e) {
+            console.error("DBG:addSpouse -> failed to add event", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("DBG:addSpouse -> events persist error", e);
     }
 
     // ---- POLYGAMOUS PATH (append if one exists; else convert/create) ----
@@ -96,7 +211,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         const [sp1, sp2] = existingMonogamous.spouses || [];
         const sp1Person = await dataService.getPerson(sp1);
         const sp2Person = await dataService.getPerson(sp2);
-        const husbandId = sp1Person?.gender === "male" ? sp1 : (sp2Person?.gender === "male" ? sp2 : null);
+        const husbandId = sp1Person?.gender === "male" ? sp1 : sp2Person?.gender === "male" ? sp2 : null;
         if (!husbandId) throw new Error("Invalid existing monogamous marriage: no male spouse found for conversion.");
         const wifeId = husbandId === sp1 ? sp2 : sp1;
 
@@ -132,28 +247,70 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         };
 
         const updated = await dataService.updateMarriage(existingMonogamous.id, converted);
+        // Create marriage events for each wife entry (including the converted existing wife)
+        try {
+          const husbandId = converted.husbandId;
+          (converted.wives || []).forEach(async (w) => {
+            const evId = generateId("event");
+            const ev = {
+              id: evId,
+              treeId,
+              personIds: [husbandId, w.wifeId],
+              type: "marriage",
+              title: `Marriage (${w.order}th wife)`,
+              date: w.startDate || null,
+              location: w.location || null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await dataService.addEvent(ev);
+          });
+        } catch (e) {
+          console.error("DBG:addSpouse -> failed to create events for converted polygamous marriage", e);
+        }
         return { spouse: newSpousePayload, marriage: updated, marriageAction: "converted" };
       }
 
       // 2) If a polygamous for this husband already exists, append the new wife
       if (existingPolygamousForHusband) {
-        if (existingPolygamousForHusband.wives.some(w => w.wifeId === newSpouseId)) {
+        if (existingPolygamousForHusband.wives.some((w) => w.wifeId === newSpouseId)) {
           return { spouse: newSpousePayload, marriage: existingPolygamousForHusband, marriageAction: "noop" };
         }
-        const newWives = [...(existingPolygamousForHusband.wives || []), {
-          wifeId: newSpouseId,
-          order: newSpouseData.wifeOrder || (existingPolygamousForHusband.wives?.length || 0) + 1,
-          startDate: newSpouseData.marriageDate || null,
-          location: newSpouseData.marriageLocation || null,
-          notes: newSpouseData.marriageNotes || null,
-          childrenIds: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }];
+        const newWives = [
+          ...(existingPolygamousForHusband.wives || []),
+          {
+            wifeId: newSpouseId,
+            order: newSpouseData.wifeOrder || (existingPolygamousForHusband.wives?.length || 0) + 1,
+            startDate: newSpouseData.marriageDate || null,
+            location: newSpouseData.marriageLocation || null,
+            notes: newSpouseData.marriageNotes || null,
+            childrenIds: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
         const updatedMarriage = await dataService.updateMarriage(existingPolygamousForHusband.id, {
           wives: newWives,
           updatedAt: new Date().toISOString(),
         });
+        // Create a marriage event for the newly appended wife
+        try {
+          const evId = generateId("event");
+          const ev = {
+            id: evId,
+            treeId,
+            personIds: [existingPolygamousForHusband.husbandId, newSpouseId],
+            type: "marriage",
+            title: `Marriage (wife ${newWives.length})`,
+            date: newSpouseData.marriageDate || null,
+            location: newSpouseData.marriageLocation || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          await dataService.addEvent(ev);
+        } catch (e) {
+          console.error("DBG:addSpouse -> failed to create event for appended polygamous wife", e);
+        }
         return { spouse: newSpousePayload, marriage: updatedMarriage, marriageAction: "updated" };
       }
 
@@ -164,20 +321,43 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         treeId,
         marriageType: "polygamous",
         husbandId: existingSpouseId,
-        wives: [{
-          wifeId: newSpouseId,
-          order: newSpouseData.wifeOrder || 1,
-          startDate: newSpouseData.marriageDate || null,
-          location: newSpouseData.marriageLocation || null,
-          notes: newSpouseData.marriageNotes || null,
-          childrenIds: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }],
+        wives: [
+          {
+            wifeId: newSpouseId,
+            order: newSpouseData.wifeOrder || 1,
+            startDate: newSpouseData.marriageDate || null,
+            location: newSpouseData.marriageLocation || null,
+            notes: newSpouseData.marriageNotes || null,
+            childrenIds: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       await dataService.addMarriage(marriagePayload);
+      // create marriage event(s) for the new polygamous marriage
+      try {
+        const husbandId = marriagePayload.husbandId;
+        (marriagePayload.wives || []).forEach(async (w) => {
+          const evId = generateId("event");
+          const ev = {
+            id: evId,
+            treeId,
+            personIds: [husbandId, w.wifeId],
+            type: "marriage",
+            title: `Marriage (wife ${w.order})`,
+            date: w.startDate || null,
+            location: w.location || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          await dataService.addEvent(ev);
+        });
+      } catch (e) {
+        console.error("DBG:addSpouse -> failed to create events for new polygamous marriage", e);
+      }
       return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
     }
 
@@ -205,6 +385,24 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
       updatedAt: new Date().toISOString(),
     };
     await dataService.addMarriage(marriagePayload);
+    // Create a marriage event for the new monogamous marriage
+    try {
+      const evId = generateId("event");
+      const ev = {
+        id: evId,
+        treeId,
+        personIds: [existingSpouseId, newSpouseId],
+        type: "marriage",
+        title: "Marriage",
+        date: marriagePayload.startDate || newSpouseData.marriageDate || null,
+        location: marriagePayload.location || newSpouseData.marriageLocation || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await dataService.addEvent(ev);
+    } catch (e) {
+      console.error("DBG:addSpouse -> failed to create event for new monogamous marriage", e);
+    }
     return { spouse: newSpousePayload, marriage: marriagePayload, marriageAction: "created" };
 
   } catch (err) {
@@ -237,18 +435,98 @@ export async function addChild(treeId, options) {
       dob: childData.dateOfBirth || null,
       isDeceased: childData.isDeceased || false,
       dod: childData.dateOfDeath || null,
+      placeOfBirth: childData.placeOfBirth || childData.birthPlace || "",
+      placeOfDeath: childData.placeOfDeath || childData.deathPlace || "",
+      nationality: childData.nationality || "",
+      countryOfResidence: childData.countryOfResidence || "",
+      privacyLevel: childData.privacyLevel || "membersOnly",
       photoUrl: childData.profilePhoto || null,
       bio: childData.biography || "",
       tribe: childData.tribe || "",
       language: childData.language || "",
-      isSpouse: false,            // children are never spouses
-      isPlaceholder: false,       // real child, not placeholder
-      publicConsent: true,        // default: real people are public
+      isSpouse: false,
+      isPlaceholder: false,
+      allowGlobalMatching: childData.allowGlobalMatching || true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     await dataService.addPerson(childPayload);
+
+    // Create birth/death events for the newly created child if dates available
+    try {
+      if (childPayload.dob) {
+        const evId = generateId('event');
+        const ev = {
+          id: evId,
+          treeId,
+          personIds: [childId],
+          type: 'birth',
+          title: 'Birth',
+          date: childPayload.dob,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await dataService.addEvent(ev);
+      }
+      if (childPayload.dod) {
+        const evId = generateId('event');
+        const ev = {
+          id: evId,
+          treeId,
+          personIds: [childId],
+          type: 'death',
+          title: 'Death',
+          date: childPayload.dod,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await dataService.addEvent(ev);
+      }
+    } catch (e) {
+      console.error('DBG:addChild -> failed to create birth/death events for child', e);
+    }
+
+    // If the form included an audio story or title, create a Story record
+    try {
+      if (childData && (childData.audioURL || childData.storyTitle)) {
+        const storyId = generateId('story');
+        const storyPayload = {
+          storyId,
+          treeId,
+          personId: childId,
+          title: childData.storyTitle || 'Oral History',
+          type: 'audio',
+          language: childData.language || null,
+          text: null,
+          audioUrl: childData.audioURL || null,
+          addedBy: childData.addedBy || 'system',
+          timestamp: new Date().toISOString(),
+        };
+        await dataService.addStory(storyPayload);
+        // Expose for quick debugging during dev (guarded)
+        if (typeof window !== 'undefined' && window) window.__LAST_ADDED_STORY__ = storyPayload;
+      }
+    } catch (err) {
+      console.error('DBG:addChild -> failed to persist story:', err);
+      // don't block child creation if story save fails
+    }
+    // If events were added in the form, persist them and attach the childId
+    try {
+      if (childData && Array.isArray(childData.events) && childData.events.length) {
+        for (const ev of childData.events) {
+          const eventPayload = {
+            ...ev,
+            id: ev.id || generateId('event'),
+            treeId,
+            personIds: ev.personIds && ev.personIds.length ? ev.personIds : [childId],
+            createdAt: ev.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          try { await dataService.addEvent(eventPayload); } catch (e) { console.error('DBG:addChild -> failed to add event', e); }
+        }
+      }
+    } catch (e) { console.error('DBG:addChild -> events persist error', e); }
 
     // -------------------------------------------------------
     // 2. If adding to an existing marriage
@@ -297,7 +575,7 @@ export async function addChild(treeId, options) {
         gender: placeholderGender,
         isSpouse: true,         // placeholders act as spouses
         isPlaceholder: true,    // mark clearly
-        publicConsent: false,   // placeholders should never be public
+        allowGlobalMatching: false,   // placeholders should not allow global matching
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -314,6 +592,25 @@ export async function addChild(treeId, options) {
 
       await dataService.addPerson(placeholderPayload);
       await dataService.addMarriage(marriagePayload);
+
+      // create marriage event for the single-parent placeholder marriage
+      try {
+        const evId = generateId('event');
+        const ev = {
+          id: evId,
+          treeId,
+          personIds: [parentId, placeholderId],
+          type: 'marriage',
+          title: 'Marriage (placeholder)',
+          date: null,
+          location: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await dataService.addEvent(ev);
+      } catch (e) {
+        console.error('DBG:addChild -> failed to create event for single-parent marriage', e);
+      }
 
       return {
         child: childPayload,
@@ -332,6 +629,9 @@ export async function addChild(treeId, options) {
   }
 }
 
+
+
+
 /**
  * Add a parent to a single child (with placeholder partner).
  */
@@ -346,7 +646,7 @@ export async function addParent(treeId, childId, parentData) {
       ...parentData,
       isSpouse: false,         // real directline parent
       isPlaceholder: false,    // actual person
-      publicConsent: true,
+      allowGlobalMatching: typeof parentData.allowGlobalMatching === 'boolean' ? parentData.allowGlobalMatching : true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -364,7 +664,7 @@ export async function addParent(treeId, childId, parentData) {
       gender: placeholderGender,
       isSpouse: true,          // partner role
       isPlaceholder: true,     // clearly fake
-      publicConsent: false,    // never public
+      allowGlobalMatching: false,    // never allow global matching
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -382,6 +682,70 @@ export async function addParent(treeId, childId, parentData) {
     await dataService.addPerson(parentPayload);
     await dataService.addPerson(placeholderPayload);
     await dataService.addMarriage(marriagePayload);
+    // Create birth/death events for the new parent if dates provided
+    try {
+      if (parentPayload.dob) {
+        const evId = generateId('event');
+        await dataService.addEvent({
+          id: evId,
+          treeId,
+          personIds: [parentId],
+          type: 'birth',
+          title: 'Birth',
+          date: parentPayload.dob,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      if (parentPayload.dod) {
+        const evId = generateId('event');
+        await dataService.addEvent({
+          id: evId,
+          treeId,
+          personIds: [parentId],
+          type: 'death',
+          title: 'Death',
+          date: parentPayload.dod,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    } catch (e) {
+      console.error('DBG:addParent -> failed to create birth/death events for parent', e);
+    }
+
+    // Create marriage event for the parent + placeholder
+    try {
+      const evId = generateId('event');
+      await dataService.addEvent({
+        id: evId,
+        treeId,
+        personIds: [parentId, placeholderId],
+        type: 'marriage',
+        title: 'Marriage (placeholder)',
+        date: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('DBG:addParent -> failed to create marriage event for parent', e);
+    }
+    // Persist any events attached to the parent payload
+    try {
+      if (parentData && Array.isArray(parentData.events) && parentData.events.length) {
+        for (const ev of parentData.events) {
+          const eventPayload = {
+            ...ev,
+            id: ev.id || generateId('event'),
+            treeId,
+            personIds: ev.personIds && ev.personIds.length ? ev.personIds : [parentId],
+            createdAt: ev.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          try { await dataService.addEvent(eventPayload); } catch (e) { console.error('DBG:addParent -> failed to add event', e); }
+        }
+      }
+    } catch (e) { console.error('DBG:addParent -> events persist error', e); }
 
     return { parent: parentPayload, placeholder: placeholderPayload, marriage: marriagePayload };
   } catch (err) {

@@ -1,15 +1,18 @@
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TextInput, TextArea } from '../../Input';
 import SelectDropdown from '../../SelectDropdown';
 import DateInput from '../../DateInput';
 import Checkbox from '../../Checkbox';
 import FileUpload from '../../FileUpload';
 import AudioUploadCard from '../../AudioUploadCard';
+import EventCard from '../../EventCard';
 import Row from '../../../layout/containers/Row';
 import Button from '../../Button';
-import { User, BookOpen, Shield } from 'lucide-react';
+import { User, BookOpen, Shield, Calendar } from 'lucide-react';
 import Card from '../../../layout/containers/Card';
 import Text from '../../Text';
+import Column from '../../../layout/containers/Column';
+import countryList from "react-select-country-list";
 
 const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = [], defaultMotherId }) => {
   const [formData, setFormData] = useState({
@@ -18,6 +21,10 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
     dateOfBirth: '',
     isDeceased: false,
     dateOfDeath: '',
+    birthPlace: '',
+    deathPlace: '',
+    nationality: '',
+    countryOfResidence: '',
     profilePhoto: null,
     biography: '',
     tribe: '',
@@ -25,11 +32,13 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
     storyTitle: '',
     audioFile: null,
     audioURL: null,
-    privacy: 'membersOnly',
-    motherId: defaultMotherId || ''
+    privacyLevel: 'membersOnly',
+    allowGlobalMatching: true,
+    motherId: defaultMotherId || '',
+    events: []
   });
 
-   useEffect(() => {
+  useEffect(() => {
     if (defaultMotherId) {
       setFormData(prev => ({
         ...prev,
@@ -45,7 +54,14 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
       ...prev,
       [field]: value
     }));
-  if (typeof window !== 'undefined') window.__ADD_CHILD_FORM_LAST_UPDATE__ = { field, value };
+    if (typeof window !== 'undefined') window.__ADD_CHILD_FORM_LAST_UPDATE__ = { field, value };
+  };
+
+  const handleEventsChange = (newEventsArray) => {
+    setFormData(prev => ({
+      ...prev,
+      events: newEventsArray
+    }));
   };
 
   const validateForm = () => {
@@ -67,48 +83,52 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
   };
 
   const genderOptions = [
-    { value: '', label: 'Select a Gender'},
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' }
   ];
 
   const privacyOptions = [
-    { value: 'membersOnly', label: 'Members Only (Highest Privacy)' },
+    { value: 'private', label: 'Only Me (Highest Privacy)' },
+    { value: 'membersOnly', label: 'Family Members Only' },
     { value: 'authenticated', label: 'Registered Users' },
-    { value: 'public', label: 'Public' }
+    { value: 'public', label: 'Public (Lowest Privacy)' }
   ];
+
+  const countryOptions = useMemo(() => countryList().getData(), []);
 
   return (
     <form onSubmit={handleSubmit} className="premium-form">
 
       {/* Display the parents' names at the top of the form */}
-      <Card  margin='0px 0px 20px 0px'>
+      <Card margin='0px 0px 20px 0px' >
         {wives.length > 0 ? (
-          <Row padding='0px' margin='0px' fitContent alignItems='center' justifyContent='start' gap='10px'>
+         <div style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '5px', zIndex: "9999999"}}>
             <Text variant='heading3'>Child of {parent1Name} and</Text>
             <SelectDropdown
               value={formData.motherId}
+              placeholder={'Select a wife please'}
               onChange={(e) => setFormData(prev => ({ ...prev, motherId: e.target.value }))}
               options={[
-                { value: '', label: 'Select a wife please' },
                 ...wives.map(w => ({ value: w.id, label: w.name }))
               ]}
             />
-          </Row>
+          </div>
         ) : (
-          <h3 style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600' }}>
+          <Text as='p' variant='heading3' style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: 600 }}>
             Child of {parent1Name} and {parent2Name}
-          </h3>
+          </Text>
         )}
       </Card>
 
       {/* Section 1: Personal Information */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <User size={20} />
-          </div>
-          <h3 className="section-title">Personal Information</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Personal Information</Text>
+          </Column>
         </div>
 
         <div className="form-grid">
@@ -136,12 +156,51 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
           </div>
 
           <div className="form-group">
-            <label className="form-label">Date of Birth</label>
-            <DateInput
-              value={formData.dateOfBirth}
-              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-              placeholder="Select date of birth"
-            />
+
+            <Row gap="0.5rem" padding='0px' margin='0px' justifyContent="start">
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Date of Birth</label>
+                <DateInput
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  placeholder="Select date of birth"
+                />
+              </Column>
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Place of Birth</label>
+                <TextInput
+                  value={formData.birthPlace}
+                  onChange={(e) => handleInputChange('birthPlace', e.target.value)}
+                  placeholder="Enter place of birth"
+                />
+              </Column>
+            </Row>
+
+          </div>
+
+          <div className="form-group">
+
+            <Column gap='0.10rem' padding='2px' margin='0px'>
+              <label className="form-label">Nationalty</label>
+              <SelectDropdown
+                options={countryOptions}
+                value={formData.nationality}
+                onChange={(e) => handleInputChange('nationality', e.target.value)}
+                placeholder="Enter Nationality"
+              />
+            </Column>
+          </div>
+          <div className="form-group">
+            <Column gap='0.10rem' padding='2px' margin='0px'>
+              <label className="form-label">Country of Residence</label>
+              <SelectDropdown
+                options={countryOptions}
+                value={formData.countryOfResidence}
+                onChange={(e) => handleInputChange('countryOfResidence', e.target.value)}
+                placeholder="Enter The Country of Residence"
+              />
+            </Column>
+
           </div>
 
           <div className="form-group">
@@ -155,14 +214,26 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
           </div>
 
           {formData.isDeceased && (
-            <div className="form-group">
-              <label className="form-label">Date of Death</label>
-              <DateInput
-                value={formData.dateOfDeath}
-                onChange={(e) => handleInputChange('dateOfDeath', e.target.value)}
-                placeholder="Select date of death"
-              />
-            </div>
+
+            <>
+              <div className="form-group">
+                <label className="form-label">Date of Death</label>
+                <DateInput
+                  value={formData.dateOfDeath}
+                  onChange={(e) => handleInputChange('dateOfDeath', e.target.value)}
+                  placeholder="Select date of death"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Place of Death</label>
+                <TextInput
+                  value={formData.deathPlace}
+                  onChange={(e) => handleInputChange('deathPlace', e.target.value)}
+                  placeholder="Select Place of death"
+                />
+              </div>
+            </>
           )}
 
           <div className="form-group">
@@ -206,10 +277,12 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
       {/* Section 2: Oral History */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <BookOpen size={20} />
-          </div>
-          <h3 className="section-title">Oral History</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Oral History</Text>
+          </Column>
         </div>
 
         <div className="form-group">
@@ -233,23 +306,52 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
         </div>
       </div>
 
-      {/* Section 3: Privacy */}
+      {/* Section 3: Events */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
+            <Calendar size={20} />
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Events</Text>
+          </Column>
+        </div>
+
+        <EventCard
+          events={formData.events}
+          onEventsChange={handleEventsChange}
+        />
+      </div>
+
+      {/* Section 4: Privacy */}
+      <div className="section-card">
+        <div className="section-header">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <Shield size={20} />
-          </div>
-          <h3 className="section-title">Privacy Settings</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Privacy Settings</Text>
+          </Column>
         </div>
 
         <div className="form-group">
           <label className="form-label">Profile Visibility</label>
           <SelectDropdown
-            value={formData.privacy}
-            onChange={(e) => handleInputChange('privacy', e.target.value)}
+            value={formData.privacyLevel}
+            onChange={(e) => handleInputChange('privacyLevel', e.target.value)}
             options={privacyOptions}
           />
         </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-checkbox">
+          <Checkbox
+            checked={formData.allowGlobalMatching}
+            onChange={(e) => handleInputChange('allowGlobalMatching', e.target.checked)}
+            label="Allow Global Matching"
+          />
+        </label>
       </div>
 
       <Row className="button-group">

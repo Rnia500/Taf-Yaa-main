@@ -17,7 +17,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: true,
     isSpouse: false,
-    publicConsent: true,
+    allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -36,7 +36,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: true,
     isSpouse: true,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -55,7 +55,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: false,
     isSpouse: true,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -76,7 +76,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: true,
     isSpouse: false,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -95,7 +95,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: true,
     isSpouse: false,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -114,7 +114,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: false,
     isSpouse: false,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -133,7 +133,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: false,
     isSpouse: false,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -152,7 +152,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: false,
     isSpouse: false,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -171,7 +171,7 @@ export const people = [
     linkedUserId: null,
     isDeceased: false,
     isSpouse: false,
-    publicConsent: true,
+  allowGlobalMatching: true,
     isPlaceholder: false,
     createdAt: "2025-09-04T00:00:00.000Z",
     updatedAt: "2025-09-04T00:00:00.000Z",
@@ -207,3 +207,12 @@ export const marriages = [
     updatedAt: "2025-09-04T00:00:00.000Z",
   },
 ];
+
+
+export const stories = [
+  
+]
+
+export const events = [
+  
+]

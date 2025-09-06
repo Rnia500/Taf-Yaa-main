@@ -1,59 +1,83 @@
+/* Wrapper */
 .select-wrapper {
   display: flex;
   flex-direction: column;
 }
 
+/* Label */
 .select-label {
   margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  font-size: 0.9rem;
+  font-weight: 200;
+  color: var(--color-primary-text);
+  font-size: 0.2rem;
 }
 
-.select-field {
-  padding: 12px 16px;
+/* React Select root */
+.custom-select__control {
+  padding: 4px 4px;
   border: 2px solid var(--color-gray-light);
   border-radius: 12px;
   font-size: 1rem;
   background: var(--color-white);
-  transition: all 0.2s ease;
-  color: var(--color-text-primary);
+  color: var(--color-primary-text);
   font-family: inherit;
   cursor: pointer;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%231F724A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 16px;
-  padding-right: 48px;
+  transition: all 0.2s ease;
 }
 
-.select-field:hover {
+.custom-select__control:hover {
   border-color: var(--color-primary-light);
 }
 
-.select-field:focus {
-  outline: none;
+.custom-select__control--is-focused {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
-.select-field option {
+/* Dropdown menu */
+.custom-select__menu {
+  border-radius: 12px;
+  margin-top: 4px;
+  z-index: 99999;
+  min-width: 200px;
+  max-width: 520px;
+}
+
+/* Options */
+.custom-select__option {
   padding: 12px;
   background: var(--color-white);
-  color: var(--color-text-primary);
+  color: var(--color-primary-text);
+  cursor: pointer;
+  z-index: 99999;
+  white-space: nowrap; /* prevent long country names from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* show ellipsis for overflow */
 }
 
-.select-field option:hover {
+.custom-select__option--is-focused {
   background: var(--color-primary-light);
+  color: var(--color-tertiary-text);
+}
+
+.custom-select__option--is-selected {
+  background: var(--color-primary);
   color: var(--color-white);
 }
 
-/* For Firefox */
-.select-field::-moz-focus-inner {
-  border: 0;
+/* Placeholder text */
+.custom-select__placeholder {
+  color: var(--color-gray-dark);
 }
 
-.select-field:-moz-focusring {
-  color: transparent;
-  text-shadow: 0 0 0 var(--color-text-primary);
+/* Selected value */
+.custom-select__single-value {
+  color: var(--color-primary-text);
+}
+
+/* When menu is rendered in a portal it uses the .custom-select__menu class but also the react-select
+   generated portal element; ensure it inherits the visual styling */
+.custom-select__menu-list {
+  max-height: 240px;
+  overflow-y: auto;
 }

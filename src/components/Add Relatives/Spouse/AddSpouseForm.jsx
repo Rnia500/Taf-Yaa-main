@@ -1,19 +1,23 @@
 // AddSpouseForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TextInput, TextArea } from '../../Input';
+import '../../../styles/AddRelativeModal.css';
 import SelectDropdown from '../../SelectDropdown';
 import DateInput from '../../DateInput';
 import Checkbox from '../../Checkbox';
 import FileUpload from '../../FileUpload';
 import AudioUploadCard from '../../AudioUploadCard';
+import EventCard from '../../EventCard';
 import Row from '../../../layout/containers/Row';
 import Button from '../../Button';
-import { User, Heart, Shield, BookOpen } from 'lucide-react';
+import { User, Heart, Shield, BookOpen, Calendar } from 'lucide-react';
 import { MarriageModel } from '../../../models/treeModels/MarriageModel';
+import countryList from "react-select-country-list";
+import Column from '../../../layout/containers/Column';
+import Text from '../../Text';
+import Card from '../../../layout/containers/Card';
 
 const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1, isSubmitting = false }) => {
-
-
 
   const [formData, setFormData] = useState({
     // Section 1: New Spouse's Information
@@ -22,6 +26,10 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     dateOfBirth: '',
     isDeceased: false,
     dateOfDeath: '',
+    birthPlace: '',
+    deathPlace: '',
+    nationality: '',
+    countryOfResidence: '',
     profilePhoto: null,
     biography: '',
     tribe: '',
@@ -39,8 +47,14 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     marriageNotes: '',
     wifeOrder: suggestedWifeOrder,
 
-    // Section 4: Privacy
-    privacy: 'membersOnly'
+    // Section 4: Events
+    events: [],
+
+    // Section 5: Privacy
+    privacyLevel: 'membersOnly',
+    allowGlobalMatching: true,
+
+
   });
 
   const [errors, setErrors] = useState({});
@@ -49,6 +63,13 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleEventsChange = (newEventsArray) => {
+    setFormData(prev => ({
+      ...prev,
+      events: newEventsArray
     }));
   };
 
@@ -71,15 +92,16 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
   };
 
   const genderOptions = [
-    { value: '', label: 'Select a Gender'},
+    { value: '', label: 'Select a Gender' },
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' }
   ];
 
   const privacyOptions = [
-    { value: 'membersOnly', label: 'Members Only (Highest Privacy)' },
+    { value: 'private', label: 'Only Me (Highest Privacy)' },
+    { value: 'membersOnly', label: 'Family Members Only' },
     { value: 'authenticated', label: 'Registered Users' },
-    { value: 'public', label: 'Public' }
+    { value: 'public', label: 'Public (Lowest Privacy)' }
   ];
 
   const marriageTypeOptions = [
@@ -87,23 +109,27 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     { value: 'polygamous', label: 'Polygamous' }
   ];
 
+  const countryOptions = useMemo(() => countryList().getData(), []);
+
   return (
     <form onSubmit={handleSubmit} className="premium-form">
 
       {/* Display the husband's name at the top of the form */}
       {husbandName && (
-        <div className="husband-name-display" style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-          <h3 style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: '600' }}>Spouse of {husbandName}</h3>
-        </div>
+        <Card margin='0px 0px 20px 0px' fitContent className="husband-name-display" style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
+          <Text variant='heading3' as='p' style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: 600 }}>Spouse of {husbandName}</Text>
+        </Card>
       )}
 
       {/* Section 1: Personal Information */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <User size={20} />
-          </div>
-          <h3 className="section-title">Personal Information</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Personal Information</Text>
+          </Column>
         </div>
 
         <div className="form-grid">
@@ -131,12 +157,51 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
           </div>
 
           <div className="form-group">
-            <label className="form-label">Date of Birth</label>
-            <DateInput
-              value={formData.dateOfBirth}
-              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-              placeholder="Select date of birth"
-            />
+
+            <Row gap="0.5rem" padding='0px' margin='0px' justifyContent="start">
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Date of Birth</label>
+                <DateInput
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  placeholder="Select date of birth"
+                />
+              </Column>
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Place of Birth</label>
+                <TextInput
+                  value={formData.birthPlace}
+                  onChange={(e) => handleInputChange('birthPlace', e.target.value)}
+                  placeholder="Enter place of birth"
+                />
+              </Column>
+            </Row>
+
+          </div>
+
+          <div className="form-group">
+
+            <Column gap='0.10rem' padding='2px' margin='0px'>
+              <label className="form-label">Nationalty</label>
+              <SelectDropdown
+                options={countryOptions}
+                value={formData.nationality}
+                onChange={(e) => handleInputChange('nationality', e.target.value)}
+                placeholder="Enter Nationality"
+              />
+            </Column>
+          </div>
+          <div className="form-group">
+            <Column gap='0.10rem' padding='2px' margin='0px'>
+              <label className="form-label">Country of Residence</label>
+              <SelectDropdown
+                options={countryOptions}
+                value={formData.countryOfResidence}
+                onChange={(e) => handleInputChange('countryOfResidence', e.target.value)}
+                placeholder="Enter The Country of Residence"
+              />
+            </Column>
+
           </div>
 
           <div className="form-group">
@@ -149,15 +214,29 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
             </label>
           </div>
 
+
+
           {formData.isDeceased && (
-            <div className="form-group">
-              <label className="form-label">Date of Death</label>
-              <DateInput
-                value={formData.dateOfDeath}
-                onChange={(e) => handleInputChange('dateOfDeath', e.target.value)}
-                placeholder="Select date of death"
-              />
-            </div>
+
+            <>
+              <div className="form-group">
+                <label className="form-label">Date of Death</label>
+                <DateInput
+                  value={formData.dateOfDeath}
+                  onChange={(e) => handleInputChange('dateOfDeath', e.target.value)}
+                  placeholder="Select date of death"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Place of Death</label>
+                <TextInput
+                  value={formData.deathPlace}
+                  onChange={(e) => handleInputChange('deathPlace', e.target.value)}
+                  placeholder="Select Place of death"
+                />
+              </div>
+            </>
           )}
 
           <div className="form-group">
@@ -201,10 +280,12 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
       {/* Section 2: Oral History */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <BookOpen size={20} />
-          </div>
-          <h3 className="section-title">Oral History</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Oral History</Text>
+          </Column>
         </div>
 
         <div className="form-group">
@@ -231,10 +312,12 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
       {/* Section 3: Marriage Information */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <Heart size={20} />
-          </div>
-          <h3 className="section-title">Marriage Information {husbandName && `(Spouse of ${husbandName})`}</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Marriage Information {husbandName && `(Spouse of ${husbandName})`}</Text>
+          </Column>
         </div>
 
         <div className="form-grid">
@@ -293,24 +376,55 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
         </div>
       </div>
 
-      {/* Section 4: Privacy */}
+      {/* Section 4: Events */}
       <div className="section-card">
         <div className="section-header">
-          <div className="section-icon">
+          <Card fitContent margin='0.5rem' className="section-icon">
+            <Calendar size={20} />
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Events</Text>
+            <Text as='p' variant='caption1'>Birth, Death and Marriage are auto included</Text>
+          </Column>
+        </div>
+
+        <EventCard
+          events={formData.events}
+          onEventsChange={handleEventsChange}
+        />
+      </div>
+
+      {/* Section 5: Privacy */}
+      <div className="section-card">
+        <div className="section-header">
+          <Card fitContent margin='0.5rem' className="section-icon">
             <Shield size={20} />
-          </div>
-          <h3 className="section-title">Privacy Settings</h3>
+          </Card>
+          <Column padding='0px' margin='0px' gap='1px'>
+            <Text as='p' variant='heading2'>Privacy Settings</Text>
+          </Column>
         </div>
 
         <div className="form-group">
           <label className="form-label">Profile Visibility</label>
           <SelectDropdown
-            value={formData.privacy}
-            onChange={(e) => handleInputChange('privacy', e.target.value)}
+            value={formData.privacyLevel}
+            onChange={(e) => handleInputChange('privacyLevel', e.target.value)}
             options={privacyOptions}
           />
         </div>
       </div>
+
+      <div className="form-group">
+        <label className="form-checkbox">
+          <Checkbox
+            checked={formData.allowGlobalMatching}
+            onChange={(e) => handleInputChange('allowGlobalMatching', e.target.checked)}
+            label="Allow Global Matching"
+          />
+        </label>
+      </div>
+
 
       <Row className="button-group">
         <Button fullWidth variant='danger' onClick={onCancel} disabled={isSubmitting}>

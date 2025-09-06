@@ -6,8 +6,10 @@ import Row from '../layout/containers/Row';
 import Column from '../layout/containers/Column';
 import WaveformPlayer from './WaveformPlayer';
 import AudioPlayer from './AudioPLayer';
-import { Upload, Music, CheckCircle, X } from 'lucide-react';
+import { CheckCircle, X } from 'lucide-react';
 import '../styles/AudioUploadCard.css';
+
+import dataService from '../services/dataService';
 
 function AudioUploadCard({ onAudioUpload, storyTitle }) {
   const [audioFile, setAudioFile] = useState(null);
@@ -17,31 +19,48 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
-  const handleFileUpload = (file) => {
-    if (file && file.type.startsWith('audio/')) {
-      setAudioFile(file);
-      setUploadStatus('uploading');
-      
-      // Simulate upload process
-      setTimeout(() => {
-        setUploadStatus('success');
-        const audioUrl = URL.createObjectURL(file);
-        setAudioPreview(audioUrl);
-        
-        if (onAudioUpload) {
-          onAudioUpload(file, audioUrl);
-        }
-      }, 1500);
-    } else {
+  // Called by FileUpload (onChange). The FileUpload will pass the File object for non-image files.
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    if (!file.type || !file.type.startsWith('audio/')) {
       setUploadStatus('error');
+      return;
+    }
+
+    setAudioFile(file);
+    setUploadStatus('uploading');
+
+    // create ephemeral preview URL immediately for playback while uploading
+    try {
+      const preview = URL.createObjectURL(file);
+      setAudioPreview(preview);
+    } catch (e) {
+      console.warn('AudioUploadCard -> preview creation failed', e);
+      setAudioPreview(null);
+    }
+
+    try {
+      const result = await dataService.uploadFile(file, 'audio');
+      // result: { id, url, type }
+      setUploadStatus('success');
+      setAudioPreview(result.url); // overwrite preview with persisted url (may be same as data URL)
+      if (onAudioUpload) onAudioUpload(file, result.url);
+    } catch (err) {
+      console.error('AudioUploadCard -> upload failed', err);
+      setUploadStatus('error');
+      // keep ephemeral preview so user can still listen if available
     }
   };
 
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+    setIsPlaying(prev => !prev);
   };
 
   const handleRemoveAudio = () => {
+    if (audioPreview && typeof audioPreview === 'object' && audioPreview.startsWith === undefined) {
+      // revoke object URL only if we created it
+      try { URL.revokeObjectURL(audioPreview); } catch {}
+    }
     setAudioFile(null);
     setUploadStatus('idle');
     setAudioPreview(null);
@@ -51,6 +70,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
   };
 
   const formatFileSize = (bytes) => {
+    if (!bytes) return '';
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -67,7 +87,6 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
   return (
     <Card className="audio-upload-card" padding="0.5rem" borderRadius="16px">
       <Column fitContent gap="16px" padding='0.5rem' alignItems="stretch">
-        {/* Story Title Display */}
         {storyTitle && (
           <Card className="audio-upload-card__story-title" padding="0.5rem" backgroundColor="var(--color-light-blue)">
             <Text variant="body2" color="var(--color-primary-dark)">
@@ -76,7 +95,6 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
           </Card>
         )}
 
-        {/* Upload Area */}
         {!audioFile ? (
           <FileUpload
             onChange={handleFileUpload}
@@ -93,7 +111,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
                   {formatFileSize(audioFile.size)}
                 </Text>
               </Column>
-              
+
               <Row padding='0px' gap="8px">
                 {audioPreview && (
                   <AudioPlayer
@@ -117,7 +135,6 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
               </Row>
             </Row>
 
-            {/* Waveform Player */}
             {audioPreview && uploadStatus === 'success' && (
               <div style={{ marginTop: '12px', width: '100%' }}>
                 <WaveformPlayer
@@ -127,8 +144,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
                   onReady={setDuration}
                   onTimeUpdate={setCurrentTime}
                 />
-                
-                {/* Timer */}
+
                 <div
                   style={{
                     display: 'flex',
@@ -144,7 +160,6 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
               </div>
             )}
 
-            {/* Upload Status */}
             {uploadStatus === 'uploading' && (
               <div className="audio-upload-card__status audio-upload-card__status--uploading">
                 <div className="audio-upload-card__progress">
@@ -164,13 +179,12 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
             {uploadStatus === 'error' && (
               <div className="audio-upload-card__status audio-upload-card__status--error">
                 <X size={16} />
-                <Text variant="caption2">Please select a valid audio file</Text>
+                <Text variant="caption2">Upload failed. Please try again.</Text>
               </div>
             )}
           </Card>
         )}
 
-        {/* Instructions */}
         <div className="audio-upload-card__instructions">
           <Text variant="caption2" color="var(--color-gray)">
             Supported formats: MP3, WAV, M4A, OGG
