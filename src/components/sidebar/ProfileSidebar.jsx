@@ -11,8 +11,13 @@ import TimelineEvents from './ProfileSidebarComponents/TimelineEvents';
 import AudioStory from './ProfileSidebarComponents/audioStory';
 import PhotoMemorySection from './ProfileSidebarComponents/PhotoMemorySection';
 import RecordModal from './RecordModal/RecordModal'
+import AddEditEvent from '../AddEditEvent';
 import useSidebarStore from '../../store/useSidebarStore';
 import dataService from '../../services/dataService';
+import Row from '../../layout/containers/Row';
+import Button from '../Button';
+import Spacer from '../Spacer';
+import { getPrivacyLabel, getCountryLabel } from '../../models/treeModels/PersonModel';
 
 export default function ProfileSidebar() {
   const [profileData, setProfileData] = useState({});
@@ -25,11 +30,30 @@ export default function ProfileSidebar() {
   const [audioStories, setAudioStories] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const [isAddEditEventModalOpen, setIsAddEditEventModalOpen] = useState(false);
   const { activeProfileId, closeSidebar } = useSidebarStore();
-  
+
 
   const handleRecordAudio = () => {
     setIsRecordModalOpen(true);
+  };
+
+  const handleAddEvent = () => {
+    setIsAddEditEventModalOpen(true);
+  };
+
+  const handleAddDescription = () => {
+    setIsAddEditEventModalOpen(true);
+  };
+
+  const handleCloseAddEditEventModal = () => {
+    setIsAddEditEventModalOpen(false);
+  };
+
+
+
+  const handleEventsChange = (newEventsArray) => {
+    setTimelineEvents(newEventsArray);
   };
 
 
@@ -79,19 +103,24 @@ export default function ProfileSidebar() {
 
       // Identity mapping
       setIdentityData({
-        gender: person.gender ? String(person.gender).charAt(0).toUpperCase() + String(person.gender).slice(1) : '',
+        gender: person.gender ? String(person.gender).charAt(0).toUpperCase() + String(person.gender).slice(1) : 'UnKnown',
         familyRole: person.isSpouse ? 'Spouse' : 'Family Member',
-        tribe: person.tribe || '',
-        language: person.language || '',
+        tribe: person.tribe || 'Unknown',
+        language: person.language || 'Unknown',
         status: person.isDeceased ? 'Deceased' : 'Living',
+        countryOfResidence: getCountryLabel(person.countryOfResidence) || 'Unknown',
+        nationality: getCountryLabel(person.nationality) || 'Unknown',
+        placeOfBirth : person.placeOfBirth || 'Unknown',
+        placeOfDeath : person.placeOfDeath || 'Unknown'
+
       });
 
       // Contact mapping
       setContactData({
-        phoneNumber: person.phoneNumber || '',
-        lastLocation: person.lastLocation || '',
-        linkedAccount: person.linkedUserId || '',
-        privacyStatus: person.privacyStatus || '',
+        phoneNumber: person.phoneNumber || 'Unknown',
+        email: person.email || 'Unknown',
+        linkedAccount: person.linkedUserId || 'Unknown',
+        privacyStatus: getPrivacyLabel(person.privacyLevel) || 'Unknown',
       });
 
       // Biography
@@ -252,7 +281,6 @@ export default function ProfileSidebar() {
         birthDate={profileData.birthDate}
         deathDate={profileData.deathDate}
         profileImage={profileData.profileImage}
-
         onClose={closeSidebar} 
       />
       <IdentityOverview identity={identityData} />
@@ -265,7 +293,7 @@ export default function ProfileSidebar() {
 
       <FamilyConnections connections={familyConnections} onAddConnection={() => {}} />
 
-      <TimelineEvents events={timelineEvents} onAddEvent={() => {}} />
+      <TimelineEvents events={timelineEvents} onAddEvent={handleAddEvent} onAddDescription={handleAddDescription} />
 
       <AudioStory 
         stories={audioStories} 
@@ -279,6 +307,20 @@ export default function ProfileSidebar() {
       />
 
       <PhotoMemorySection photos={photos} onUpload={() => {}} />
+
+
+      <Spacer size='lg'/>
+      <Row padding='0px' margin='0px'>
+        <Button fullWidth variant='secondary'>Edit </Button>
+        <Button fullWidth variant='danger'>Delete </Button>
+      </Row>
+
+      <AddEditEvent
+        isOpen={isAddEditEventModalOpen}
+        onClose={handleCloseAddEditEventModal}
+        events={timelineEvents}
+        onEventsChange={handleEventsChange}
+      />
     </FlexContainer>
   );
 }

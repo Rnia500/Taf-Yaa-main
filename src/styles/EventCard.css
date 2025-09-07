@@ -1,27 +1,18 @@
-.event-card {
-  background-color: var(--color-defaultCardbg);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  transition: box-shadow 0.3s ease;
-  font-family: 'Inter', sans-serif;
-  color: var(--color-primary-text);
-}
 
 
-.event-card .form-grid {
+.form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
   width: 100%;
 }
 
-.event-card .form-group {
+.form-group {
   display: flex;
   flex-direction: column;
 }
 
-.event-card .form-label {
+.form-label {
   font-weight: 600;
   margin-bottom: 6px;
   color: var(--color-secondary-text);
@@ -35,14 +26,14 @@
   border-radius: 8px;
 }
 
-.event-card .added-events .event-type {
+.added-events .event-type {
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--color-primary2);
   margin-bottom: 6px;
 }
 
-.event-card .added-events .event-detail {
+.added-events .event-detail {
   font-size: 0.95rem;
   color: var(--color-secondary-text);
   margin-bottom: 4px;
@@ -53,15 +44,6 @@
   display: block;
 }
 
-.event-card .add-button-row {
+.add-button-row {
   margin-top: 20px;
-}
-
-@media (max-width: 600px) {
-  .event-card {
-    padding: 16px;
-  }
-  .event-card .form-grid {
-    grid-template-columns: 1fr;
-  }
 }

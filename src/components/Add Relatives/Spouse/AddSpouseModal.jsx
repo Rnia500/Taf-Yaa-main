@@ -1,7 +1,7 @@
 // AddSpouseModal.jsx
 import React from "react";
 import useModalStore from '../../../store/useModalStore';
-import AddSpouseController from "../../../controllers/treeController/AddSpouseController";
+import AddSpouseController from "../../../controllers/form/AddSpouseController";
 import '../../../styles/AddRelativeModal.css';
 import { X } from 'lucide-react';
 import Card from '../../../layout/containers/Card';

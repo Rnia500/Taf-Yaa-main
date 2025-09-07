@@ -17,8 +17,8 @@ export default function ContactMetaInfo({ contact }) {
           <Text variant='caption1' color='secondary'>{contact.phoneNumber}</Text>
         </Card>
         <Card alignItems='start' padding='0px' margin='0px 0px' backgroundColor='var(--color-transparent)'>
-          <Text align='flex-left' variant='caption1' color='tertiary-text'>Last Location</Text>
-          <Text variant='caption1' color='secondary'>{contact.lastLocation}</Text>
+          <Text align='flex-left' variant='caption1' color='tertiary-text'>Email</Text>
+          <Text variant='caption1' color='secondary'>{contact.email}</Text>
         </Card>
       </Row>
       <Divider color="var(--color-gray)" thickness='2px' borderRadius='3px' style={{ margin: '15px 0' }} />

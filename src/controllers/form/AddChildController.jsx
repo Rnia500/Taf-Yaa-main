@@ -1,8 +1,8 @@
 // src/controllers/AddChildController.jsx
 import React, { useState, useEffect } from "react";
-import AddChildForm from "../../components/Add Relatives/Child/AddChildForm";
-import * as treeController from "./treeController";
-import dataService from "../../services/dataService";
+import AddChildForm from "../../components/Add Relatives/Child/AddChildForm.jsx";
+import * as treeController from "../tree/treeController.js";
+import dataService from "../../services/dataService.js";
 
 const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);

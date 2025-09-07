@@ -6,7 +6,7 @@ import '../../../styles/Timeline.css';
 import ClampText from '../../ClampText';
 import Text from '../../Text';
 
-function TimelineEvent({ title, date, isLast, description }) {
+function TimelineEvent({ title, date, isLast, description, onAddDescription }) {
   const [isDescriptionVisible, setDescriptionVisible] = useState(false);
 
   const toggleDescriptionVisibility = () => {
@@ -31,12 +31,12 @@ function TimelineEvent({ title, date, isLast, description }) {
             {isDescriptionVisible && (
               <Card>
                 {/* <ClampText lines={3}>{description}</ClampText> */}
-                <Text paragraph variant='caption1'>Under a canopy of stars, Maya and Idris vowed to walk life’s winding path together. 🎶 Their wedding echoed with laughter, music, and the scent of jasmine drifting through the air. ❤️ Years later, their love still dances—sometimes slow, sometimes wild, but always in step.</Text>
+                <Text paragraph variant='caption1'>{description}</Text>
               </Card>
             )}
           </>
         ) : (
-          <Button size='sm' variant='secondary'>Add a description</Button>
+          <Button size='sm' variant='secondary' onClick={onAddDescription}>Add a description</Button>
         )}
       </div>
     </div>
@@ -46,7 +46,7 @@ function TimelineEvent({ title, date, isLast, description }) {
 /**
  * Represents the entire timeline block with a list of events.
  */
-export default function TimelineEvents({ events = [], onAddEvent }) {
+export default function TimelineEvents({ events = [], onAddEvent, onAddDescription }) {
   return (
     <Card backgroundColor="transparent" alignItems="flex-start">
       <div className="timeline-block">
@@ -59,6 +59,7 @@ export default function TimelineEvents({ events = [], onAddEvent }) {
               date={event.date}
               description={event.description}
               isLast={index === events.length - 1}
+              onAddDescription={onAddDescription}
             />
           ))}
         </div>

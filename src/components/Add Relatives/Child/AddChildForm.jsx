@@ -20,9 +20,11 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
     gender: '',
     dateOfBirth: '',
     isDeceased: false,
+    phoneNumber: '',
+    email: '',
     dateOfDeath: '',
-    birthPlace: '',
-    deathPlace: '',
+    placeOfBirth: '',
+    placeOfDeath: '',
     nationality: '',
     countryOfResidence: '',
     profilePhoto: null,
@@ -102,7 +104,7 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
       {/* Display the parents' names at the top of the form */}
       <Card margin='0px 0px 20px 0px' >
         {wives.length > 0 ? (
-         <div style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '5px', zIndex: "9999999"}}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '5px', zIndex: "9999999" }}>
             <Text variant='heading3'>Child of {parent1Name} and</Text>
             <SelectDropdown
               value={formData.motherId}
@@ -169,9 +171,32 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
               <Column gap='0.10rem' padding='0px' margin='0px'>
                 <label className="form-label">Place of Birth</label>
                 <TextInput
-                  value={formData.birthPlace}
-                  onChange={(e) => handleInputChange('birthPlace', e.target.value)}
+                  value={formData.placeOfBirth}
+                  onChange={(e) => handleInputChange('placeOfBirth', e.target.value)}
                   placeholder="Enter place of birth"
+                />
+              </Column>
+            </Row>
+
+          </div>
+
+          <div className="form-group">
+
+            <Row gap="0.5rem" padding='0px' margin='0px' justifyContent="start">
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Phone Number</label>
+                <TextInput
+                  value={formData.phoneNumber}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                  placeholder="Enter phone number"
+                />
+              </Column>
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Email</label>
+                <TextInput
+                  value={formData.placeOfBirth}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter email"
                 />
               </Column>
             </Row>
@@ -228,8 +253,8 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
               <div className="form-group">
                 <label className="form-label">Place of Death</label>
                 <TextInput
-                  value={formData.deathPlace}
-                  onChange={(e) => handleInputChange('deathPlace', e.target.value)}
+                  value={formData.placeOfDeath}
+                  onChange={(e) => handleInputChange('placeOfDeath', e.target.value)}
                   placeholder="Select Place of death"
                 />
               </div>

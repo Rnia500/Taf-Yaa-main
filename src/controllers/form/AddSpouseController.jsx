@@ -1,11 +1,11 @@
 // src/controllers/AddSpouseController.jsx
 import React, { useState, useEffect, useRef } from "react";
 import AddSpouseForm from "../../components/Add Relatives/Spouse/AddSpouseForm.jsx";
-import * as treeController from "./treeController.js";
+import * as treeController from "../tree/treeController.js";
 import dataService from "../../services/dataService.js";
 import { MarriageModel } from "../../models/treeModels/MarriageModel.js";
-import useToastStore from "../../store/useToastStore";
-import useModalStore from "../../store/useModalStore";
+import useToastStore from "../../store/useToastStore.js";
+import useModalStore from "../../store/useModalStore.js";
 
 const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) => {
   const [isLoading, setIsLoading] = useState(true);

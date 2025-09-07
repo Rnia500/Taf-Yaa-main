@@ -26,8 +26,10 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     dateOfBirth: '',
     isDeceased: false,
     dateOfDeath: '',
-    birthPlace: '',
-    deathPlace: '',
+    phoneNumber: '',
+    email: '',
+    placeOfBirth: '',
+    placeOfDeath: '',
     nationality: '',
     countryOfResidence: '',
     profilePhoto: null,
@@ -92,7 +94,6 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
   };
 
   const genderOptions = [
-    { value: '', label: 'Select a Gender' },
     { value: 'male', label: 'Male' },
     { value: 'female', label: 'Female' }
   ];
@@ -116,8 +117,8 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
 
       {/* Display the husband's name at the top of the form */}
       {husbandName && (
-        <Card margin='0px 0px 20px 0px' fitContent className="husband-name-display" style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-          <Text variant='heading3' as='p' style={{ margin: 0, color: '#495057', fontSize: '18px', fontWeight: 600 }}>Spouse of {husbandName}</Text>
+        <Card margin='0px 0px 20px 0px'>
+          <Text variant='heading3' as='p'>Spouse of {husbandName}</Text>
         </Card>
       )}
 
@@ -170,9 +171,32 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
               <Column gap='0.10rem' padding='0px' margin='0px'>
                 <label className="form-label">Place of Birth</label>
                 <TextInput
-                  value={formData.birthPlace}
-                  onChange={(e) => handleInputChange('birthPlace', e.target.value)}
+                  value={formData.placeOfBirth}
+                  onChange={(e) => handleInputChange('placeOfBirth', e.target.value)}
                   placeholder="Enter place of birth"
+                />
+              </Column>
+            </Row>
+
+          </div>
+
+          <div className="form-group">
+
+            <Row gap="0.5rem" padding='0px' margin='0px' justifyContent="start">
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Phone Number</label>
+                <TextInput
+                  value={formData.phoneNumber}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                  placeholder="Enter phone number"
+                />
+              </Column>
+              <Column gap='0.10rem' padding='0px' margin='0px'>
+                <label className="form-label">Email</label>
+                <TextInput
+                  value={formData.placeOfBirth}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter email"
                 />
               </Column>
             </Row>
@@ -231,8 +255,8 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
               <div className="form-group">
                 <label className="form-label">Place of Death</label>
                 <TextInput
-                  value={formData.deathPlace}
-                  onChange={(e) => handleInputChange('deathPlace', e.target.value)}
+                  value={formData.placeOfDeath}
+                  onChange={(e) => handleInputChange('placeOfDeath', e.target.value)}
                   placeholder="Select Place of death"
                 />
               </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import useModalStore from '../../../store/useModalStore';
-import AddChildController from "../../../controllers/treeController/AddChildController";
+import AddChildController from "../../../controllers/form/AddChildController";
 import '../../../styles/AddRelativeModal.css';
 import Card from "../../../layout/containers/Card";
 import { X } from "lucide-react";
