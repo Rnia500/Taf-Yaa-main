@@ -1,0 +1,40 @@
+.back-link{
+    text-align: center;
+    top: 20px;
+    left: 20px;
+    font-size: 8px;
+    color: darkgreen;
+    text-decoration: none;
+    /* margin-top: 1000px; */
+    i{
+        color: darkgreen;
+        background-color: white;
+        padding: 10px;
+        border-radius: 50%;
+    }
+}
+
+.join-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.join-form {
+  background: #fff;
+  padding: 2.0rem 2.0rem 2rem 2.0rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(60,64,67,.15);
+  width: 500px; 
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.0rem;
+  h2{
+    margin-top: 10px;
+  }
+}

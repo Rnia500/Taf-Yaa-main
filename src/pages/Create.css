@@ -1,0 +1,138 @@
+.back-link{
+    text-align: center;
+    top: 20px;
+    left: 20px;
+    font-size: 8px;
+    color: darkgreen;
+    text-decoration: none;
+    /* margin-top: 1000px; */
+    i{
+        color: white;
+        background-color: white;
+        padding: 10px;
+        border-radius: 50%;
+    }
+}
+
+.create-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.create{
+    text-align: center;
+    h2{
+        font-size: 1.2rem;
+    }
+    p{
+        font-size: 0.9rem;
+    }
+}
+
+.create-form {
+  background: #fff;
+  padding: 2.0rem 2.0rem 2rem 2.0rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(60,64,67,.15);
+  width: 600px; 
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.0rem;
+  h2{
+    margin-top: 10px;
+  }
+}
+
+/*  */
+.family-info{
+    color: black;
+    width: 100%;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: flex-start;
+    h2{font-size: 1.0rem;}
+    i{
+    color: darkgreen;
+    background-color: white;
+    border-radius: 50%;
+    }
+}
+
+.form-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-size: 1rem;
+  color: black;
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  background-color: #f1f3f4;
+  margin-top: 0.2rem;
+  
+}
+
+.input-group p{
+    display: flex;
+    justify-content: flex-start;
+    font-size: 0.8rem;
+}
+
+
+.per-info{
+    i{color: white;
+    background-color: darkgreen;
+    padding: 5px;
+    border-radius: 50%;
+    }
+    h2{
+        font-size: 1rem;
+        display: flex;
+        justify-content: flex-start;
+    }
+}
+
+.birth-section{
+    display: flex;
+    flex-direction: row;
+    gap: 1.1rem;
+}
+
+.birth-group{
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.story-box input{
+    height: 5rem;
+}
+
+.story-group{
+    margin-top: 10px;
+}
+
+.create-end{
+    p{
+        font-size: 0.8rem;
+        margin-top: 2px;
+    }
+}

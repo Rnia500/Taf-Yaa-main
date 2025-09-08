@@ -1,0 +1,32 @@
+.container{
+    margin-bottom: 25px;
+}
+
+.image-upload-container {
+    position: relative;
+    display: inline-block;
+}
+
+.image-upload-input {
+    display: none;
+}
+
+.image-preview{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    background-position: center;
+    background-size: cover;
+}
+
+.image-preview:hover {
+    border-color: #aaa;
+}
+
+.upload-text {
+    font-size: 12px;
+    text-align: center;
+}
