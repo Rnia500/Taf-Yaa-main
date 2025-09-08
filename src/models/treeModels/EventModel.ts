@@ -1,15 +1,15 @@
-// src/models/events.ts
-
+// src/models/eventModel.ts
+import { generateId } from "../../utils/personUtils/idGenerator"; 
 
 export interface Event {
   id: string;
   treeId: string;
   personIds: string[]; // multiple people can share one event (e.g. marriage)
-  type: EventType;     
-  customType?: string; 
+  type: EventType;
+  customType?: string;
   title?: string;
   description?: string;
-  date?: string;       // ISO 8601
+  date?: string; // ISO 8601
   location?: string;
   createdAt: string;
   updatedAt: string;
@@ -23,8 +23,34 @@ export type EventType =
   | "graduation"
   | "custom";
 
-// --- Helpers ---
+// --- Factory ---
+export const createEvent = (data: {
+  treeId: string;
+  personIds: string[];
+  type: EventType;
+  customType?: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  location?: string;
+}): Event => {
+  const now = new Date().toISOString();
+  return {
+    id: generateId("event"),
+    treeId: data.treeId,
+    personIds: data.personIds,
+    type: data.type,
+    customType: data.customType,
+    title: data.title,
+    description: data.description,
+    date: data.date,
+    location: data.location,
+    createdAt: now,
+    updatedAt: now,
+  };
+};
 
+// --- Helpers ---
 /** Returns the displayable label for an event */
 export const getEventLabel = (event: Event): string => {
   if (event.type === "custom" && event.customType) {
@@ -41,11 +67,10 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   graduation: "Graduation",
   custom: "Custom Event",
 };
-/** Returns true if the event involves the given personId */
+
 export const involvesPerson = (event: Event, personId: string): boolean =>
   event.personIds.includes(personId);
 
-/** Sorts events by date (earliest first) */
 export const sortEventsByDate = (events: Event[]): Event[] =>
   [...events].sort((a, b) => {
     if (!a.date) return 1;
@@ -53,15 +78,14 @@ export const sortEventsByDate = (events: Event[]): Event[] =>
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
 
-/** Filters events by type */
-export const filterEventsByType = (events: Event[], type: Event["type"]): Event[] =>
-  events.filter((e) => e.type === type);
+export const filterEventsByType = (
+  events: Event[],
+  type: Event["type"]
+): Event[] => events.filter((e) => e.type === type);
 
-/** Filter all custom events */
 export const getCustomEvents = (events: Event[]): Event[] =>
-  events.filter(e => e.type === "custom" && !!e.customType);
+  events.filter((e) => e.type === "custom" && !!e.customType);
 
-/** Count how many times each custom event type repeats */
 export const countCustomEvents = (events: Event[]): Record<string, number> => {
   return events.reduce<Record<string, number>>((acc, e) => {
     if (e.type === "custom" && e.customType) {
@@ -71,7 +95,6 @@ export const countCustomEvents = (events: Event[]): Record<string, number> => {
   }, {});
 };
 
-/** Suggest promotions: return all custom events that repeat >= minCount */
 export const suggestPromotableCustomEvents = (
   events: Event[],
   minCount = 5

@@ -69,7 +69,7 @@ export default function IdentityOverview({ identity }) {
         </Card>}
 
       </Row>
-      <Spacer size='md' />
+      
     </Card>
   );
 }

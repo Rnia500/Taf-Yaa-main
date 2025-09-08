@@ -9,7 +9,7 @@ import ImageCard from '../../../layout/containers/ImageCard';
 
 export default function ProfileHeader({ profileName, profileImage, birthDate, deathDate, statusIcons, onUseAsRoot, onClose, onDownload }) {
   return (
-    <FlexContainer gap='12px' backgroundColor="var(--color-background)" padding='0px'>
+    <FlexContainer  gap='12px' backgroundColor="var(--color-background)" padding='0px'>
       <Card positionType='relative' backgroundColor="var(--color-background)" padding="24px" height="100%" >
         <Card onClick={() => {onDownload}} rounded height='24px' width='24px' positionType='absolute' margin='10px 0px 0px 10px' position='top-left' backgroundColor="var(--color-transparent)">
           <ArrowDownToLine color="var(--color-info)" />

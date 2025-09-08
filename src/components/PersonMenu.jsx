@@ -5,7 +5,7 @@ import dataService from '../services/dataService';
 import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight  } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild }) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent, onAddSibling }) {
   const { isOpen, targetNodeId, position, actions, targetPerson } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
@@ -121,36 +121,35 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
 
  
   const handleAddRelative = (relativeType) => {
+    const currentTargetNodeId = targetNodeId;
+    actions.closeMenu();
+    setShowSubmenu(false);
+    
     if (relativeType === 'spouse') {
-      const currentTargetNodeId = targetNodeId;
-      actions.closeMenu();
-      setShowSubmenu(false);
-      
-      // Trigger the onAddSpouse prop to open the modal
       onAddSpouse(currentTargetNodeId);
-      
-      // Log for debugging
       console.log('Adding spouse for node:', currentTargetNodeId);
-      console.log('Target person data',targetPerson)
 
     } else if (relativeType === 'child') {
-      const currentTargetNodeId = targetNodeId;
-      actions.closeMenu();
-      setShowSubmenu(false);
-      
-      // Trigger the onAddChild prop to open the modal
       onAddChild(currentTargetNodeId);
+      console.log('Adding child for node:', currentTargetNodeId);
+
+    } else if (relativeType === 'parent') {
+      onAddParent(currentTargetNodeId);
+      console.log('Adding parent for node:', currentTargetNodeId);
+
+    } else if (relativeType === 'sibling') {
+      // Placeholder for your next feature
+      // onAddSibling(currentTargetNodeId);
+      console.log('Adding sibling for node:', currentTargetNodeId);
+      
     } else {
-      console.log(`Adding ${relativeType} for node ${targetNodeId}`);
-      actions.closeMenu();
-      setShowSubmenu(false);
+      console.log(`Unknown relative type: ${relativeType}`);
     }
   };
 
   const toggleSubmenu = () => {
     setShowSubmenu(!showSubmenu);
   };
-
   const submenuPosition = {
     top: position.y + 150,
     left: position.x + 113

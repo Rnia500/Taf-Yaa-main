@@ -1,7 +1,5 @@
-// AddSpouseForm.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TextInput, TextArea } from '../../Input';
-import '../../../styles/AddRelativeModal.css';
 import SelectDropdown from '../../SelectDropdown';
 import DateInput from '../../DateInput';
 import Checkbox from '../../Checkbox';
@@ -10,24 +8,21 @@ import AudioUploadCard from '../../AudioUploadCard';
 import EventCard from '../../EventCard';
 import Row from '../../../layout/containers/Row';
 import Button from '../../Button';
-import { User, Heart, Shield, BookOpen, Calendar } from 'lucide-react';
-import { MarriageModel } from '../../../models/treeModels/MarriageModel';
-import countryList from "react-select-country-list";
-import Column from '../../../layout/containers/Column';
-import Text from '../../Text';
+import { User, BookOpen, Shield, Calendar } from 'lucide-react';
 import Card from '../../../layout/containers/Card';
+import Text from '../../Text';
+import Column from '../../../layout/containers/Column';
+import countryList from "react-select-country-list";
 
-const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false, suggestedWifeOrder = 1, isSubmitting = false }) => {
-
+const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], isSubmitting = false }) => {
   const [formData, setFormData] = useState({
-    // Section 1: New Spouse's Information
-    fullName: '',
+ fullName: '',
     gender: '',
     dateOfBirth: '',
     isDeceased: false,
-    dateOfDeath: '',
     phoneNumber: '',
     email: '',
+    dateOfDeath: '',
     placeOfBirth: '',
     placeOfDeath: '',
     nationality: '',
@@ -40,23 +35,16 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     // Section 2: Oral History
     storyTitle: '',
     audioFile: null,
-    audioURL: null,
 
-    // Section 3: Marriage Information
-    marriageType: 'monogamous',
-    marriageDate: '',
-    marriageLocation: '',
-    marriageNotes: '',
-    wifeOrder: suggestedWifeOrder,
-
-    // Section 4: Events
+    // Section 3: Events
     events: [],
 
-    // Section 5: Privacy
+    // Section 4: Privacy
     privacyLevel: 'membersOnly',
     allowGlobalMatching: true,
-
-
+    
+    // CRITICAL NEW FIELD for the Step-Parent Scenario (Scenario 3)
+    parentToMarryId:''
   });
 
   const [errors, setErrors] = useState({});
@@ -77,11 +65,11 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
-    if (!formData.gender) {
-      newErrors.gender = 'Gender is required';
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.gender) newErrors.gender = 'Gender is required';
+    // For step-parent scenario, ensure a parent to marry is selected
+    if (existingParents.length >= 2 && !formData.parentToMarryId) {
+      newErrors.parentToMarryId = 'Please select the parent this person is marrying.';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -105,21 +93,37 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
     { value: 'public', label: 'Public (Lowest Privacy)' }
   ];
 
-  const marriageTypeOptions = [
-    { value: 'monogamous', label: 'Monogamous' },
-    { value: 'polygamous', label: 'Polygamous' }
-  ];
-
   const countryOptions = useMemo(() => countryList().getData(), []);
+
+  const parentToMarryOptions = existingParents.map(p => ({ value: p.id, label: p.name }));
 
   return (
     <form onSubmit={handleSubmit} className="premium-form">
 
-      {/* Display the husband's name at the top of the form */}
-      {husbandName && (
-        <Card margin='0px 0px 20px 0px'>
-          <Text variant='heading3' as='p'>Spouse of {husbandName}</Text>
-        </Card>
+      {/* Display the parents' names at the top of the form */}
+      <Card margin='0px 0px 20px 0px'>
+        <Text variant='heading3' as='p'>Adding a Parent for {childName}</Text>
+      </Card>
+
+
+       {existingParents.length >= 2 && (
+        <div className="section-card">
+          <div className="section-header">
+            <Card fitContent margin='0.5rem' className="section-icon"><Users size={20} /></Card>
+            <Text as='p' variant='heading2'>Relationship</Text>
+          </div>
+          <div className="form-group">
+            <label className="form-label">This new parent is the spouse of:*</label>
+            <SelectDropdown
+              value={formData.parentToMarryId}
+              onChange={(e) => handleInputChange('parentToMarryId', e.target.value)}
+              options={parentToMarryOptions}
+              required
+              placeholder="Select an existing parent"
+            />
+            {errors.parentToMarryId && <span className="error-message">{errors.parentToMarryId}</span>}
+          </div>
+        </div>
       )}
 
       {/* Section 1: Personal Information */}
@@ -238,8 +242,6 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
             </label>
           </div>
 
-
-
           {formData.isDeceased && (
 
             <>
@@ -333,74 +335,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
         </div>
       </div>
 
-      {/* Section 3: Marriage Information */}
-      <div className="section-card">
-        <div className="section-header">
-          <Card fitContent margin='0.5rem' className="section-icon">
-            <Heart size={20} />
-          </Card>
-          <Column padding='0px' margin='0px' gap='1px'>
-            <Text as='p' variant='heading2'>Marriage Information {husbandName && `(Spouse of ${husbandName})`}</Text>
-          </Column>
-        </div>
-
-        <div className="form-grid">
-
-          {/* ✨ CONDITIONAL FIELD: Only show "Marriage Type" for the FIRST spouse */}
-          {isFirstSpouse && (
-            <div className="form-group">
-              <label className="form-label">Marriage Type *</label>
-              <SelectDropdown
-                value={formData.marriageType}
-                onChange={(e) => handleInputChange('marriageType', e.target.value)}
-                options={marriageTypeOptions}
-                required
-              />
-            </div>
-          )}
-
-          <div className="form-group">
-            <label className="form-label">Marriage Date</label>
-            <DateInput
-              value={formData.marriageDate}
-              onChange={(e) => handleInputChange('marriageDate', e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Location of Marriage</label>
-            <TextInput
-              value={formData.marriageLocation}
-              onChange={(e) => handleInputChange('marriageLocation', e.target.value)}
-              placeholder="Enter marriage location"
-            />
-          </div>
-
-          {formData.marriageType === 'polygamous' && (
-            <div className="form-group">
-              <label className="form-label">Order (position among wives)</label>
-              <TextInput
-                type="number"
-                value={formData.wifeOrder}
-                onChange={(e) => handleInputChange('wifeOrder', parseInt(e.target.value) || 1)}
-                min="1"
-              />
-            </div>
-          )}
-
-          <div className="form-group full-width">
-            <label className="form-label">Notes about the Marriage</label>
-            <TextArea
-              value={formData.marriageNotes}
-              onChange={(e) => handleInputChange('marriageNotes', e.target.value)}
-              placeholder="Share special memories..."
-              rows={3}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Section 4: Events */}
+      {/* Section 3: Events */}
       <div className="section-card">
         <div className="section-header">
           <Card fitContent margin='0.5rem' className="section-icon">
@@ -408,7 +343,6 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
           </Card>
           <Column padding='0px' margin='0px' gap='1px'>
             <Text as='p' variant='heading2'>Events</Text>
-            <Text as='p' variant='caption1'>Birth, Death and Marriage are auto included</Text>
           </Column>
         </div>
 
@@ -418,7 +352,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
         />
       </div>
 
-      {/* Section 5: Privacy */}
+      {/* Section 4: Privacy */}
       <div className="section-card">
         <div className="section-header">
           <Card fitContent margin='0.5rem' className="section-icon">
@@ -449,17 +383,16 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
         </label>
       </div>
 
-
       <Row className="button-group">
-        <Button fullWidth variant='danger' onClick={onCancel} disabled={isSubmitting}>
+        <Button fullWidth variant='danger' onClick={onCancel}>
           Cancel
         </Button>
-        <Button fullWidth type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Add Spouse"}
+        <Button fullWidth type="submit">
+          Add Child
         </Button>
       </Row>
     </form>
   );
 };
 
-export default AddSpouseForm;
+export default AddParentForm ;

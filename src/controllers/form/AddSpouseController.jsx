@@ -1,9 +1,9 @@
 // src/controllers/AddSpouseController.jsx
 import React, { useState, useEffect, useRef } from "react";
 import AddSpouseForm from "../../components/Add Relatives/Spouse/AddSpouseForm.jsx";
-import * as treeController from "../tree/treeController.js";
+import { addSpouse } from "../tree/addSpouse"; 
 import dataService from "../../services/dataService.js";
-import { MarriageModel } from "../../models/treeModels/MarriageModel.js";
+import { MarriageModel } from "../../models/treeModels/MarriageModel.js"; 
 import useToastStore from "../../store/useToastStore.js";
 import useModalStore from "../../store/useModalStore.js";
 
@@ -15,13 +15,8 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
 
   const addToast = useToastStore((state) => state.addToast);
   const { openModal, closeModal } = useModalStore();
-
-  // Prevent duplicate submission
   const hasSubmitted = useRef(false);
 
-  // -----------------------------
-  // Prepare form defaults
-  // -----------------------------
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -31,11 +26,10 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
         const existingMarriages = await dataService.getMarriagesByPersonId(existingSpouseId);
         const isFirstSpouse = existingMarriages.length === 0;
 
-        // Default wife order if already polygamous
         let suggestedOrder = 1;
         const polygamousMarriage = existingMarriages.find(m => m.marriageType === "polygamous");
         if (polygamousMarriage) {
-          suggestedOrder = new MarriageModel(polygamousMarriage).getNextWifeOrder();
+          suggestedOrder = new MarriageModel(polygamousMarriage).getNextWifeOrder(); 
         }
 
         setFormProps({
@@ -54,9 +48,7 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
     loadData();
   }, [existingSpouseId]);
 
-  // -----------------------------
-  // Confirmation Modal wrapper
-  // -----------------------------
+
   const confirmConvertMarriage = () => {
     return new Promise((resolve) => {
       openModal("confirmationModal", {
@@ -77,54 +69,47 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
     });
   };
 
-  // -----------------------------
-  // Form Submit
-  // -----------------------------
-const handleSubmit = async (formData) => {
-  if (isSubmitting || hasSubmitted.current) return;
 
-  setIsSubmitting(true);
-  setError(null);
+  const handleSubmit = async (formData) => {
+    if (isSubmitting || hasSubmitted.current) return;
 
-  try {
-    const result = await treeController.addSpouse(treeId, existingSpouseId, formData, {
-      onError: (msg, type) => {
-        // Always show toast for errors
-        addToast(msg, type || "error");
-      },
-      confirmConvert: confirmConvertMarriage,
-    });
+    setIsSubmitting(true);
+    setError(null);
 
-    if (result && !hasSubmitted.current) {
-      hasSubmitted.current = true;
-      addToast("Spouse added successfully!", "success");
-      onSuccess?.(result);
-      closeModal("addSpouse"); 
-    } else if (!result && !hasSubmitted.current) {
-      // Null result = either rule violation OR user cancelled
-      setIsSubmitting(false); // Re-enable form
-      // Optionally set a generic error if not already set
-      setError("Operation could not be completed. Please check the rules.");
-      // Modal can be closed here if you want, or let user see error
-      closeModal("addSpouse");
+    try {
+
+      const result = await addSpouse(treeId, existingSpouseId, formData, {
+      
+        onError: (msg, type) => {
+          addToast(msg, type || "error");
+        },
+        confirmConvert: confirmConvertMarriage,
+      });
+
+
+      if (result && !hasSubmitted.current) {
+        hasSubmitted.current = true;
+        addToast("Spouse added successfully!", "success");
+        onSuccess?.(result);
+        closeModal("addSpouse"); 
+      } else if (!result && !hasSubmitted.current) {
+        setIsSubmitting(false);
+        setError("Operation could not be completed. Please check the rules.");
+        closeModal("addSpouse");
+      }
+    } catch (err) {
+      if (!hasSubmitted.current) {
+        setError(err.message || "Failed to add spouse");
+        addToast(err.message || "Unexpected error", "error");
+      }
+      console.error("AddSpouseController.handleSubmit:", err);
+    } finally {
+      if (!hasSubmitted.current) {
+        setIsSubmitting(false);
+      }
     }
-  } catch (err) {
-    if (!hasSubmitted.current) {
-      setError(err.message || "Failed to add spouse");
-      addToast(err.message || "Unexpected error", "error");
-    }
-    console.error("AddSpouseController.handleSubmit:", err);
-  } finally {
-    if (!hasSubmitted.current) {
-      setIsSubmitting(false);
-    }
-  }
-};
+  };
 
-
-  // -----------------------------
-  // Render
-  // -----------------------------
   if (isLoading) return <div>Loading form...</div>;
 
   return (

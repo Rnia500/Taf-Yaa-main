@@ -29,6 +29,7 @@ import CustomControls from "./CustomControls";
 import Legend from "./Legend";
 import AddSpouseModal from "../Add Relatives/Spouse/AddSpouseModal";
 import AddChildModal from "../Add Relatives/Child/AddChildModal";
+import AddParentModal from "../Add Relatives/Parent/AddParentModal";
 
 import usePersonMenuStore from "../../store/usePersonMenuStore";
 import useSidebarStore from "../../store/useSidebarStore";
@@ -113,17 +114,17 @@ function TreeCanvasComponent() {
   const [targetNodeId, setTargetNodeId] = useState(null);
 
   // ---- Derived data (filter people & marriages) ----
-const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
-  const peopleWithState = allPeople.map((p) => {
-    const stateful = peopleWithCollapseState.find((sp) => sp.id === p.id);
-    return stateful || p;
-  });
+  const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
+    const peopleWithState = allPeople.map((p) => {
+      const stateful = peopleWithCollapseState.find((sp) => sp.id === p.id);
+      return stateful || p;
+    });
 
-  if (rootPersonId === "p001") {
-    return { people: peopleWithState, marriages: allMarriages };
-  }
-  return filterFamilyByRoot(rootPersonId, peopleWithState, allMarriages);
-}, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
+    if (rootPersonId === "p001") {
+      return { people: peopleWithState, marriages: allMarriages };
+    }
+    return filterFamilyByRoot(rootPersonId, peopleWithState, allMarriages);
+  }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
 
   // ---- Handlers ----
   const handleToggleCollapse = useCallback((personId) => {
@@ -141,8 +142,8 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
     [openProfileSidebar]
   );
 
-    // ---- Layout ----
-   const { nodes, edges: baseEdges } = useMemo(
+  // ---- Layout ----
+  const { nodes, edges: baseEdges } = useMemo(
     () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation),
     [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation]
   );
@@ -202,10 +203,10 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
     return baseEdges.map((e) =>
       e.source === hoveredNodeId || e.target === hoveredNodeId
         ? {
-            ...e,
-            style: { stroke: "var(--color-primary1)", strokeWidth: 4 },
-            animated: true,
-          }
+          ...e,
+          style: { stroke: "var(--color-primary1)", strokeWidth: 4 },
+          animated: true,
+        }
         : e
     );
   }, [hoveredNodeId, baseEdges]);
@@ -221,8 +222,7 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
 
   if (loading) return <div>Loading family tree…</div>;
 
-  // ---- Child Submit ----
-  // Removed unused handleAddChildSubmit to fix eslint warning
+
 
   // =======================
   // Render
@@ -249,6 +249,10 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
           setTargetNodeId(personId);
           openModal("addChildModal", { targetNodeId: personId });
         }}
+        onAddParent={(personId) => {
+          setTargetNodeId(personId);
+          openModal("addParentModal", { targetNodeId: personId });
+        }}
       />
 
       {/* Modals */}
@@ -260,10 +264,17 @@ const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
           setTargetNodeId(null);
         }}
       />
+
+      <AddParentModal onSuccess={() => {
+        reload();
+        setTargetNodeId(null);
+      }} />
+
       <AddChildModal onSuccess={() => {
         reload();
         setTargetNodeId(null);
       }} />
+
 
       {/* Reset button */}
       <Button

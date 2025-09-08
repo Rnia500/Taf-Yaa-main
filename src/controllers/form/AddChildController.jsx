@@ -1,7 +1,7 @@
 // src/controllers/AddChildController.jsx
 import React, { useState, useEffect } from "react";
 import AddChildForm from "../../components/Add Relatives/Child/AddChildForm.jsx";
-import * as treeController from "../tree/treeController.js";
+import { addChild } from "../tree/addChild"; 
 import dataService from "../../services/dataService.js";
 
 const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
@@ -17,7 +17,7 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
   const [parent, setParent] = useState(null);
   const [parentMarriage, setParentMarriage] = useState(null);
 
-  // Fetch parent and marriages data
+
   useEffect(() => {
     async function prepareForm() {
       try {
@@ -26,7 +26,6 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
 
         const marriages = await dataService.getMarriagesByPersonId(parentId);
 
-        // Find the specific marriage we're adding to
         const fetchedParentMarriage = marriages.find(m =>
           (m.marriageType === 'monogamous' && m.spouses.includes(fetchedParent.id)) ||
           (m.marriageType === 'polygamous' && (m.husbandId === fetchedParent.id || m.wives.some(w => w.wifeId === fetchedParent.id)))
@@ -35,7 +34,6 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
         setParent(fetchedParent);
         setParentMarriage(fetchedParentMarriage);
 
-        // Prepare props for the form
         let props = {
           parent1Name: fetchedParent.name,
           parent2Name: "",
@@ -65,11 +63,6 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
         }
 
         setFormProps(props);
-        // Debug: expose prepared props for the add-child form
-        try {
-          console.log('DBG:AddChildController -> prepared form props:', props);
-          window.__ADD_CHILD_PREPARED_PROPS__ = props;
-  } catch { /* ignore in non-browser test env */ }
       } catch (err) {
         setError("Failed to load data for the form.");
         console.error("Error preparing form:", err);
@@ -80,21 +73,21 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
     prepareForm();
   }, [parentId]);
 
-  // --- Handle the form submission ---
+
   const handleSubmit = async (formData) => {
     setLoading(true);
     setError(null);
     try {
       const options = {
         childData: formData,
-        // If we have a marriage, we pass the marriageId and the selected motherId
         marriageId: parentMarriage ? parentMarriage.id : null,
         motherId: formData.motherId || null,
-        // If there's no marriage, we pass the single parent's ID
         parentId: !parentMarriage ? parent.id : null,
       };
 
-      const result = await treeController.addChild(treeId, options);
+
+      const result = await addChild(treeId, options);
+     
       if (onSuccess) onSuccess(result.child);
 
     } catch (err) {
@@ -104,6 +97,7 @@ const AddChildController = ({ treeId, parentId, onSuccess, onCancel }) => {
       setLoading(false);
     }
   };
+
 
   if (isLoadingForm) {
     return <div>Loading form...</div>;

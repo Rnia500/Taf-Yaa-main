@@ -6,7 +6,7 @@ import RelativesCardList from './people/RelativesCardList';
 import Button from '../../Button';
 import Spacer from '../../Spacer';
 
-export default function FamilyConnections({ connections, onAddConnection }) {
+export default function FamilyConnections({ connections }) {
   return (
     <Card alignItems='start' margin='0px 0px 0px 0px' padding='0px' backgroundColor="var(--color-background)" >
       <Text variant='heading3'>Family Connections</Text>
@@ -27,10 +27,6 @@ export default function FamilyConnections({ connections, onAddConnection }) {
       <Category title="Siblings">
         <RelativesCardList relatives={connections.siblings} />
       </Category>
-
-      <Card padding='0px' margin='0px 0px 0px 0px' backgroundColor='var(--color-transparent)' alignItems='center' justifyContent='center'>
-        <Button fullWidth variant='primary' onClick={onAddConnection} >Add Connection</Button> 
-      </Card>
     </Card>
   );
 }

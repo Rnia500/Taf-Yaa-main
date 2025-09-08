@@ -111,7 +111,7 @@ export default function ProfileSidebar() {
         countryOfResidence: getCountryLabel(person.countryOfResidence) || 'Unknown',
         nationality: getCountryLabel(person.nationality) || 'Unknown',
         placeOfBirth : person.placeOfBirth || 'Unknown',
-        placeOfDeath : person.placeOfDeath || 'Unknown'
+        placeOfDeath : person.dod ?  person.placeOfDeath || 'Unknown' : null
 
       });
 
@@ -284,22 +284,29 @@ export default function ProfileSidebar() {
         onClose={closeSidebar} 
       />
       <IdentityOverview identity={identityData} />
+      <Spacer size='md' />
 
       <ContactMetaInfo contact={contactData} />
+      <Spacer size='md' />
 
       <BiographySection biographyText={biographyText} onEdit={() => {}} />
+      <Spacer size='md' />
 
       <RolePermissions roles={roles} />
+      <Spacer size='md' />
 
-      <FamilyConnections connections={familyConnections} onAddConnection={() => {}} />
+      <FamilyConnections connections={familyConnections} />
+      <Spacer size='md' />
 
       <TimelineEvents events={timelineEvents} onAddEvent={handleAddEvent} onAddDescription={handleAddDescription} />
+      <Spacer size='md' />
 
       <AudioStory 
         stories={audioStories} 
         onRecord={handleRecordAudio} 
         onTranscribe={() => alert('Transcribe clicked')} 
       />
+      <Spacer size='md' />
 
       <RecordModal
         isOpen={isRecordModalOpen}
@@ -307,6 +314,7 @@ export default function ProfileSidebar() {
       />
 
       <PhotoMemorySection photos={photos} onUpload={() => {}} />
+      <Spacer size='md' />
 
 
       <Spacer size='lg'/>

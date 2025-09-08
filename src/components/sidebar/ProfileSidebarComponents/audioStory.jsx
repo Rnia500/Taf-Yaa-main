@@ -27,7 +27,7 @@ function AudioStory({ stories = [], onRecord, onTranscribe }) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
-  
+
 
   return (
     <Card alignItems='start' padding='0rem' backgroundColor="var(--color-background)">
@@ -35,7 +35,11 @@ function AudioStory({ stories = [], onRecord, onTranscribe }) {
       <Spacer size='md' />
 
       <Card alignItems='flex-start' scrolling="horizontal" padding="0px 0px 0px 10px" margin='0px' backgroundColor="var(--color-transparent)" width='100%'>
+        {stories.length === 0 && (
+          <Text variant='body1' color='tertiary-text'>No audio stories available.</Text>
+        )}
         <Row margin='0px 0px 10px 0px' gap="0.5rem" padding="0" width="max-content" justifyContent="start" alignItems="start">
+
           {stories.map((story, index) => (
             <Card
               key={index}

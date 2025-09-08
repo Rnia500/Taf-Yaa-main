@@ -1,5 +1,5 @@
 // src/models/people.ts
-
+import { generateId } from "../../utils/personUtils/idGenerator"; 
 export interface Person {
   id: string;  
   treeId: string; 
@@ -53,10 +53,10 @@ export const isAlive = (person: Person): boolean =>
 /** Get the human-readable label for a privacy level */
 export const getPrivacyLabel = (privacyLevel: string): string => {
   const privacyOptions = [
-    { value: 'private', label: 'Only Me (Highest Privacy)' },
+    { value: 'private', label: 'Only Me' },
     { value: 'membersOnly', label: 'Family Members Only' },
     { value: 'authenticated', label: 'Registered Users' },
-    { value: 'public', label: 'Public (Lowest Privacy)' }
+    { value: 'public', label: 'Public' }
   ];
 
   const option = privacyOptions.find(opt => opt.value === privacyLevel);
@@ -81,3 +81,33 @@ export const getCountryLabel = (countryCode?: string | null): string => {
 };
 
 
+// src/models/people.ts
+export function createPerson(input: Partial<Person>): Person {
+  const id = input.id || generateId("person");
+  return {
+    id,
+    treeId: input.treeId!,
+    name: input.name || "Unknown",
+    gender: input.gender || "male", // default
+    dob: input.dob || null,
+    dod: input.dod || null,
+    nationality: input.nationality || null,
+    countryOfResidence: input.countryOfResidence || null,
+    placeOfBirth: input.placeOfBirth || null,
+    placeOfDeath: input.placeOfDeath || null,
+    photoUrl: input.photoUrl || null,
+    phoneNumber: input.phoneNumber || null,
+    email: input.email || null,
+    bio: input.bio || "",
+    tribe: input.tribe || "",
+    language: input.language || "",
+    linkedUserId: input.linkedUserId || null,
+    isDeceased: input.isDeceased || false,
+    isSpouse: input.isSpouse || false,
+    allowGlobalMatching: input.allowGlobalMatching ?? true,
+    privacyLevel: input.privacyLevel || "membersOnly",
+    isPlaceholder: input.isPlaceholder || false,
+    createdAt: input.createdAt || new Date().toISOString(),
+    updatedAt: input.updatedAt || new Date().toISOString(),
+  };
+}

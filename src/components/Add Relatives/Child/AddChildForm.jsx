@@ -194,7 +194,7 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
               <Column gap='0.10rem' padding='0px' margin='0px'>
                 <label className="form-label">Email</label>
                 <TextInput
-                  value={formData.placeOfBirth}
+                  value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="Enter email"
                 />

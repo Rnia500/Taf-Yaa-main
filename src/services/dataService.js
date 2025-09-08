@@ -329,6 +329,18 @@ function getMarriagesByPersonId(personId) {
   return Promise.resolve(marriages);
 }
 
+function getMarriagesByChildId(childId) {
+  const marriages = localDB.marriages.filter(m => {
+    if (m.childrenIds?.includes(childId)) return true;
+    if (m.marriageType === 'polygamous') {
+      return m.wives.some(w => w.childrenIds?.includes(childId));
+    }
+    return false;
+  });
+  console.log(`DBG:dataService.getMarriagesByChildId -> for ${childId}, found:`, marriages.map(x => x.id));
+  return Promise.resolve(marriages);
+}
+
 function updateMarriage(marriageId, updatedMarriageData) {
   console.log("DBG:dataService.updateMarriage -> marriageId:", marriageId, "updatedData:", updatedMarriageData);
   const marriageIndex = localDB.marriages.findIndex(m => m.id === marriageId);
@@ -514,6 +526,11 @@ async function getMarriageFirebase() {
 async function getMarriagesByPersonIdFirebase() {
   throw new Error("Not implemented");
 }
+
+async function getMarriagesByChildIdFirebase() {
+  throw new Error("Not implemented");
+}
+
 async function updateMarriageFirebase() {
   throw new Error("Not implemented");
 }
@@ -592,6 +609,7 @@ const dataService = {
   getAllEvents: USE_LOCAL ? getAllEvents : getAllEventsFirebase,
   findEventsByTitle: USE_LOCAL ? findEventsByTitle : findEventsByTitleFirebase,
   uploadFile: USE_LOCAL ? uploadFileLocal : uploadFileFirebase,
+  getMarriagesByChildId: USE_LOCAL ? getMarriagesByChildId : getMarriagesByChildIdFirebase,
   clearLocalDB, // helpful for dev reset
 };
 

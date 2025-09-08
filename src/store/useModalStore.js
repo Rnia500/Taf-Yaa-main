@@ -9,6 +9,7 @@ const useModalStore = create((set) => ({
     profileModal: false,
     addSpouseModal: false,
     addChildModal: false,
+    addParentModal: false,
     confirmationModal: false,  
   },
   
@@ -53,6 +54,7 @@ const useModalStore = create((set) => ({
       profileModal: false,
       addSpouseModal: false,
       addChildModal: false,
+      addParentModal: false,
       confirmationModal: false
     }
   }),

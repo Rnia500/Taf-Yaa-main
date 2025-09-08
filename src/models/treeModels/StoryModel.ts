@@ -1,4 +1,4 @@
-// src/models/stories.ts
+import { generateId } from "../../utils/personUtils/idGenerator";
 
 export interface Story {
   storyId: string;
@@ -27,3 +27,21 @@ export const formatStoryDate = (story: Story, locale = "en-US"): string =>
 /** Check if story has audio */
 export const hasAudio = (story: Story): boolean =>
   story.type === "audio" && !!story.audioUrl;
+
+/** Factory to create a new story */
+export const createStory = (params: Omit<Story, "storyId" | "timestamp">): Story => {
+  return {
+    storyId: generateId("story"),
+    timestamp: new Date().toISOString(),
+    ...params,
+  };
+};
+
+/** Quick tag adder */
+export const addTag = (story: Story, tag: string): Story => {
+  return {
+    ...story,
+    tags: [...(story.tags || []), tag],
+    timestamp: new Date().toISOString(), // update timestamp on change
+  };
+};

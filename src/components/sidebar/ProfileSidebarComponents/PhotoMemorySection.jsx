@@ -5,17 +5,20 @@ import Spacer from '../../Spacer';
 import Row from '../../../layout/containers/Row';
 import ImageCard from '../../../layout/containers/ImageCard';
 import Button from '../../Button';
-import { Camera  } from 'lucide-react';
+import { Camera } from 'lucide-react';
 
 
 function PhotoMemorySection({ photos = [], onUpload }) {
   return (
     <Card alignItems="start" padding="0rem" backgroundColor="var(--color-background)">
       <Text variant="heading3">Photos & Memories</Text>
-      
+
       <Spacer size="md" />
 
       <Card alignItems='flex-start' scrolling="horizontal" padding="0px" margin="0px" backgroundColor="var(--color-transparent)" width="350px">
+        {photos.length === 0 && (
+          <Text variant='body1' color='tertiary-text'>No Photos available.</Text>
+        )}
         <Row gap="0.25rem" padding="0.5rem" width="max-content" justifyContent="start" alignItems="center" style={{ overflowY: 'hidden' }}>
           {photos.map((photo, index) => (
             <ImageCard
@@ -30,9 +33,9 @@ function PhotoMemorySection({ photos = [], onUpload }) {
       </Card>
 
       <Spacer size="sm" />
-      
+
       <Button variant="primary" fullWidth onClick={onUpload}>
-        <Camera size={20}/>Upload Photo
+        <Camera size={20} />Upload Photo
       </Button>
     </Card>
   );

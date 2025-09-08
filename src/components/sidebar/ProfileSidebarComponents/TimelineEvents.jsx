@@ -20,10 +20,10 @@ function TimelineEvent({ title, date, isLast, description, onAddDescription }) {
         <Divider thickness="1px" />
         <div className="timeline-title">{title}</div>
         <div className="timeline-date">{date}</div>
-        
-        
+
+
         {description ? (
-          
+
           <>
             <Button size='sm' onClick={toggleDescriptionVisibility} variant='info'>
               {isDescriptionVisible ? 'Hide description' : 'View description'}
@@ -50,11 +50,14 @@ export default function TimelineEvents({ events = [], onAddEvent, onAddDescripti
   return (
     <Card backgroundColor="transparent" alignItems="flex-start">
       <div className="timeline-block">
-        <div className="timeline-header">Timeline Events</div>
+        <Text variant='heading3'>Timeline Events</Text>
         <div className="timeline-list">
+          {events.length === 0 && (
+            <Text variant='body1' color='tertiary-text'>No Event available.</Text>
+          )}
           {events.map((event, index) => (
             <TimelineEvent
-              key={event.id} 
+              key={event.id}
               title={event.title}
               date={event.date}
               description={event.description}
