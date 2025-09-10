@@ -5,9 +5,10 @@ import { TextInput, TextArea } from '../../Input';
 import RecordingControls from './RecordingControl';
 import RecordingTimer from './RecordingTimer';
 import RecordingPreview from './RecordingPreview';
-import AudioHook from './AudioHook';
+import useAudioRecorder from '../../../hooks/useAudioRecorder';
 import Text from '../../Text';
 import Card from '../../../layout/containers/Card';
+import { createAudioStory } from '../../../controllers/tree/stories';
 
 const RecordModal = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState('');
@@ -23,7 +24,7 @@ const RecordModal = ({ isOpen, onClose }) => {
     resumeRecording,
     stopRecording,
     resetRecording,
-  } = AudioHook();
+  } = useAudioRecorder();
 
   const handleStart = () => {
     if (status === 'paused') resumeRecording();
@@ -38,10 +39,25 @@ const RecordModal = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const handleUpload = () => {
-    console.log('Uploading:', { title, subtitle, audioURL });
+const handleUpload = async () => {
+  try {
+    const blob = await fetch(audioURL).then(res => res.blob());
+
+    await createAudioStory({
+      treeId: "t1",          // you’ll pass actual props
+      personId: "p1",        // ditto
+      addedBy: "user1",
+      storyTitle: title,
+      language: "en",
+      audioFile: blob,
+    });
+
     handleClose();
-  };
+  } catch (err) {
+    console.error("Upload failed:", err);
+  }
+};
+
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>

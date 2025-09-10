@@ -191,6 +191,43 @@ function getDescendantIds(personId, marriages) {
   return Array.from(descendants);
 }
 
+export function findHighestAncestor(startPersonId, allPeople, allMarriages) {
+  let currentPersonId = startPersonId;
+  let highestAncestorId = startPersonId;
+  const visited = new Set(); // Prevents infinite loops if data is circular
+
+  // Keep climbing up the tree as long as we find a parent marriage
+  while (currentPersonId && !visited.has(currentPersonId)) {
+    visited.add(currentPersonId);
+    
+    // Find if the current person is a child in any existing marriage
+    const parentMarriage = allMarriages.find(m => 
+      (m.childrenIds?.includes(currentPersonId)) || // Check monogamous children
+      (m.marriageType === 'polygamous' && m.wives.some(w => w.childrenIds?.includes(currentPersonId)))
+    );
+
+    if (parentMarriage) {
+      // If they are a child, their parent is the next person to check.
+      // We can just pick the first parent we find (husband or first spouse).
+      const newParentId = parentMarriage.husbandId || parentMarriage.spouses?.[0];
+      if (newParentId) {
+        currentPersonId = newParentId;
+        highestAncestorId = newParentId; // This parent is now the highest we've found so far
+      } else {
+        // This is a "broken" link (a marriage with children but no parents), so we stop here.
+        break;
+      }
+    } else {
+      // If we found no parent marriage, it means this person is a root of a branch.
+      // We have climbed as high as we can.
+      break;
+    }
+  }
+
+  console.log(`findHighestAncestor: starting from ${startPersonId}, found true root: ${highestAncestorId}`);
+  return highestAncestorId;
+}
+
 export function calculateLayout(
   rootId,
   people,

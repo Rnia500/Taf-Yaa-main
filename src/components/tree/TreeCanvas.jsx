@@ -14,6 +14,7 @@ import {
   calculateLayout,
   traceLineage,
   filterFamilyByRoot,
+  findHighestAncestor,
 } from "../../utils/treeUtils/treeLayout";
 
 

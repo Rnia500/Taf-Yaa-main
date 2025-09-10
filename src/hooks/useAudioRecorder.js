@@ -1,7 +1,7 @@
 // components/Audio/AudioHook.js
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export default function AudioHook() {
+export default function useAudioRecorder() {
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
   const streamRef = useRef(null);

@@ -1,12 +1,12 @@
+// src/controllers/tree/addParent.js
 import { createPerson } from "../../models/treeModels/PersonModel";
 import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
-import { createMarriage, addSpouseToMarriage } from "./marriages";
+import { createMarriage } from "./marriages";
 import { createAudioStory } from "./stories";
-import { addSpouse } from "./addSpouse"; 
 
 export async function addParentToChild(treeId, childId, parentData, options = {}) {
-  const { onError, confirmConvert, createdBy = "system", parentToMarryId } = options;
+  const { createdBy = "system" } = options;
 
   try {
     // --- Step 1: "Find or Create" the new parent being added ---
@@ -24,7 +24,9 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
         try {
           const uploaded = await dataService.uploadFile(parentData.profilePhoto, "image");
           uploadedPhotoUrl = uploaded.url;
-        } catch (err) { console.error("Photo upload failed", err); }
+        } catch (err) {
+          console.error("Photo upload failed", err);
+        }
       }
 
       // b) Create the new person object
@@ -52,8 +54,12 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       await dataService.addPerson(newParent);
 
       // c) Create all associated records for the NEW parent
-      if (newParent.dob) await addBirth(treeId, newParent.id, { date: newParent.dob, title: 'Birth' });
-      if (newParent.dod) await addDeath(treeId, newParent.id, { date: newParent.dod, title: 'Death' });
+      if (newParent.dob) {
+        await addBirth(treeId, newParent.id, { date: newParent.dob, title: "Birth" });
+      }
+      if (newParent.dod) {
+        await addDeath(treeId, newParent.id, { date: newParent.dod, title: "Death" });
+      }
 
       if (Array.isArray(parentData.events)) {
         for (const ev of parentData.events) {
@@ -75,22 +81,20 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
     // --- Step 2: Analyze the child's current family situation ---
     const childsMarriages = await dataService.getMarriagesByChildId(childId);
 
-
-    // SCENARIO 1: Child has no parents yet. Create a new family unit with a placeholder.
+    // SCENARIO 1: Child has no parents yet → create family with placeholder
     if (!childsMarriages || childsMarriages.length === 0) {
-      console.log("Executing Add Parent: SCENARIO 1 - First Parent");
-      // a) Create the placeholder spouse
+      console.log("AddParent: SCENARIO 1 - First Parent");
+
       const placeholderSpouse = createPerson({
         treeId,
         name: "Partner",
-        gender: newParent.gender === 'male' ? 'female' : 'male',
+        gender: newParent.gender === "male" ? "female" : "male",
         isPlaceholder: true,
         isSpouse: true,
         allowGlobalMatching: false,
       });
       await dataService.addPerson(placeholderSpouse);
 
-      // b) Create the new marriage, adding the child to it
       const newMarriage = await createMarriage(treeId, "monogamous", createdBy, {
         spouses: [newParent.id, placeholderSpouse.id],
       });
@@ -100,68 +104,79 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
         parent: newParent,
         placeholder: placeholderSpouse,
         marriage: newMarriage,
-        action: "created_family_unit"
+        action: "created_family_unit",
       };
     }
 
-    // Find if any of the child's marriages involves a placeholder
-    let placeholderMarriage = null;
-    let placeholderSpouseId = null;
-
+    // --- Collect existing parents ---
+    const allParentIds = new Set();
     for (const marriage of childsMarriages) {
-      for (const spouseId of marriage.spouses || []) {
-        const spouse = await dataService.getPerson(spouseId);
-        if (spouse && spouse.isPlaceholder) {
-          placeholderMarriage = marriage;
-          placeholderSpouseId = spouse.id;
-          break;
-        }
-      }
-      if (placeholderMarriage) break;
+      (marriage.spouses || []).forEach((id) => allParentIds.add(id));
+    }
+    const parentObjects = await Promise.all(
+      [...allParentIds].map((id) => dataService.getPerson(id))
+    );
+    const realParents = parentObjects.filter((p) => p && !p.isPlaceholder);
+
+    // Rule: max 2 parents
+    if (realParents.length >= 2) {
+      throw new Error("This child already has two parents. Cannot add more.");
     }
 
-    // SCENARIO 2: Child has one parent and one placeholder. Replace the placeholder.
-    if (placeholderMarriage && placeholderSpouseId) {
-      console.log("Executing Add Parent: SCENARIO 2 - Second Parent (Replacing Placeholder)");
-      // a) Replace the placeholder ID in the marriage spouses array
-      const newSpouses = placeholderMarriage.spouses.map(id => (id === placeholderSpouseId ? newParent.id : id));
-      const updatedMarriage = await dataService.updateMarriage(placeholderMarriage.id, { spouses: newSpouses });
+    // SCENARIO 2: One real parent + one placeholder → replace placeholder
+    const placeholderMarriage = childsMarriages.find((m) =>
+      (m.spouses || []).some(async (id) => {
+        const sp = await dataService.getPerson(id);
+        return sp && sp.isPlaceholder;
+      })
+    );
 
-      // b) Delete the now-unneeded placeholder person
-      await dataService.deletePerson(placeholderSpouseId);
+    if (placeholderMarriage) {
+      console.log("AddParent: SCENARIO 2 - Second Parent");
+
+      // find placeholder + existing parent
+      let placeholderId = null;
+      let existingParent = null;
+      for (const sid of placeholderMarriage.spouses) {
+        const sp = await dataService.getPerson(sid);
+        if (!sp) continue;
+        if (sp.isPlaceholder) placeholderId = sp.id;
+        else existingParent = sp;
+      }
+
+      if (!placeholderId || !existingParent) {
+        throw new Error("Invalid marriage structure: missing placeholder or existing parent.");
+      }
+
+      // enforce opposite sex
+      if (existingParent.gender === newParent.gender) {
+        throw new Error("Parents must be of opposite sexes. Cannot add this parent.");
+      }
+
+      // replace placeholder
+      const newSpouses = placeholderMarriage.spouses.map((id) =>
+        id === placeholderId ? newParent.id : id
+      );
+      const updatedMarriage = await dataService.updateMarriage(placeholderMarriage.id, {
+        spouses: newSpouses,
+      });
+
+      await dataService.deletePerson(placeholderId);
 
       return {
         parent: newParent,
         marriage: updatedMarriage,
-        action: "completed_family_unit"
+        action: "completed_family_unit",
       };
     }
 
-    // SCENARIO 3: Child already has known parents. This is a step-parent situation.
-    // i treat this as "adding a spouse" to one of the child's existing parents.
-    if (childsMarriages.length > 0 && parentToMarryId) {
-      console.log(`Executing Add Parent: SCENARIO 3 - Step-Parent (marrying ${parentToMarryId})`);
-
-      // i can just reuse our powerful addSpouse logic!
-      const { spouse, marriage, marriageAction } = await addSpouse(
-        treeId,
-        parentToMarryId, // The ID of the existing parent who is remarrying
-        parentData,     // The form data for the new step-parent
-        { onError, confirmConvert, createdBy }
-      );
-
-      return {
-        parent: spouse, // The new step-parent
-        marriage: marriage,
-        action: `added_as_spouse_to_existing_parent (${marriageAction})`
-      };
-    }
-
-    // Fallback error if no clear action can be taken
-    throw new Error("Could not determine how to add parent. The child may already have a complete set of parents and no parentToMarryId was specified.");
-
+    // If we got here → something’s wrong
+    throw new Error(
+      "Invalid state: Child has existing parents but no placeholder. Cannot add another parent."
+    );
   } catch (err) {
-    console.error("Error in addParentToChild orchestrator:", err);
+    console.error("Error in addParentToChild:", err);
     throw err;
   }
 }
+ 

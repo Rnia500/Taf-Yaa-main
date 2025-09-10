@@ -2,6 +2,7 @@
 
 import * as dataService from "../../services/dataService";
 import { createStory } from "../../models/treeModels/StoryModel";
+import { storageService } from "../../services/storageService";
 
 
  
@@ -30,40 +31,29 @@ export async function getStoriesByPerson(personId) {
 }
 
 
-
 export async function createAudioStory(params) {
   const { treeId, personId, addedBy, storyTitle, language, audioFile } = params;
   let audioUrl = null;
 
-  // Step 1: Handle the file upload. This is a critical piece of logic from your original function.
   if (audioFile) {
     try {
-      const uploaded = await dataService.uploadFile(audioFile, "audio");
+      const uploaded = await storageService.uploadFile(audioFile, "audio");
       audioUrl = uploaded.url;
-      console.log(`DBG:stories.createAudioStory -> audio uploaded, url: ${audioUrl}`);
+      console.log("DBG: audio uploaded", audioUrl);
     } catch (err) {
       console.error("Audio upload failed:", err);
-      // Depending on requirements, you could throw an error here or proceed without audio.
     }
   }
 
-  // Step 2: Ensure a story should still be created.
-  // The original logic would create a story if either a title OR a file was present.
-  if (!storyTitle && !audioUrl) {
-    console.log("Skipping story creation: no title or uploaded audio URL provided.");
-    return null; // Return null to indicate no action was taken.
-  }
+  if (!storyTitle && !audioUrl) return null;
 
-  // Step 3: Use the low-level `addStory` controller to create the final record.
-  // This reuses your existing clean code.
   return addStory({
     treeId,
     personId,
     addedBy,
-    title: storyTitle || "Oral History", // Default title from original logic
+    title: storyTitle || "Oral History",
     type: "audio",
     language: language || null,
-    audioUrl: audioUrl, // Use the URL from the successful upload
-    // The createStory factory will handle the rest (storyId, timestamp)
+    audioUrl,
   });
 }
