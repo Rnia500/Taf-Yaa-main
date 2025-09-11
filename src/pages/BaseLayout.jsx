@@ -26,12 +26,7 @@ export default function BaseLayout() {
     >
       <>
         <Toast />
-        {/* <Card>
-          <Text variant='heading1'>Welcome to Taf'Yaa</Text>
-        </Card> */}
-
-        <FamilyTreePage />
-         {/* <ComponentDemo setSidebarOpen={() => {}} /> */}
+        <FamilyTreePage /> 
       </>
     </PageFrame>
   );

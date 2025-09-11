@@ -18,6 +18,8 @@ import {
 } from "../../utils/treeUtils/treeLayout";
 
 
+
+
 import MarriageNode from "./nodes/MarriageNode";
 import FlowPersonNode from "./nodes/FlowPersonNode";
 import FlowPersonNodeHorizontal from "./nodes/FlowPersonNodeHorizontal";
@@ -86,9 +88,7 @@ const CustomMarkers = () => (
   </svg>
 );
 
-// =======================
-// Main Component
-// =======================
+
 function TreeCanvasComponent({ treeId }) {
   // ---- Hooks ----
   const { people: allPeople, marriages: allMarriages, loading, reload } =
@@ -102,7 +102,7 @@ function TreeCanvasComponent({ treeId }) {
   // ---- State ----
   const [peopleWithCollapseState, setPeopleWithCollapseState] =
     useState(allPeople);
-  const [rootPersonId, setRootPersonId] = useState("p001");
+  const [viewRootId, setViewRootId] = useState(null);
 
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [highlightedPath, setHighlightedPath] = useState({ nodes: [], edges: [] });
@@ -114,18 +114,7 @@ function TreeCanvasComponent({ treeId }) {
   const [partnerName, setPartnerName] = useState("");
   const [targetNodeId, setTargetNodeId] = useState(null);
 
-  // ---- Derived data (filter people & marriages) ----
-  const { people: visiblePeople, marriages: visibleMarriages } = useMemo(() => {
-    const peopleWithState = allPeople.map((p) => {
-      const stateful = peopleWithCollapseState.find((sp) => sp.id === p.id);
-      return stateful || p;
-    });
 
-    if (rootPersonId === "p001") {
-      return { people: peopleWithState, marriages: allMarriages };
-    }
-    return filterFamilyByRoot(rootPersonId, peopleWithState, allMarriages);
-  }, [rootPersonId, peopleWithCollapseState, allPeople, allMarriages]);
 
   // ---- Handlers ----
   const handleToggleCollapse = useCallback((personId) => {
@@ -144,10 +133,32 @@ function TreeCanvasComponent({ treeId }) {
   );
 
   // ---- Layout ----
-  const { nodes, edges: baseEdges } = useMemo(
-    () => calculateLayout(rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation),
-    [rootPersonId, visiblePeople, visibleMarriages, handleToggleCollapse, handleOpenProfile, orientation]
-  );
+  const { nodes, edges: baseEdges } = useMemo(() => {
+    if (!viewRootId) {
+      return { nodes: [], edges: [] };
+    }
+
+    // Step 1: Always find the absolute top of the entire tree to ensure correct positioning.
+    const trueLayoutRootId = findHighestAncestor(viewRootId, allPeople, allMarriages);
+
+    // Step 2: Filter the data to get only the descendants of that TRUE root.
+    // This provides the layout function with all the nodes it needs.
+    const { people: visiblePeople, marriages: visibleMarriages } = filterFamilyByRoot(
+      trueLayoutRootId,
+      peopleWithCollapseState,
+      allMarriages
+    );
+
+    // Step 3: Pass the complete, fresh data to the layout calculator.
+    return calculateLayout(
+      trueLayoutRootId,
+      visiblePeople,
+      visibleMarriages,
+      handleToggleCollapse,
+      handleOpenProfile,
+      orientation
+    );
+  }, [viewRootId, peopleWithCollapseState, allPeople, allMarriages, handleToggleCollapse, handleOpenProfile, orientation]);
 
 
   const handleTraceLineage = useCallback(
@@ -168,19 +179,22 @@ function TreeCanvasComponent({ treeId }) {
   );
 
   const handleSetAsRoot = useCallback((personId) => {
-    setRootPersonId(personId);
+    setViewRootId(personId);
     setHighlightedPath({ nodes: [], edges: [] });
   }, []);
 
   const handleResetView = useCallback(() => {
-    setRootPersonId("p001");
+    if (allPeople.length > 0) {
+      const ultimateRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
+      setViewRootId(ultimateRoot);
+    }
     setPeopleWithCollapseState((current) =>
       current.map((p) => ({ ...p, isCollapsed: false }))
     );
     setHighlightedPath({ nodes: [], edges: [] });
     closeMenu();
     setTimeout(() => fitView({ duration: 800 }), 50);
-  }, [fitView, closeMenu]);
+  }, [allPeople, allMarriages, fitView, closeMenu]);
 
   const clearHighlight = useCallback(() => {
     if (highlightedPath.nodes.length || highlightedPath.edges.length) {
@@ -214,14 +228,21 @@ function TreeCanvasComponent({ treeId }) {
 
   // ---- Effects ----
   useEffect(() => {
-    // Ensure every person has an explicit isCollapsed boolean so code works
-    // even when the data model doesn't include that field.
+
     setPeopleWithCollapseState(
       allPeople.map((p) => ({ ...p, isCollapsed: p.isCollapsed ?? false }))
     );
   }, [allPeople]);
 
-  if (loading) return <div>Loading family tree…</div>;
+
+  useEffect(() => {
+    if (!viewRootId && allPeople.length > 0) {
+      const initialRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
+      setViewRootId(initialRoot);
+    }
+  }, [viewRootId, allPeople, allMarriages]);
+
+  if (loading || !viewRootId) return <div>Loading family tree…</div>;
 
 
 
@@ -267,12 +288,12 @@ function TreeCanvasComponent({ treeId }) {
         }}
       />
 
-      <AddParentModal onSuccess={() => {
+      <AddParentModal treeId={treeId} onSuccess={() => {
         reload();
         setTargetNodeId(null);
       }} />
 
-      <AddChildModal onSuccess={() => {
+      <AddChildModal treeId={treeId} onSuccess={() => {
         reload();
         setTargetNodeId(null);
       }} />

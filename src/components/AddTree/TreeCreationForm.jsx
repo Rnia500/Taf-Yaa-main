@@ -13,11 +13,17 @@ import Text from '../Text';
 import Column from '../../layout/containers/Column';
 import ToggleSwitch from '../ToggleSwitch';
 import countryList from "react-select-country-list";
+import Grid from '../../layout/containers/Grid';
 
-const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = 'en' }) => {
+const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
   const [formData, setFormData] = useState({
     // Tree Information
     familyName: '',
+    familyDescription: '',
+    origineTribe: '',
+    origineTongue: '',
+    origineHomeLand: '',
+    marriageTypeAllowed: '',
 
     // Root Person Information
     rootPersonName: '',
@@ -26,21 +32,19 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
     rootPersonPlaceOfBirth: '',
     rootPersonPhoto: null,
     rootPersonBiography: '',
+    rootPersonTribe: '',
     rootPersonStoryTitle: '',
     rootPersonAudioFile: null,
     rootPersonAudioURL: null,
-
-    // Privacy & Visibility
-    isPublic: false,
-    invitesEnabled: true,
 
     // Language
     language: interfaceLanguage,
 
     // Role Assignment
     globalMatchOptIn: false,
-    defaultMemberVisibility: 'visible',
     allowMergeRequests: false,
+    isPublic: false,
+    invitesEnabled: true,
   });
 
   const [errors, setErrors] = useState({});
@@ -78,18 +82,13 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
     { value: 'female', label: 'Female' }
   ];
 
-  const visibilityOptions = [
-    { value: 'visible', label: 'Visible' },
-    { value: 'hidden', label: 'Hidden' }
-  ];
+
 
   const languageOptions = [
     { value: 'en', label: 'English' },
     { value: 'fr', label: 'French' },
-    { value: 'es', label: 'Spanish' },
     { value: 'ar', label: 'Arabic' },
-    { value: 'sw', label: 'Swahili' },
-    // Add more languages as needed
+
   ];
 
   const countryOptions = useMemo(() => countryList().getData(), []);
@@ -108,7 +107,8 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
           </Column>
         </div>
 
-        <div className="form-group">
+        {/* Basic Information */}
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label className="form-label">Tree Name *</label>
           <TextInput
             value={formData.familyName}
@@ -118,6 +118,71 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
           />
           {errors.familyName && <span className="error-message">{errors.familyName}</span>}
         </div>
+
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label className="form-label">Family Description</label>
+          <TextArea
+            value={formData.familyDescription}
+            onChange={(e) => handleInputChange('familyDescription', e.target.value)}
+            placeholder="Describe your family history..."
+            rows={3}
+          />
+        </div>
+
+        {/* Cultural Information - First Row */}
+        <div style={{ marginBottom: '1rem' }}>
+
+          <Row gap="1rem" padding='0px' margin='0px' justifyContent="start">
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Origine Tribe</label>
+              <TextInput
+                value={formData.origineTribe}
+                onChange={(e) => handleInputChange('origineTribe', e.target.value)}
+                placeholder="Enter tribe or ethnic group"
+              />
+            </div>
+
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Origine Tongue</label>
+              <TextInput
+                value={formData.origineTongue}
+                onChange={(e) => handleInputChange('origineTongue', e.target.value)}
+                placeholder="Enter native language"
+              />
+            </div>
+          </Row>
+        </div>
+
+        {/* Geographic & Marriage Information - Second Row */}
+        <div style={{ marginBottom: '1rem' }}>
+
+          <Row gap="1rem" padding='0px' margin='0px' justifyContent="start">
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Origine Homeland</label>
+              <SelectDropdown
+                value={formData.origineHomeLand}
+                onChange={(e) => handleInputChange('origineHomeLand', e.target.value)}
+                options={countryOptions}
+                placeholder="Select country of origin"
+              />
+            </div>
+
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Marriage Type Allowed</label>
+              <SelectDropdown
+                value={formData.marriageTypeAllowed}
+                onChange={(e) => handleInputChange('marriageTypeAllowed', e.target.value)}
+                options={[
+                  { value: 'monogamous', label: 'Monogamous' },
+                  { value: 'polygamous', label: 'Polygamous' },
+                  { value: 'both', label: 'Both' }
+                ]}
+                placeholder="Select marriage type"
+              />
+            </div>
+          </Row>
+        </div>
+
       </div>
 
       {/* Section 2: Root Person Information */}
@@ -217,37 +282,9 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
         </div>
       </div>
 
-      {/* Section 3: Privacy & Visibility */}
-      <div className="section-card">
-        <div className="section-header">
-          <Card fitContent margin='0.5rem' className="section-icon">
-            <Shield size={20} />
-          </Card>
-          <Column padding='0px' margin='0px' gap='1px'>
-            <Text as='p' variant='heading2'>Privacy & Visibility</Text>
-          </Column>
-        </div>
 
-        <div className="form-group">
-          <label className="form-label">Tree Visibility</label>
-          <ToggleSwitch
-            checked={formData.isPublic}
-            onChange={(checked) => handleInputChange('isPublic', checked)}
-            label={formData.isPublic ? "Public" : "Private"}
-          />
-        </div>
 
-        <div className="form-group">
-          <label className="form-label">Allow Invites</label>
-          <ToggleSwitch
-            checked={formData.invitesEnabled}
-            onChange={(checked) => handleInputChange('invitesEnabled', checked)}
-            label={formData.invitesEnabled ? "Enabled" : "Disabled"}
-          />
-        </div>
-      </div>
-
-      {/* Section 4: Language Defaults */}
+      {/* Section 3: Language Defaults */}
       <div className="section-card">
         <div className="section-header">
           <Card fitContent margin='0.5rem' className="section-icon">
@@ -259,7 +296,7 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
         </div>
 
         <div className="form-group">
-          <label className="form-label">Primary Language</label>
+          <label className="form-label">Interface Language</label>
           <SelectDropdown
             value={formData.language}
             onChange={(e) => handleInputChange('language', e.target.value)}
@@ -268,46 +305,63 @@ const TreeCreationForm = ({ onSubmit, onCancel, createdBy, interfaceLanguage = '
         </div>
       </div>
 
-      {/* Section 5: Role Assignment */}
+
+      {/* Section 4: Privacy & Visibility */}
       <div className="section-card">
         <div className="section-header">
           <Card fitContent margin='0.5rem' className="section-icon">
-            <Settings size={20} />
+            <Shield size={20} />
           </Card>
           <Column padding='0px' margin='0px' gap='1px'>
-            <Text as='p' variant='heading2'>Role Assignment</Text>
+            <Text as='p' variant='heading2'>Privacy & Visibility</Text>
           </Column>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Default Member Visibility</label>
-          <SelectDropdown
-            value={formData.defaultMemberVisibility}
-            onChange={(e) => handleInputChange('defaultMemberVisibility', e.target.value)}
-            options={visibilityOptions}
-          />
-        </div>
+        <Grid columns={2}>
 
-        <div className="form-group">
-          <label className="form-checkbox">
-            <Checkbox
-              checked={formData.globalMatchOptIn}
-              onChange={(e) => handleInputChange('globalMatchOptIn', e.target.checked)}
-              label="Global Match Opt-In"
+          <div className="form-group">
+            <label className="form-label">Tree public</label>
+            <ToggleSwitch
+              checked={formData.isPublic}
+              onChange={(checked) => handleInputChange('isPublic', checked)}
+              label={formData.isPublic ? "Public" : "Private"}
             />
-          </label>
-        </div>
+          </div>
 
-        <div className="form-group">
-          <label className="form-checkbox">
-            <Checkbox
-              checked={formData.allowMergeRequests}
-              onChange={(e) => handleInputChange('allowMergeRequests', e.target.checked)}
-              label="Allow Merge Requests"
+          <div className="form-group">
+            <label className="form-label">Allow Invites</label>
+            <ToggleSwitch
+              checked={formData.invitesEnabled}
+              onChange={(checked) => handleInputChange('invitesEnabled', checked)}
+              label={formData.invitesEnabled ? "Enabled" : "Disabled"}
             />
-          </label>
-        </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-checkbox">
+              <Checkbox
+                checked={formData.globalMatchOptIn}
+                onChange={(e) => handleInputChange('globalMatchOptIn', e.target.checked)}
+                label="Global Match Opt-In"
+              />
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label className="form-checkbox">
+              <Checkbox
+                checked={formData.allowMergeRequests}
+                onChange={(e) => handleInputChange('allowMergeRequests', e.target.checked)}
+                label="Allow Merge Requests"
+              />
+            </label>
+          </div>
+
+        </Grid>
+
       </div>
+
+
 
       <Row className="button-group">
         <Button fullWidth variant='danger' onClick={onCancel}>

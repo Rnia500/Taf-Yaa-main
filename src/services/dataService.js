@@ -7,6 +7,9 @@ import { eventServiceLocal } from './data/eventServiceLocal.js';
 import { eventServiceFirebase } from './data/eventServiceFirebase.js';
 import { storyServiceLocal } from './data/storyServiceLocal.js';
 import { storyServiceFirebase } from './data/storyServiceFirebase.js';
+import {treeServiceLocal} from './data/treeServiceLocal.js';
+import { treeServiceFirebase } from './data/treeServiceFirebase.js';
+import {treeSettingsService} from './data/treeSettingLocal.js';
 import { clearDB as clearLocalDB } from './data/localDB.js';
 
 import * as storageService from './storageService.js';
@@ -19,6 +22,9 @@ const services = {
     ...marriageServiceLocal,
     ...eventServiceLocal,
     ...storyServiceLocal,
+    ...treeServiceLocal,
+    ...treeSettingsService,
+
   },
   firebase: {
     ...personServiceFirebase,
@@ -32,7 +38,6 @@ const dataService = {
   ...services[BACKEND],
   ...storageService,
   clearLocalDB : clearLocalDB,
-  // ...(fileService),  // if you split upload/download logic
 };
 
 export default dataService;

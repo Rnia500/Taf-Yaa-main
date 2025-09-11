@@ -5,27 +5,47 @@ import Card from '../layout/containers/Card'
 import Column from '../layout/containers/Column'
 import Row from '../layout/containers/Row'
 import Button from '../components/Button'
+import AddTreeModal from '../components/AddTree/AddTreeModal'
+import useModalStore from '../store/useModalStore'
+
+
+
 
 export const CreateTreePage = () => {
+  const { openModal } = useModalStore();
+
+  const handleCreateTree = () => {
+    openModal('treeModal', { createdBy: 'user' });
+  };
+
   return (
-    <FlexContainer  align='center'>
+    <FlexContainer align='center'>
       <Card backgroundColor='var(--color-background)' ><Text variant='heading1'> Create a new Family Tree </Text></Card>
-      <Row padding='0px' margin='0px'>
-        <Card backgroundColor='var(--color-ground)'>
 
-          <Button>
-            Create a tree now!
-          </Button>
+      <FlexContainer direction='vertical'  justify='center' align='center' padding='20px'>
+          <Card backgroundColor='var(--color-ground)'>
 
-        </Card>
-        <Card backgroundColor='var(--color-gray)'>
+            <Button onClick={handleCreateTree}>
+              Create a tree now!
+            </Button>
 
-          <Button>
-            Tupac!!!
-          </Button>
+          </Card>
+          <Card backgroundColor='var(--color-gray)'>
 
-        </Card>
-      </Row>
+            <Button>
+              Tupac!!!
+            </Button>
+
+          </Card>
+      </FlexContainer>
+
+      <AddTreeModal
+        createdBy="user"
+        onSuccess={(result) => {
+          console.log('Tree created successfully:', result);
+          // You can add navigation logic here if needed
+        }}
+      />
     </FlexContainer>
   )
 }

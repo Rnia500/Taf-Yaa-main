@@ -3,41 +3,42 @@ import { generateId } from "../../utils/personUtils/idGenerator";
 
 export interface Tree {
   id: string;
-  familyName: string;            // "Diallo Family"
-  createdBy: string;             // userId of the creator
-  createdAt: string;             // ISO timestamp
-  updatedAt: string;             // ISO timestamp
-  currentRootId?: string | null; // Person.id that is the "entry point" to the tree
-
-  // Roles apply only to registered users
+  familyName: string;
+  familyDescription: string;
+  orgineTribe: string,
+  origineTongue: string,
+  origineHomeLand: string,
+  createdBy: string;             
+  createdAt: string;             
+  updatedAt: string;             
+  currentRootId?: string | null; 
+  
   roles: Record<string, "admin" | "moderator" | "editor" | "viewer">;
 
-  // Tree-wide settings
+  
   settings: {
     privacy: {
-      isPublic: boolean;                // Tree discoverability
-      allowMergeRequests: boolean;      // Other users can propose merges
-      globalMatchOptIn: boolean;        // Allow cross-tree matching
-      defaultMemberVisibility: "visible" | "hidden";
+      isPublic: boolean;                
+      allowMergeRequests: boolean;      
+      globalMatchOptIn: boolean;        
+      allowInvites:boolean;
     };
 
     relationship: {
       allowPolygamy: boolean;
       allowMultipleMarriages: boolean;
       allowUnknownParentLinking: boolean;
-      maxGenerationsDisplayed: number;  // e.g. slider 5–20
+      maxGenerationsDisplayed: number; 
     };
 
     display: {
       showRoleBadges: boolean;
       showGenderIcons: boolean;
-      defaultRootPerson?: string | null; // personId
-      nodeColorScheme: "classic" | "modern" | "custom";
+      defaultRootPerson?: string | null;
     };
 
     language: {
-      interfaceLanguage: string;       // e.g. "en"
-      defaultStorytellingDialect?: string | null;
+      interfaceLanguage: string;      
       allowPerUserLanguageOverride: boolean;
     };
 
@@ -47,13 +48,13 @@ export interface Tree {
       marriage: boolean;
       divorce: boolean;
       migration?: boolean;
-      [key: string]: boolean | undefined; // extensible for custom events
+      [key: string]: boolean | undefined;
     };
 
     limits: {
-      maxStoryLength: number;          // e.g. 100–1000 chars
-      maxImageFileSize: string;        // e.g. "2mb"
-      maxAudioFileSize: string;        // e.g. "5mb"
+      maxStoryLength: number;          
+      maxImageFileSize: string;        
+      maxAudioFileSize: string;        
     };
   };
 }
@@ -68,7 +69,10 @@ export function createTree(input: Partial<Tree>): Tree {
     createdAt: input.createdAt || new Date().toISOString(),
     updatedAt: input.updatedAt || new Date().toISOString(),
     currentRootId: input.currentRootId || null,
-
+    familyDescription: input.familyDescription || "No Description",
+    orgineTribe: input.orgineTribe || "No tribe given",
+    origineHomeLand: input.origineHomeLand || "No homeland given",
+    origineTongue: input.origineTongue || "No mother tongue given",
     roles: input.roles || { [input.createdBy!]: "admin" },
 
     settings: {
@@ -76,7 +80,7 @@ export function createTree(input: Partial<Tree>): Tree {
         isPublic: input.settings?.privacy?.isPublic ?? false,
         allowMergeRequests: input.settings?.privacy?.allowMergeRequests ?? false,
         globalMatchOptIn: input.settings?.privacy?.globalMatchOptIn ?? false,
-        defaultMemberVisibility: input.settings?.privacy?.defaultMemberVisibility || "visible",
+        allowInvites: input.settings?.privacy?.allowInvites || true,
       },
       relationship: {
         allowPolygamy: input.settings?.relationship?.allowPolygamy ?? false,
@@ -88,11 +92,9 @@ export function createTree(input: Partial<Tree>): Tree {
         showRoleBadges: input.settings?.display?.showRoleBadges ?? true,
         showGenderIcons: input.settings?.display?.showGenderIcons ?? true,
         defaultRootPerson: input.settings?.display?.defaultRootPerson || null,
-        nodeColorScheme: input.settings?.display?.nodeColorScheme || "classic",
       },
       language: {
         interfaceLanguage: input.settings?.language?.interfaceLanguage || "en",
-        defaultStorytellingDialect: input.settings?.language?.defaultStorytellingDialect || null,
         allowPerUserLanguageOverride: input.settings?.language?.allowPerUserLanguageOverride ?? true,
       },
       lifeEvents: {

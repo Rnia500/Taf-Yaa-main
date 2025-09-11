@@ -2,7 +2,7 @@
 import AddSpouseModal from "../Add Relatives/Spouse/AddSpouseModal";
 import AddChildModal from "../Add Relatives/Child/AddChildModal";
 import AddParentModal from "../Add Relatives/Parent/AddParentModal";
-import TreeModal from "../AddTree/TreeModal";
+import AddTreeModal from "../AddTree/AddTreeModal";
 import ConfirmationModal from "../modals/ConfirmationModal";
 
 export const modalRegistry = {

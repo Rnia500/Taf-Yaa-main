@@ -1,5 +1,6 @@
 // src/hooks/useFamilyData.js
 import { useEffect, useState, useCallback } from "react";
+import { getDB } from "../services/data/localDB";
 
 // Local dummy data (used only when USE_LOCAL = true)
 import { people as dummyPeople, marriages as dummyMarriages } from "../data/dummyData.js";
@@ -7,67 +8,75 @@ import { people as dummyPeople, marriages as dummyMarriages } from "../data/dumm
 const STORAGE_KEY = "familyDB";
 const USE_LOCAL = true;
 
+/**
+ * Hook to load people + marriages scoped to a specific treeId.
+ */
 export function useFamilyData(treeId) {
   const [people, setPeople] = useState([]);
   const [marriages, setMarriages] = useState([]);
+  const [rootPersonId, setRootPersonId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadLocal = useCallback(() => {
-    console.log("DBG:useFamilyData.loadLocal -> start");
+    console.log("DBG:useFamilyData.loadLocal -> start", { treeId });
+
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log("DBG:useFamilyData.loadLocal -> loaded parsed saved DB counts:", (parsed.people || []).length, (parsed.marriages || []).length);
-        setPeople(parsed.people || []);
-        setMarriages(parsed.marriages || []);
+
+        
+        const tree = (parsed.trees || []).find((t) => t.id === treeId);
+
+        if (!tree) {
+          console.warn("DBG:useFamilyData.loadLocal -> tree not found in localDB:", treeId);
+          setPeople([]);
+          setMarriages([]);
+          setRootPersonId(null);
+          setLoading(false);
+          return;
+        }
+
+        const scopedPeople = (parsed.people || []).filter((p) => p.treeId === treeId);
+        const scopedMarriages = (parsed.marriages || []).filter((m) => m.treeId === treeId);
+
+        console.log(
+          "DBG:useFamilyData.loadLocal -> loaded scoped counts:",
+          scopedPeople.length,
+          scopedMarriages.length
+        );
+
+        setPeople(scopedPeople);
+        setMarriages(scopedMarriages);
+        setRootPersonId(tree.currentRootId || null);
         setLoading(false);
         return;
       } catch (err) {
         console.error("DBG:useFamilyData.loadLocal -> Failed to parse local DB:", err);
       }
     }
+
+    // --- Fallback: dummy data (scoped by treeId if needed) ---
     console.log("DBG:useFamilyData.loadLocal -> fallback to dummy data");
-    setPeople(dummyPeople);
-    setMarriages(dummyMarriages);
+    setPeople(dummyPeople.filter((p) => p.treeId === treeId));
+    setMarriages(dummyMarriages.filter((m) => m.treeId === treeId));
+    setRootPersonId(null);
     setLoading(false);
-  }, []);
+  }, [treeId]);
 
   useEffect(() => {
     if (USE_LOCAL) {
-      window.addEventListener('familyDataChanged', loadLocal);
+      window.addEventListener("familyDataChanged", loadLocal);
       loadLocal();
-      return () => window.removeEventListener('familyDataChanged', loadLocal);
+      return () => window.removeEventListener("familyDataChanged", loadLocal);
     }
-
-    // Firebase mode (real-time listeners)
-    /*
-    const peopleQuery = query(collection(db, "people"));
-    const marriagesQuery = query(collection(db, "marriages"));
-
-    const unsubPeople = onSnapshot(peopleQuery, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setPeople(docs);
-    });
-
-    const unsubMarriages = onSnapshot(marriagesQuery, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setMarriages(docs);
-    });
-
-    setLoading(false);
-
-    return () => {
-      unsubPeople();
-      unsubMarriages();
-    };
-    */
   }, [treeId, loadLocal]);
 
   return {
     people,
     marriages,
+    rootPersonId,
     loading,
-    reload: loadLocal, 
+    reload: loadLocal,
   };
 }

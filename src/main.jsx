@@ -7,6 +7,7 @@ import "./styles/fonts.css";
 import App from "./App.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import RedirectToTree from "./pages/RedirectToTreePage";
+import BaseLayout from "./pages/BaseLayout.jsx";
 import {  } from "./pages/CreateTreePage.jsx";
 import { CreateTreePage } from "./pages/CreateTreePage.jsx";
 
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/family-tree/:treeId",
-    element: <FamilyTreePage />,
+    element: <BaseLayout />,
   },
   {
     path: "/create-tree",

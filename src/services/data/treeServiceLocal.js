@@ -4,6 +4,7 @@ import { getDB, saveDB } from "./localDB";
 import { generateId } from "../../utils/personUtils/idGenerator";
 
 // --- Create ---
+// --- Create ---
 function addTree(tree) {
   const db = getDB();
   const exists = db.trees.find(t => t.id === tree.id);
@@ -18,6 +19,7 @@ function addTree(tree) {
     members: tree.members || [],
     invitesEnabled: tree.invitesEnabled ?? true,
     mergeOptIn: tree.mergeOptIn ?? false,
+    currentRootId: tree.currentRootId || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -26,6 +28,7 @@ function addTree(tree) {
   saveDB();
   return Promise.resolve(newTree);
 }
+
 
 // --- Get ---
 function getTree(treeId) {

@@ -100,6 +100,13 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       });
       await dataService.addChildToMarriage(newMarriage.id, childId);
 
+      
+      const tree = await dataService.getTree(treeId);
+      if (tree.currentRootId === childId) {
+        console.log(treeId, childId, newParent.id);
+        await dataService.setRootPerson(treeId, newParent.id);
+      }
+
       return {
         parent: newParent,
         placeholder: placeholderSpouse,
@@ -163,6 +170,12 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
 
       await dataService.deletePerson(placeholderId);
 
+      const tree = await dataService.getTree(treeId);
+      if (tree.currentRootId === childId) {
+        console.log(treeId, childId, newParent.id);
+        await dataService.setRootPerson(treeId, newParent.id);
+      }
+
       return {
         parent: newParent,
         marriage: updatedMarriage,
@@ -170,7 +183,7 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       };
     }
 
-    // If we got here → something’s wrong
+    // SCENARIO 3: One real parent, no placeholder → ERROR (cannot add more)
     throw new Error(
       "Invalid state: Child has existing parents but no placeholder. Cannot add another parent."
     );
@@ -179,4 +192,3 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
     throw err;
   }
 }
- 

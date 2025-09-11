@@ -45,14 +45,18 @@ export async function addTree(formData, options = {}) {
       createdBy,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      currentRootId: null, // updated later
+      currentRootId: null, 
+      familyDescription: formData.familyDescription,
+      orgineTribe: formData.orgineTribe,
+      origineHomeLand: formData.origineHomeLand,
+      origineTongue: formData.origineTongue,
       roles: { [createdBy]: "admin" },
       settings: {
         privacy: {
           isPublic: formData.isPublic ?? false,
           allowMergeRequests: formData.allowMergeRequests ?? true,
           globalMatchOptIn: formData.globalMatchOptIn ?? false,
-          defaultMemberVisibility: formData.defaultMemberVisibility ?? "membersOnly",
+          allowInvites: formData.allowInvites ?? true,
         },
         relationship: {
           allowPolygamy: formData.allowPolygamy ?? false,
@@ -64,11 +68,9 @@ export async function addTree(formData, options = {}) {
           showRoleBadges: true,
           showGenderIcons: true,
           defaultRootPerson: null,
-          nodeColorScheme: formData.nodeColorScheme || "classic",
         },
         language: {
           interfaceLanguage: formData.language || "en",
-          defaultStorytellingDialect: null,
           allowPerUserLanguageOverride: true,
         },
         lifeEvents: {
@@ -97,6 +99,7 @@ export async function addTree(formData, options = {}) {
       gender: formData.rootPersonGender,
       dob: formData.rootPersonDob || null,
       dod: formData.rootPersonDod || null,
+      tribe: formData.rootPersonTribe || null,
       placeOfBirth: formData.rootPersonPlaceOfBirth || null,
       placeOfDeath: formData.rootPersonPlaceOfDeath || null,
       photoUrl: uploadedPhotoUrl,

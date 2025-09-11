@@ -7,6 +7,18 @@ import {
   HORIZONTAL_NODE_HEIGHT,
 } from "./treeLayoutConstants";
 
+// Re-export constants for use in other modules
+export {
+  VERTICAL_NODE_WIDTH,
+  VERTICAL_NODE_HEIGHT,
+  HORIZONTAL_NODE_WIDTH,
+  HORIZONTAL_NODE_HEIGHT,
+} from "./treeLayoutConstants";
+
+// Re-export layout functions
+export { layoutVertical } from "./layoutVertical";
+export { layoutHorizontal } from "./layoutHorizontal";
+
 
 
 export function traceLineage(personId, people, marriages) {
@@ -124,15 +136,19 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
 
   return { people: visiblePeople, marriages: visibleMarriages };
 }
-function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile) {
+export function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile, variant = "default") {
   if (!person) return {};
   const hasChildren = marriages.some(m =>
     (m.marriageType === "monogamous" &&
-      m.spouses.includes(person.id) &&
-      m.childrenIds.length > 0) ||
+      m.spouses?.includes(person.id) &&
+      (m.childrenIds?.length ?? 0) > 0) ||  
+
     (m.marriageType === "polygamous" &&
-      ((m.husbandId === person.id && m.wives.some(w => w.childrenIds.length > 0)) ||
-        m.wives.some(w => w.wifeId === person.id && w.childrenIds.length > 0)))
+      (
+        (m.husbandId === person.id && m.wives?.some(w => (w.childrenIds?.length ?? 0) > 0)) ||
+        m.wives?.some(w => w.wifeId === person.id && (w.childrenIds?.length ?? 0) > 0)
+      )
+    )
   );
   return {
     id: person.id,
@@ -141,16 +157,17 @@ function formatPersonData(person, marriages, handleToggleCollapse, handleOpenPro
     sex: person.gender === "male" ? "M" : "F",
     birthDate: person.dob,
     deathDate: person.dod,
-    isDead: person.dob ? true : false,
+    isDead: person.dod ? true : false,
     role: person.role,
     isCollapsed: person.isCollapsed,
     hasChildren,
     onToggleCollapse: () => handleToggleCollapse(person.id),
     onOpenProfile: () => handleOpenProfile(person.id),
+    variant,
   };
 }
 
-function getDescendantIds(personId, marriages) {
+export function getDescendantIds(personId, marriages) {
   const descendants = new Set();
   const visitedMarriages = new Set();
 

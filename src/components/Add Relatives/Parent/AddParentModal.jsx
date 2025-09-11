@@ -7,7 +7,7 @@ import Card from "../../../layout/containers/Card";
 import { X } from "lucide-react";
 
 
-export default function AddParentModal({ onSuccess }) {
+export default function AddParentModal({ onSuccess, treeId }) {
   const { modals, modalData, closeModal } = useModalStore();
   const isOpen = modals.addParentModal || false;
   const { targetNodeId } = modalData.addParentModal || {};
@@ -42,7 +42,7 @@ export default function AddParentModal({ onSuccess }) {
         <div className="modal-body">
           {targetNodeId && (
             <AddParentController
-              treeId="tree001"
+              treeId={treeId || "tree001"}
               childId={targetNodeId}
               onSuccess={(result) => {
                 if (onSuccess) onSuccess(result);
