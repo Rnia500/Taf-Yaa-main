@@ -7,6 +7,16 @@ import { generateId } from "../../utils/personUtils/idGenerator.js";
 const STORAGE_KEY = "familyDB";
 let localDB = null; 
 
+function ensureSchema(db) {
+  
+  db.people = db.people || [];
+  db.marriages = db.marriages || [];
+  db.trees = db.trees || [];
+  db.stories = db.stories || [];
+  db.events = db.events || [];
+  db.files = db.files || [];
+  return db;
+}
 
 function loadLocalDB() {
   if (localDB) {
@@ -17,6 +27,7 @@ function loadLocalDB() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
+      ensureSchema(parsed);
       normalizeLocalDBIds(parsed);
       localDB = parsed; // Cache the loaded DB
       console.log("DBG:localDB -> loaded and cached DB from localStorage");
@@ -27,23 +38,22 @@ function loadLocalDB() {
   }
   
   console.log("DBG:localDB -> initializing with dummy DB");
-  const db = { 
+  const db = ensureSchema({ 
     people: [...dummyPeople], 
     marriages: [...dummyMarriages], 
+    trees: [],
     stories: [], 
-    events: [],
-    files: [] // Ensure files array exists
-  };
+    events: [], 
+    files: [] 
+  });
   normalizeLocalDBIds(db);
   localDB = db; // Cache the new DB
   return localDB;
 }
 
-
 export function getDB() {
   return loadLocalDB();
 }
-
 
 export function saveDB() {
   const db = getDB();
@@ -60,24 +70,21 @@ export function saveDB() {
   } catch (err) {
     console.warn("DBG:localDB.saveDB -> initial save failed:", err?.message || err);
     
-    // Create a deep copy to avoid mutating the in-memory DB
-    const prunedDB = JSON.parse(JSON.stringify(db));
+    const prunedDB = JSON.parse(JSON.stringify(db)); // Deep copy
 
     try {
       if (Array.isArray(prunedDB.files) && prunedDB.files.length > 0) {
-        // Prune binary data from files to save space
         prunedDB.files = prunedDB.files.map(f => ({ ...f, data: null }));
       }
       attemptSave(prunedDB, " (after pruning file data)");
     } catch (err2) {
       console.error("DBG:localDB.saveDB -> retry after pruning failed:", err2?.message || err2);
       try {
-        // As a last resort, remove the files array entirely for the save attempt.
         delete prunedDB.files;
         attemptSave(prunedDB, " (after removing files array)");
       } catch (err3) {
         console.error("DBG:localDB.saveDB -> final save attempt failed:", err3?.message || err3);
-        throw err3; // Re-throw the final error
+        throw err3; 
       }
     }
   }
@@ -88,21 +95,19 @@ export function saveDB() {
  */
 export function clearDB() {
   localStorage.removeItem(STORAGE_KEY);
-  localDB = null; // Clear the in-memory cache
-  loadLocalDB();    // This will now re-initialize from dummy data
-  saveDB();         // Save the fresh dummy data state
+  localDB = null; 
+  loadLocalDB();    
+  saveDB();         
   console.log("DBG:localDB.clearDB -> database has been reset to dummy data");
 }
-
-
 
 function normalizeLocalDBIds(db) {
   if (!db || !Array.isArray(db.people) || !Array.isArray(db.marriages)) return;
   const seen = new Set();
   const oldToNew = {};
 
-  // Find duplicates and create a mapping from old ID to new ID
-  for (const person of (db.people || [])) {
+  // Find duplicates and reassign IDs
+  for (const person of db.people) {
     if (!person || !person.id) continue;
     if (seen.has(person.id)) {
       const newId = generateId("person");
@@ -116,7 +121,7 @@ function normalizeLocalDBIds(db) {
   if (Object.keys(oldToNew).length === 0) return;
 
   // Update references in Marriages
-  for (const m of (db.marriages || [])) {
+  for (const m of db.marriages) {
     if (!m) continue;
     if (m.husbandId && oldToNew[m.husbandId]) m.husbandId = oldToNew[m.husbandId];
     if (Array.isArray(m.spouses)) m.spouses = m.spouses.map(id => oldToNew[id] || id);
@@ -130,19 +135,27 @@ function normalizeLocalDBIds(db) {
   }
 
   // Update references in Stories
-  if (Array.isArray(db.stories)) {
-    for (const s of db.stories) {
-      if (!s) continue;
-      if (s.personId && oldToNew[s.personId]) s.personId = oldToNew[s.personId];
-      if (Array.isArray(s.personIds)) s.personIds = s.personIds.map(id => oldToNew[id] || id);
-    }
+  for (const s of db.stories) {
+    if (!s) continue;
+    if (s.personId && oldToNew[s.personId]) s.personId = oldToNew[s.personId];
+    if (Array.isArray(s.personIds)) s.personIds = s.personIds.map(id => oldToNew[id] || id);
   }
 
   // Update references in Events
-  if (Array.isArray(db.events)) {
-    for (const ev of db.events) {
-      if (!ev) continue;
-      if (Array.isArray(ev.personIds)) ev.personIds = ev.personIds.map(id => oldToNew[id] || id);
+  for (const ev of db.events) {
+    if (!ev) continue;
+    if (Array.isArray(ev.personIds)) ev.personIds = ev.personIds.map(id => oldToNew[id] || id);
+  }
+
+  // (Future-proof) Update references in Trees if they store personIds
+  for (const t of db.trees) {
+    if (!t) continue;
+    if (t.currentRootId && oldToNew[t.currentRootId]) t.currentRootId = oldToNew[t.currentRootId];
+    if (Array.isArray(t.members)) {
+      for (const m of t.members) {
+        if (m.userId && oldToNew[m.userId]) m.userId = oldToNew[m.userId];
+      }
     }
   }
 }
+  saveDB(); // Persist changes

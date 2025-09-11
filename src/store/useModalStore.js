@@ -10,6 +10,7 @@ const useModalStore = create((set) => ({
     addSpouseModal: false,
     addChildModal: false,
     addParentModal: false,
+    addTreeModal: false,
     confirmationModal: false,  
   },
   
@@ -28,6 +29,9 @@ const useModalStore = create((set) => ({
       message: '',
       onConfirm: null,
     },
+    addTree: {
+      userId: null,
+    }
   },
   
   // Open a specific modal with optional data
@@ -55,6 +59,7 @@ const useModalStore = create((set) => ({
       addSpouseModal: false,
       addChildModal: false,
       addParentModal: false,
+      addTreeModal: false,
       confirmationModal: false
     }
   }),

@@ -5,7 +5,8 @@ import '../../styles/AddRelativeModal.css';
 import { X } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 
-export default function TreeModal({ createdBy, onSuccess }) {
+
+export default function AddTreeModal({ createdBy, onSuccess }) {
   const { modals, closeModal } = useModalStore();
   const isOpen = modals.treeModal || false;
 

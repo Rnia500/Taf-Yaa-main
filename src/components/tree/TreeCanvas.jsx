@@ -89,10 +89,10 @@ const CustomMarkers = () => (
 // =======================
 // Main Component
 // =======================
-function TreeCanvasComponent() {
+function TreeCanvasComponent({ treeId }) {
   // ---- Hooks ----
   const { people: allPeople, marriages: allMarriages, loading, reload } =
-    useFamilyData("tree001");
+    useFamilyData(treeId);
 
   const { fitView } = useReactFlow();
   const { closeMenu } = usePersonMenuStore((state) => state.actions);
@@ -260,6 +260,7 @@ function TreeCanvasComponent() {
       <AddSpouseModal
         targetNodeId={targetNodeId}
         partnerName={partnerName}
+        treeId={treeId}
         onSuccess={() => {
           reload();
           setTargetNodeId(null);
@@ -275,7 +276,6 @@ function TreeCanvasComponent() {
         reload();
         setTargetNodeId(null);
       }} />
-
 
       {/* Reset button */}
       <Button

@@ -9,6 +9,6 @@ export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
   addChildModal: AddChildModal,
   addParentModal: AddParentModal,
-  treeModal: TreeModal,
+  addTreeModal: AddTreeModal,
   confirmationModal: ConfirmationModal,
 };

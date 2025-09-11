@@ -149,6 +149,28 @@ function setMergeOptIn(treeId, enabled) {
   return Promise.resolve(tree);
 }
 
+// --- Get latest tree for user ---
+function getUserLatestTree(userId) {
+  const db = getDB();
+
+  // Find all trees where user is a member
+  const trees = db.trees.filter(t => 
+    t.members.some(m => m.userId === userId)
+  );
+
+  if (trees.length === 0) {
+    return Promise.resolve(null);
+  }
+
+  // Sort by updatedAt (fallback createdAt)
+  const latestTree = trees.sort(
+    (a, b) =>
+      new Date(b.updatedAt || b.createdAt) -
+      new Date(a.updatedAt || a.createdAt)
+  )[0];
+
+  return Promise.resolve(latestTree || null);
+}
 
 // --- Export ---
 export const treeServiceLocal = {
@@ -163,4 +185,5 @@ export const treeServiceLocal = {
   setRootPerson,
   toggleInvites,
   setMergeOptIn,
+  getUserLatestTree,
 };

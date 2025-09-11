@@ -6,7 +6,7 @@ import '../../../styles/AddRelativeModal.css';
 import { X } from 'lucide-react';
 import Card from '../../../layout/containers/Card';
 
-export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess }) {
+export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess, treeId }) {
   const { modals, closeModal } = useModalStore();
   const isOpen = modals.addSpouseModal || false;
 
@@ -48,7 +48,7 @@ export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess })
         <div className="modal-body">
           {targetNodeId && (
             <AddSpouseController
-              treeId="tree001"
+              treeId={treeId || "tree001"}
               existingSpouseId={targetNodeId}
               onSuccess={handleSuccess}
               onCancel={handleClose}

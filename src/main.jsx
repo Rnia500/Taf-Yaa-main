@@ -1,12 +1,33 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import './styles/fonts.css';
+// src/main.jsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import "./index.css";
+import "./styles/fonts.css";
+import App from "./App.jsx";
+import FamilyTreePage from "./pages/FamilyTreePage.jsx";
+import RedirectToTree from "./pages/RedirectToTreePage";
+import {  } from "./pages/CreateTreePage.jsx";
+import { CreateTreePage } from "./pages/CreateTreePage.jsx";
 
-import App from './App.jsx'
 
-createRoot(document.getElementById('root')).render(
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RedirectToTree />, 
+  },
+  {
+    path: "/family-tree/:treeId",
+    element: <FamilyTreePage />,
+  },
+  {
+    path: "/create-tree",
+    element: <CreateTreePage />, 
+  },
+]);
+
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
-  </StrictMode>,
-)
+    <RouterProvider router={router} />
+  </StrictMode>
+);
