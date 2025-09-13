@@ -1,4 +1,3 @@
-//i named it addSpouse instead of addSpouseController to reflect its new role as an orchestrator
 
 import dataService from "../../services/dataService";
 import { createPerson } from "../../models/treeModels/PersonModel";
@@ -42,8 +41,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         });
 
         if (!newSpouse) {
-            // 2. USE YOUR OFFICIAL FACTORY
-            // Map the form data names to the model property names.
+            //2 Map the form data names to the model property names.
             newSpouse = createPerson({
                 treeId: treeId,
                 name: newSpouseData.fullName,

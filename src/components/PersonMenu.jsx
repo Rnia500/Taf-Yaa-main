@@ -5,7 +5,7 @@ import dataService from '../services/dataService';
 import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight  } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent, onAddSibling }) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent}) {
   const { isOpen, targetNodeId, position, actions, targetPerson } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
@@ -13,9 +13,6 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   const [isSpouse, setIsSpouse] = useState(false)
 
   
-
-  
-
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (event) => {
@@ -54,9 +51,6 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     }
   }, [isOpen]);
 
-  // When the menu opens fetch the canonical person model (from dataService)
-  // so we can determine authoritative flags like `isSpouse` which the
-  // rendered node `data` may not include.
   useEffect(() => {
     let cancelled = false;
     if (!isOpen || !targetNodeId) {
@@ -64,9 +58,6 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
       return;
     }
 
-    // Try to fetch the canonical person model. If not available fall back to
-    // whatever was passed in `targetPerson` (node-level data) and finally
-    // infer from the node's `variant`.
     dataService
       .getPerson(targetNodeId)
       .then((personModel) => {
@@ -136,12 +127,6 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     } else if (relativeType === 'parent') {
       onAddParent(currentTargetNodeId);
       console.log('Adding parent for node:', currentTargetNodeId);
-
-    } else if (relativeType === 'sibling') {
-      // Placeholder for your next feature
-      // onAddSibling(currentTargetNodeId);
-      console.log('Adding sibling for node:', currentTargetNodeId);
-      
     } else {
       console.log(`Unknown relative type: ${relativeType}`);
     }
@@ -231,10 +216,6 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
             <button className="person-menu-item" onClick={() => handleAddRelative('parent')}>
               <Users size={15} />
               <span className="person-menu-text">Add Parent</span>
-            </button>
-            <button className="person-menu-item" onClick={() => handleAddRelative('sibling')}>
-              <User size={15} />
-              <span className="person-menu-text">Add Sibling</span>
             </button>
           </div>
         </div>

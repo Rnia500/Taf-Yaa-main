@@ -17,7 +17,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/family-tree/:treeId",
-    element: <BaseLayout />,
+    element: <App />,
   },
   {
     path: "/create-tree",

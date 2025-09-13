@@ -21,6 +21,7 @@ const ConfirmationModal = ({
   cancelVariant = 'secondary',
   ...modalProps
 }) => {
+  console.log("[ConfirmationModal] Rendering, isOpen:", isOpen);
   const [rememberChoice, setRememberChoice] = useState(false);
 
   const handleConfirm = () => {
@@ -34,7 +35,7 @@ const ConfirmationModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} {...modalProps}>
+    <Modal isOpen={isOpen} onClose={onClose} {...modalProps} style={{ zIndex: 12000, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
       <FlexContainer padding='0.5rem' direction="column" gap="5px">
         <Text variant="h3">{title}</Text>
         <Divider />

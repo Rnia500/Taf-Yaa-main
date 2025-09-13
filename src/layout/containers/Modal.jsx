@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import '../../styles/Modal.css';
 import Button from '../../components/Button';
 import Card from './Card';
@@ -13,13 +14,14 @@ const Modal = ({ isOpen, onClose, children, maxHeight = '80vh', style, showCLose
     ...style
   }
 
-  return (
+  return ReactDOM.createPortal(
     <div className="default-modal-overlay">
       <div className="default-modal-box" style={combinedStyle}>
         {showCLoseIcon && <Card positionType='absolute' position='top-right' margin='10px 10px 0px 0px' size={35} backgroundColor='var(--color-danger)' onClick={onClose}><X size={15} color="var(--color-black)" /></Card>}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
