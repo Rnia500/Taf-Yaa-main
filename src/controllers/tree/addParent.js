@@ -6,10 +6,10 @@ import { createMarriage } from "./marriages";
 import { createAudioStory } from "./stories";
 
 export async function addParentToChild(treeId, childId, parentData, options = {}) {
-  const { createdBy = "system" } = options;
+  const { createdBy = "system", parentToMarryId, confirmConvert } = options;
 
   try {
-    // --- Step 1: "Find or Create" the new parent being added ---
+    // --- STEP 1: Ensure parent exists ---
     let newParent = await dataService.findPersonByFields?.({
       treeId,
       name: parentData.fullName,
@@ -18,7 +18,6 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
     });
 
     if (!newParent) {
-      // a) Handle file uploads first
       let uploadedPhotoUrl = null;
       if (parentData.profilePhoto) {
         try {
@@ -29,9 +28,8 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
         }
       }
 
-      // b) Create the new person object
       newParent = createPerson({
-        treeId: treeId,
+        treeId,
         name: parentData.fullName,
         gender: parentData.gender,
         dob: parentData.dateOfBirth,
@@ -53,7 +51,6 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       });
       await dataService.addPerson(newParent);
 
-      // c) Create all associated records for the NEW parent
       if (newParent.dob) {
         await addBirth(treeId, newParent.id, { date: newParent.dob, title: "Birth" });
       }
@@ -69,7 +66,7 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
 
       if (parentData.audioFile || parentData.storyTitle) {
         await createAudioStory({
-          treeId: treeId,
+          treeId,
           personId: newParent.id,
           addedBy: createdBy,
           storyTitle: parentData.storyTitle,
@@ -78,13 +75,11 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       }
     }
 
-    // --- Step 2: Analyze the child's current family situation ---
-    const childsMarriages = await dataService.getMarriagesByChildId(childId);
+    // --- STEP 2: Look at child’s current marriages ---
+    const marriages = await dataService.getMarriagesByChildId(childId);
 
-    // SCENARIO 1: Child has no parents yet → create family with placeholder
-    if (!childsMarriages || childsMarriages.length === 0) {
-      console.log("AddParent: SCENARIO 1 - First Parent");
-
+    // === Scenario 1: no parents yet ===
+    if (!marriages || marriages.length === 0) {
       const placeholderSpouse = createPerson({
         treeId,
         name: "Partner",
@@ -100,93 +95,80 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       });
       await dataService.addChildToMarriage(newMarriage.id, childId);
 
-      
-      const tree = await dataService.getTree(treeId);
-      if (tree.currentRootId === childId) {
-        console.log(treeId, childId, newParent.id);
-        await dataService.setRootPerson(treeId, newParent.id);
-      }
-
-      return {
-        parent: newParent,
-        placeholder: placeholderSpouse,
-        marriage: newMarriage,
-        action: "created_family_unit",
-      };
+      return { parent: newParent, marriage: newMarriage, action: "created_family_unit" };
     }
 
-    // --- Collect existing parents ---
-    const allParentIds = new Set();
-    for (const marriage of childsMarriages) {
-      (marriage.spouses || []).forEach((id) => allParentIds.add(id));
+    // === Scenario 2: one real + one placeholder ===
+    let placeholderMarriage = null;
+    let placeholderId = null;
+
+    for (const marriage of marriages) {
+      if (!marriage.spouses) continue;  
+
+      const spouseObjects = await Promise.all(
+        marriage.spouses.map(sid => dataService.getPerson(sid))
+      );
+
+      const placeholderSpouse = spouseObjects.find(sp => sp?.isPlaceholder);
+
+      if (placeholderSpouse) {
+        placeholderMarriage = marriage;
+        placeholderId = placeholderSpouse.id;
+        break;
+      }
     }
-    const parentObjects = await Promise.all(
-      [...allParentIds].map((id) => dataService.getPerson(id))
-    );
-    const realParents = parentObjects.filter((p) => p && !p.isPlaceholder);
 
-    // Rule: max 2 parents
-    if (realParents.length >= 2) {
-      throw new Error("This child already has two parents. Cannot add more.");
-    }
-
-    // SCENARIO 2: One real parent + one placeholder → replace placeholder
-    const placeholderMarriage = childsMarriages.find((m) =>
-      (m.spouses || []).some(async (id) => {
-        const sp = await dataService.getPerson(id);
-        return sp && sp.isPlaceholder;
-      })
-    );
-
-    if (placeholderMarriage) {
-      console.log("AddParent: SCENARIO 2 - Second Parent");
-
-      // find placeholder + existing parent
-      let placeholderId = null;
-      let existingParent = null;
-      for (const sid of placeholderMarriage.spouses) {
-        const sp = await dataService.getPerson(sid);
-        if (!sp) continue;
-        if (sp.isPlaceholder) placeholderId = sp.id;
-        else existingParent = sp;
-      }
-
-      if (!placeholderId || !existingParent) {
-        throw new Error("Invalid marriage structure: missing placeholder or existing parent.");
-      }
-
-      // enforce opposite sex
-      if (existingParent.gender === newParent.gender) {
-        throw new Error("Parents must be of opposite sexes. Cannot add this parent.");
-      }
-
-      // replace placeholder
-      const newSpouses = placeholderMarriage.spouses.map((id) =>
+    if (placeholderMarriage && placeholderId) {
+      const newSpouses = placeholderMarriage.spouses.map(id =>
         id === placeholderId ? newParent.id : id
       );
+
       const updatedMarriage = await dataService.updateMarriage(placeholderMarriage.id, {
         spouses: newSpouses,
       });
-
       await dataService.deletePerson(placeholderId);
 
-      const tree = await dataService.getTree(treeId);
-      if (tree.currentRootId === childId) {
-        console.log(treeId, childId, newParent.id);
-        await dataService.setRootPerson(treeId, newParent.id);
-      }
-
-      return {
-        parent: newParent,
-        marriage: updatedMarriage,
-        action: "completed_family_unit",
-      };
+      return { parent: newParent, marriage: updatedMarriage, action: "completed_family_unit" };
     }
 
-    // SCENARIO 3: One real parent, no placeholder → ERROR (cannot add more)
-    throw new Error(
-      "Invalid state: Child has existing parents but no placeholder. Cannot add another parent."
-    );
+
+    // === Scenario 3: polygamy (explicit request) ===
+    if (parentToMarryId) {
+      // Find target marriage that contains parentToMarryId
+      const targetMarriage = marriages.find(m => {
+        if (Array.isArray(m.spouses)) {
+          return m.spouses.includes(parentToMarryId);
+        }
+        // legacy structure
+        if (m.husbandId === parentToMarryId) return true;
+        if (Array.isArray(m.wives) && m.wives.includes(parentToMarryId)) return true;
+        return false;
+      });
+
+      if (!targetMarriage) throw new Error("Target parent's marriage not found.");
+
+      // Ensure polygamy conversion if needed
+      if (targetMarriage.type === "monogamous") {
+        const confirmed = await confirmConvert?.();
+        if (!confirmed) throw new Error("User cancelled conversion.");
+        await dataService.updateMarriage(targetMarriage.id, { type: "polygamous" });
+      }
+
+      // Normalize spouses list for update
+      let spousesList = Array.isArray(targetMarriage.spouses)
+        ? [...targetMarriage.spouses]
+        : [targetMarriage.husbandId, ...(targetMarriage.wives || [])];
+
+      if (!spousesList.includes(newParent.id)) {
+        spousesList.push(newParent.id);
+        const updatedMarriage = await dataService.updateMarriage(targetMarriage.id, {
+          spouses: spousesList,
+        });
+        return { parent: newParent, marriage: updatedMarriage, action: "added_polygamous_parent" };
+      }
+    }
+
+    throw new Error("Invalid state: cannot add parent.");
   } catch (err) {
     console.error("Error in addParentToChild:", err);
     throw err;

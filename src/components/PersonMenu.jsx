@@ -2,23 +2,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
 import dataService from '../services/dataService';
-import { ListCollapse, CircleUserRound , MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight  } from 'lucide-react';
+import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent}) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent }) {
   const { isOpen, targetNodeId, position, actions, targetPerson } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
   const submenuRef = useRef(null);
   const [isSpouse, setIsSpouse] = useState(false)
 
-  
+
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (event) => {
       const isClickOutsideMenu = menuRef.current && !menuRef.current.contains(event.target);
       const isClickOutsideSubmenu = !showSubmenu || (submenuRef.current && !submenuRef.current.contains(event.target));
-      
+
       if (isClickOutsideMenu && isClickOutsideSubmenu) {
         actions.closeMenu();
         setShowSubmenu(false);
@@ -31,7 +31,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   }, [isOpen, actions, showSubmenu]);
 
   useEffect(() => {
-  if (!isOpen) return;
+    if (!isOpen) return;
     const handleEscapeKey = (event) => {
       if (event.key === 'Escape') {
         if (showSubmenu) {
@@ -93,10 +93,10 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     actions.closeMenu();
     setShowSubmenu(false);
   };
-  
+
   const onTraceLineage = () => {
     if (targetNodeId && handleTraceLineage) {
-        handleTraceLineage(targetNodeId);
+      handleTraceLineage(targetNodeId);
     }
     actions.closeMenu();
     setShowSubmenu(false);
@@ -110,12 +110,12 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     setShowSubmenu(false);
   };
 
- 
+
   const handleAddRelative = (relativeType) => {
     const currentTargetNodeId = targetNodeId;
     actions.closeMenu();
     setShowSubmenu(false);
-    
+
     if (relativeType === 'spouse') {
       onAddSpouse(currentTargetNodeId);
       console.log('Adding spouse for node:', currentTargetNodeId);
@@ -156,7 +156,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
         <div className="person-menu-header">
           <div className="person-menu-title">Actions</div>
         </div>
-        
+
         <div className="person-menu-items">
           <button className="person-menu-item" onClick={onCollapse}>
             <ListCollapse size={15} />
@@ -167,8 +167,8 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
             <span className="person-menu-text">Open Profile</span>
           </button>
           <button className="person-menu-item" onClick={onTraceLineage}>
-              <MapPinHouse size={15} />
-              <span className="person-menu-text">Trace Lineage</span>
+            <MapPinHouse size={15} />
+            <span className="person-menu-text">Trace Lineage</span>
           </button>
           <button className="person-menu-item" onClick={onSetAsRoot}>
             <GitCompareArrows size={15} />
@@ -201,7 +201,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
           <div className="person-menu-header">
             <div className="person-menu-title">Add Relative</div>
           </div>
-          
+
           <div className="person-menu-items">
             {!isSpouse && (
               <button className="person-menu-item" onClick={() => handleAddRelative('spouse')}>
@@ -213,10 +213,14 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
               <Baby size={15} />
               <span className="person-menu-text">Add Child</span>
             </button>
-            <button className="person-menu-item" onClick={() => handleAddRelative('parent')}>
-              <Users size={15} />
-              <span className="person-menu-text">Add Parent</span>
-            </button>
+
+            {!isSpouse && (
+              <button className="person-menu-item" onClick={() => handleAddRelative('parent')}>
+                <Users size={15} />
+                <span className="person-menu-text">Add Parent</span>
+              </button>
+            )}
+
           </div>
         </div>
       )}

@@ -17,9 +17,6 @@ import {
   findHighestAncestor,
 } from "../../utils/treeUtils/treeLayout";
 
-
-
-
 import MarriageNode from "./nodes/MarriageNode";
 import FlowPersonNode from "./nodes/FlowPersonNode";
 import FlowPersonNodeHorizontal from "./nodes/FlowPersonNodeHorizontal";
@@ -134,37 +131,23 @@ function TreeCanvasComponent({ treeId }) {
 
   // ---- Layout ----
   const { nodes, edges: baseEdges } = useMemo(() => {
-    if (!viewRootId) {
-      return { nodes: [], edges: [] };
-    }
+    if (!viewRootId) return { nodes: [], edges: [] };
 
-    // Step 1: Always find the absolute top of the entire tree to ensure correct positioning.
-    const trueLayoutRootId = findHighestAncestor(viewRootId, allPeople, allMarriages);
+    // Only use findHighestAncestor when in "reset view" mode
+    const layoutRootId = viewRootId;
 
-    // Step 2: Filter the data to get only the descendants of that TRUE root.
-    // This provides the layout function with all the nodes it needs.
-    const { people: visiblePeople, marriages: visibleMarriages } = filterFamilyByRoot(
-      trueLayoutRootId,
-      peopleWithCollapseState,
-      allMarriages
-    );
+    const { people: visiblePeople, marriages: visibleMarriages } =
+      filterFamilyByRoot(layoutRootId, peopleWithCollapseState, allMarriages);
 
-    // Step 3: Compute directLineageIds: the root and its spouses
-    const directLineageIds = new Set();
-    directLineageIds.add(trueLayoutRootId);
+    const directLineageIds = new Set([layoutRootId]);
     visibleMarriages.forEach((marriage) => {
-      if (marriage.marriageType === "monogamous" && marriage.spouses.includes(trueLayoutRootId)) {
+      if (marriage.spouses?.includes(layoutRootId)) {
         marriage.spouses.forEach((id) => directLineageIds.add(id));
-      }
-      if (marriage.marriageType === "polygamous" && marriage.husbandId === trueLayoutRootId) {
-        directLineageIds.add(marriage.husbandId);
-        marriage.wives.forEach((w) => directLineageIds.add(w.wifeId));
       }
     });
 
-    // Step 4: Pass the complete, fresh data and directLineageIds to the layout calculator.
     return calculateLayout(
-      trueLayoutRootId,
+      layoutRootId,
       visiblePeople,
       visibleMarriages,
       handleToggleCollapse,
@@ -172,8 +155,7 @@ function TreeCanvasComponent({ treeId }) {
       orientation,
       directLineageIds
     );
-  }, [viewRootId, peopleWithCollapseState, allPeople, allMarriages, handleToggleCollapse, handleOpenProfile, orientation]);
-
+  }, [viewRootId, peopleWithCollapseState, allMarriages, handleToggleCollapse, handleOpenProfile, orientation]);
 
   const handleTraceLineage = useCallback(
     (personId) => {
@@ -195,6 +177,10 @@ function TreeCanvasComponent({ treeId }) {
   const handleSetAsRoot = useCallback((personId) => {
     setViewRootId(personId);
     setHighlightedPath({ nodes: [], edges: [] });
+    // Also reset people collapse state to expanded on root change
+    setPeopleWithCollapseState((current) =>
+      current.map((p) => ({ ...p, isCollapsed: false }))
+    );
   }, []);
 
   const handleResetView = useCallback(() => {
@@ -247,22 +233,15 @@ function TreeCanvasComponent({ treeId }) {
     );
   }, [allPeople]);
 
-  
-  useEffect(() => {
-    if (allPeople.length > 0) {
-      // Find the current true root from the data
-      const currentTrueRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
-      
-      // Only update if the root has actually changed
-      if (viewRootId !== currentTrueRoot) {
-        console.log("TreeCanvas: Root changed from", viewRootId, "to", currentTrueRoot);
-        setViewRootId(currentTrueRoot);
-        
-        // Auto-fit view after root change
-        setTimeout(() => fitView({ duration: 800 }), 100);
-      }
-    }
-  }, [allPeople, allMarriages, viewRootId, fitView]);
+
+useEffect(() => {
+  if (!viewRootId && allPeople.length > 0) {
+    const currentTrueRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
+    setViewRootId(currentTrueRoot);
+    setTimeout(() => fitView({ duration: 800 }), 100);
+  }
+}, [allPeople, allMarriages, viewRootId, fitView]);
+
 
   if (loading || !viewRootId) return <div>Loading family tree…</div>;
 

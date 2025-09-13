@@ -8,7 +8,7 @@ import AudioUploadCard from '../../AudioUploadCard';
 import EventCard from '../../EventCard';
 import Row from '../../../layout/containers/Row';
 import Button from '../../Button';
-import { User, BookOpen, Shield, Calendar } from 'lucide-react';
+import { Users, User, BookOpen, Shield, Calendar } from 'lucide-react';
 import Card from '../../../layout/containers/Card';
 import Text from '../../Text';
 import Column from '../../../layout/containers/Column';

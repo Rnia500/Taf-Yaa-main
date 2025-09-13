@@ -266,9 +266,12 @@ export function calculateLayout(
     throw new Error("calculateLayout: handleOpenProfile must be a function");
   }
 
-  // Filter family members relevant to the chosen root
-  const { people: visiblePeople, marriages: visibleMarriages } =
-    filterFamilyByRoot(rootId, people, marriages);
+  // // Filter family members relevant to the chosen root
+  // const { people: visiblePeople, marriages: visibleMarriages } =
+  //   filterFamilyByRoot(rootId, people, marriages);
+
+  const visiblePeople = people;
+  const visibleMarriages = marriages;
 
   const isVertical = orientation === "vertical";
   const NODE_WIDTH = isVertical ? VERTICAL_NODE_WIDTH : HORIZONTAL_NODE_WIDTH;
@@ -287,14 +290,26 @@ export function calculateLayout(
     }
   });
 
-  // Ensure spouse of collapsed person is also collapsed
-  visibleMarriages.forEach((marriage) => {
-    if (marriage.marriageType === "monogamous") {
-      const [p1, p2] = marriage.spouses;
-      if (collapsedDescendantIds.has(p1)) collapsedDescendantIds.add(p2);
-      if (collapsedDescendantIds.has(p2)) collapsedDescendantIds.add(p1);
+// Ensure spouse/wives of collapsed person are also collapsed
+visibleMarriages.forEach((marriage) => {
+  if (marriage.marriageType === "monogamous") {
+    const [p1, p2] = marriage.spouses;
+    if (collapsedDescendantIds.has(p1)) collapsedDescendantIds.add(p2);
+    if (collapsedDescendantIds.has(p2)) collapsedDescendantIds.add(p1);
+  } else if (marriage.marriageType === "polygamous") {
+    const { husbandId, wives } = marriage;
+    if (collapsedDescendantIds.has(husbandId)) {
+      wives.forEach((w) => collapsedDescendantIds.add(w.wifeId));
     }
-  });
+    wives.forEach((w) => {
+      if (collapsedDescendantIds.has(w.wifeId)) {
+        collapsedDescendantIds.add(husbandId);
+        wives.forEach((other) => collapsedDescendantIds.add(other.wifeId));
+      }
+    });
+  }
+});
+
 
   // Build person nodes map (without assigning variant!)
   const personNodeType = isVertical ? "person" : "personHorizontal";
