@@ -31,7 +31,7 @@ export default function PolygamousEdge({
         V ${targetY}`;
     }
   }  else {
-    // ✨ THE FIX: This is the definitive, corrected SVG path for a horizontal layout.
+    //  THE FIX: This is the definitive, corrected SVG path for a horizontal layout.
     const xOffset = -offset; // Go left from the husband
 
     if (targetY >= sourceY) { // Wife is below or at the same level

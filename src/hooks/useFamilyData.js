@@ -1,82 +1,144 @@
 // src/hooks/useFamilyData.js
 import { useEffect, useState, useCallback } from "react";
-import { getDB } from "../services/data/localDB";
 
-// Local dummy data (used only when USE_LOCAL = true)
-import { people as dummyPeople, marriages as dummyMarriages } from "../data/dummyData.js";
-
-const STORAGE_KEY = "familyDB";
-const USE_LOCAL = true;
+// Import your services
+import { personServiceLocal } from "../services/data/personServiceLocal";
+import { marriageServiceLocal } from "../services/data/marriageServiceLocal";
+import { treeServiceLocal } from "../services/data/treeServiceLocal";
+import { eventServiceLocal } from "../services/data/eventServiceLocal";
+import { storyServiceLocal } from "../services/data/storyServiceLocal";
 
 /**
- * Hook to load people + marriages scoped to a specific treeId.
+ * useFamilyData
+ * Centralized hook to load + manage all family-related data (people, marriages, trees, events, stories).
  */
 export function useFamilyData(treeId) {
   const [people, setPeople] = useState([]);
   const [marriages, setMarriages] = useState([]);
-  const [rootPersonId, setRootPersonId] = useState(null);
+  const [tree, setTree] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadLocal = useCallback(() => {
-    console.log("DBG:useFamilyData.loadLocal -> start", { treeId });
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      // 1. Load the tree
+      const t = await treeServiceLocal.getTree(treeId);
+      setTree(t);
 
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-
-        
-        const tree = (parsed.trees || []).find((t) => t.id === treeId);
-
-        if (!tree) {
-          console.warn("DBG:useFamilyData.loadLocal -> tree not found in localDB:", treeId);
-          setPeople([]);
-          setMarriages([]);
-          setRootPersonId(null);
-          setLoading(false);
-          return;
-        }
-
-        const scopedPeople = (parsed.people || []).filter((p) => p.treeId === treeId);
-        const scopedMarriages = (parsed.marriages || []).filter((m) => m.treeId === treeId);
-
-        console.log(
-          "DBG:useFamilyData.loadLocal -> loaded scoped counts:",
-          scopedPeople.length,
-          scopedMarriages.length
-        );
-
-        setPeople(scopedPeople);
-        setMarriages(scopedMarriages);
-        setRootPersonId(tree.currentRootId || null);
+      if (!t) {
+        setPeople([]);
+        setMarriages([]);
+        setEvents([]);
+        setStories([]);
         setLoading(false);
         return;
-      } catch (err) {
-        console.error("DBG:useFamilyData.loadLocal -> Failed to parse local DB:", err);
       }
-    }
 
-    // --- Fallback: dummy data (scoped by treeId if needed) ---
-    console.log("DBG:useFamilyData.loadLocal -> fallback to dummy data");
-    setPeople(dummyPeople.filter((p) => p.treeId === treeId));
-    setMarriages(dummyMarriages.filter((m) => m.treeId === treeId));
-    setRootPersonId(null);
-    setLoading(false);
+      // 2. Load people
+      let p = await personServiceLocal.getPeopleByTreeId(treeId);
+
+      // 3. Load marriages
+      const m = await marriageServiceLocal.getAllMarriages();
+      const personIds = new Set(p.map(per => per.id));
+      const mFiltered = m.filter(marr => {
+        if (marr.marriageType === "monogamous") {
+          return marr.spouses?.some(id => personIds.has(id));
+        }
+        if (marr.marriageType === "polygamous") {
+          return (
+            personIds.has(marr.husbandId) ||
+            (marr.wives || []).some(w => personIds.has(w.wifeId))
+          );
+        }
+        return false;
+      });
+
+      // --- PATCH: enforce root + spouse variants ---
+      if (t.currentRootId) {
+        const rootId = t.currentRootId;
+
+        // find root person
+        const rootPerson = p.find(per => per.id === rootId);
+
+        if (rootPerson) {
+          // mark root explicitly
+          rootPerson.variant = "root";
+
+          // find marriages where root is a spouse
+          const rootMarriages = mFiltered.filter(marr =>
+            marr.spouses?.includes(rootId) ||
+            marr.husbandId === rootId ||
+            (marr.wives || []).some(w => w.wifeId === rootId)
+          );
+
+          // for each spouse, if they were "root", downgrade them to "spouse"
+          rootMarriages.forEach(marr => {
+            const spouseIds = marr.spouses?.filter(id => id !== rootId) ||
+              (marr.husbandId === rootId
+                ? (marr.wives || []).map(w => w.wifeId)
+                : [marr.husbandId]);
+
+            spouseIds.forEach(sid => {
+              const spouse = p.find(per => per.id === sid);
+              if (spouse && spouse.variant === "root") {
+                spouse.variant = "spouse";
+              }
+            });
+          });
+        }
+      }
+
+      setPeople(p);
+      setMarriages(mFiltered);
+
+      // 4. Load events
+      const evts = await eventServiceLocal.getAllEvents();
+      const evtsFiltered = evts.filter(e =>
+        e.personIds?.some(pid => personIds.has(pid))
+      );
+      setEvents(evtsFiltered);
+
+      // 5. Load stories
+      const sts = await storyServiceLocal.getAllStories();
+      const stsFiltered = sts.filter(
+        s =>
+          personIds.has(s.personId) ||
+          (s.personIds || []).some(pid => personIds.has(pid))
+      );
+      setStories(stsFiltered);
+
+      console.log(
+        `DBG:useFamilyData.reload -> loaded people:${p.length}, marriages:${mFiltered.length}, events:${evtsFiltered.length}, stories:${stsFiltered.length}`
+      );
+    } catch (err) {
+      console.error("useFamilyData.reload -> error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [treeId]);
 
   useEffect(() => {
-    if (USE_LOCAL) {
-      window.addEventListener("familyDataChanged", loadLocal);
-      loadLocal();
-      return () => window.removeEventListener("familyDataChanged", loadLocal);
+    if (!treeId) {
+      setPeople([]);
+      setMarriages([]);
+      setTree(null);
+      setEvents([]);
+      setStories([]);
+      setLoading(false);
+      return;
     }
-  }, [treeId, loadLocal]);
+    reload();
+  }, [treeId, reload]);
 
   return {
+    tree,
     people,
     marriages,
-    rootPersonId,
+    events,
+    stories,
     loading,
-    reload: loadLocal,
+    reload,
   };
 }

@@ -56,7 +56,7 @@ if (notFound || !tree) {
 }
 
 return (
-  <div style={{ height: "calc(100vh - 60px)", width: "100%" }}>
+  <div style={{ height: "calc(100vh - var(--topbar-height))", width: "100%" }}>
     <TreeCanvasWrapper treeId={tree.id} />
   </div>
 );

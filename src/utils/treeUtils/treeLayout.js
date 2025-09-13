@@ -136,7 +136,7 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
 
   return { people: visiblePeople, marriages: visibleMarriages };
 }
-export function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile, variant = "default") {
+export function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile, variant = "directline") {
   if (!person) return {};
   const hasChildren = marriages.some(m =>
     (m.marriageType === "monogamous" &&
@@ -211,32 +211,29 @@ export function getDescendantIds(personId, marriages) {
 export function findHighestAncestor(startPersonId, allPeople, allMarriages) {
   let currentPersonId = startPersonId;
   let highestAncestorId = startPersonId;
-  const visited = new Set(); // Prevents infinite loops if data is circular
-
-  // Keep climbing up the tree as long as we find a parent marriage
+  const visited = new Set(); 
+  
   while (currentPersonId && !visited.has(currentPersonId)) {
     visited.add(currentPersonId);
     
-    // Find if the current person is a child in any existing marriage
+   
     const parentMarriage = allMarriages.find(m => 
-      (m.childrenIds?.includes(currentPersonId)) || // Check monogamous children
+      (m.childrenIds?.includes(currentPersonId)) || 
       (m.marriageType === 'polygamous' && m.wives.some(w => w.childrenIds?.includes(currentPersonId)))
     );
 
     if (parentMarriage) {
-      // If they are a child, their parent is the next person to check.
-      // We can just pick the first parent we find (husband or first spouse).
+     
       const newParentId = parentMarriage.husbandId || parentMarriage.spouses?.[0];
       if (newParentId) {
         currentPersonId = newParentId;
-        highestAncestorId = newParentId; // This parent is now the highest we've found so far
+        highestAncestorId = newParentId;
       } else {
-        // This is a "broken" link (a marriage with children but no parents), so we stop here.
+        
         break;
       }
     } else {
-      // If we found no parent marriage, it means this person is a root of a branch.
-      // We have climbed as high as we can.
+      
       break;
     }
   }
@@ -253,7 +250,6 @@ export function calculateLayout(
   handleOpenProfile,
   orientation = "vertical"
 ) {
-  
   if (!rootId) {
     throw new Error("calculateLayout: rootId is required");
   }
@@ -270,7 +266,9 @@ export function calculateLayout(
     throw new Error("calculateLayout: handleOpenProfile must be a function");
   }
 
-  const { people: visiblePeople, marriages: visibleMarriages } = filterFamilyByRoot(rootId, people, marriages);
+  // Filter family members relevant to the chosen root
+  const { people: visiblePeople, marriages: visibleMarriages } =
+    filterFamilyByRoot(rootId, people, marriages);
 
   const isVertical = orientation === "vertical";
   const NODE_WIDTH = isVertical ? VERTICAL_NODE_WIDTH : HORIZONTAL_NODE_WIDTH;
@@ -279,14 +277,18 @@ export function calculateLayout(
   const edges = [];
   const nodesMap = new Map();
 
-  // Step 1: Collapse logic - Now runs on the CLEANED data
+  // Track collapsed descendants (to skip them)
   const collapsedDescendantIds = new Set();
-  visiblePeople.forEach(person => {
+  visiblePeople.forEach((person) => {
     if (person.isCollapsed) {
-      getDescendantIds(person.id, visibleMarriages).forEach(id => collapsedDescendantIds.add(id));
+      getDescendantIds(person.id, visibleMarriages).forEach((id) =>
+        collapsedDescendantIds.add(id)
+      );
     }
   });
-  visibleMarriages.forEach(marriage => {
+
+  // Ensure spouse of collapsed person is also collapsed
+  visibleMarriages.forEach((marriage) => {
     if (marriage.marriageType === "monogamous") {
       const [p1, p2] = marriage.spouses;
       if (collapsedDescendantIds.has(p1)) collapsedDescendantIds.add(p2);
@@ -294,55 +296,72 @@ export function calculateLayout(
     }
   });
 
-  // Step 2: Build person nodes map - Now runs on the CLEANED data
+  // Build person nodes map (without assigning variant!)
   const personNodeType = isVertical ? "person" : "personHorizontal";
-  visiblePeople.forEach(person => {
+  visiblePeople.forEach((person) => {
     if (!collapsedDescendantIds.has(person.id)) {
       nodesMap.set(person.id, {
         id: person.id,
         type: personNodeType,
-        data: formatPersonData(person, visibleMarriages, handleToggleCollapse, handleOpenProfile),
+        data: formatPersonData(
+          person,
+          visibleMarriages,
+          handleToggleCollapse,
+          handleOpenProfile
+          // 🚫 variant removed — layout will assign later
+        ),
         position: { x: 0, y: 0 },
         isPositioned: false,
       });
     }
   });
 
-  // Step 3: Generational Sorting The simple child-based BFS is now sufficient and robust
+  // Helper: sort marriages by traversal
   const getMarriagesByGeneration = () => {
-      const sortedMarriages = [];
-      const queue = [rootId];
-      const visitedPeople = new Set([rootId]);
-      const visitedMarriages = new Set();
-      while (queue.length > 0) {
-          const currentPersonId = queue.shift();
-          const personMarriages = visibleMarriages.filter(m => {
-              if (visitedMarriages.has(m.id)) return false;
-              if (m.marriageType === 'monogamous') return m.spouses.includes(currentPersonId);
-              if (m.marriageType === 'polygamous') return m.husbandId === currentPersonId || m.wives.some(w=>w.wifeId === currentPersonId);
-              return false;
-          });
-          for (const marriage of personMarriages) {
-              visitedMarriages.add(marriage.id);
-              sortedMarriages.push(marriage);
-              let children = [];
-              if (marriage.marriageType === 'monogamous') children = marriage.childrenIds || [];
-              else children = (marriage.wives || []).flatMap(w => w.childrenIds || []);
-              for (const childId of children) {
-                  if (childId && !visitedPeople.has(childId)) {
-                      visitedPeople.add(childId);
-                      if (nodesMap.has(childId)) queue.push(childId);
-                  }
-              }
+    const sortedMarriages = [];
+    const queue = [rootId];
+    const visitedPeople = new Set([rootId]);
+    const visitedMarriages = new Set();
+
+    while (queue.length > 0) {
+      const currentPersonId = queue.shift();
+
+      const personMarriages = visibleMarriages.filter((m) => {
+        if (visitedMarriages.has(m.id)) return false;
+        if (m.marriageType === "monogamous")
+          return m.spouses.includes(currentPersonId);
+        if (m.marriageType === "polygamous")
+          return (
+            m.husbandId === currentPersonId ||
+            m.wives.some((w) => w.wifeId === currentPersonId)
+          );
+        return false;
+      });
+
+      for (const marriage of personMarriages) {
+        visitedMarriages.add(marriage.id);
+        sortedMarriages.push(marriage);
+
+        let children = [];
+        if (marriage.marriageType === "monogamous")
+          children = marriage.childrenIds || [];
+        else children = (marriage.wives || []).flatMap((w) => w.childrenIds || []);
+
+        for (const childId of children) {
+          if (childId && !visitedPeople.has(childId)) {
+            visitedPeople.add(childId);
+            if (nodesMap.has(childId)) queue.push(childId);
           }
+        }
       }
-      return sortedMarriages;
+    }
+    return sortedMarriages;
   };
-  
+
   const sortedMarriages = getMarriagesByGeneration();
 
-  // Step 4: Delegate to layout engines
+  // Delegate to orientation-specific layout (they set variants + positions)
   return isVertical
-    ? layoutVertical(nodesMap, sortedMarriages, edges, NODE_WIDTH, NODE_HEIGHT)
-    : layoutHorizontal(nodesMap, sortedMarriages, edges, NODE_WIDTH, NODE_HEIGHT);
+    ? layoutVertical(nodesMap, sortedMarriages, edges, rootId)
+    : layoutHorizontal(nodesMap, sortedMarriages, edges, rootId);
 }

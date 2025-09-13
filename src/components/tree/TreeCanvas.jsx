@@ -149,14 +149,28 @@ function TreeCanvasComponent({ treeId }) {
       allMarriages
     );
 
-    // Step 3: Pass the complete, fresh data to the layout calculator.
+    // Step 3: Compute directLineageIds: the root and its spouses
+    const directLineageIds = new Set();
+    directLineageIds.add(trueLayoutRootId);
+    visibleMarriages.forEach((marriage) => {
+      if (marriage.marriageType === "monogamous" && marriage.spouses.includes(trueLayoutRootId)) {
+        marriage.spouses.forEach((id) => directLineageIds.add(id));
+      }
+      if (marriage.marriageType === "polygamous" && marriage.husbandId === trueLayoutRootId) {
+        directLineageIds.add(marriage.husbandId);
+        marriage.wives.forEach((w) => directLineageIds.add(w.wifeId));
+      }
+    });
+
+    // Step 4: Pass the complete, fresh data and directLineageIds to the layout calculator.
     return calculateLayout(
       trueLayoutRootId,
       visiblePeople,
       visibleMarriages,
       handleToggleCollapse,
       handleOpenProfile,
-      orientation
+      orientation,
+      directLineageIds
     );
   }, [viewRootId, peopleWithCollapseState, allPeople, allMarriages, handleToggleCollapse, handleOpenProfile, orientation]);
 
@@ -228,19 +242,27 @@ function TreeCanvasComponent({ treeId }) {
 
   // ---- Effects ----
   useEffect(() => {
-
     setPeopleWithCollapseState(
       allPeople.map((p) => ({ ...p, isCollapsed: p.isCollapsed ?? false }))
     );
   }, [allPeople]);
 
-
+  
   useEffect(() => {
-    if (!viewRootId && allPeople.length > 0) {
-      const initialRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
-      setViewRootId(initialRoot);
+    if (allPeople.length > 0) {
+      // Find the current true root from the data
+      const currentTrueRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
+      
+      // Only update if the root has actually changed
+      if (viewRootId !== currentTrueRoot) {
+        console.log("TreeCanvas: Root changed from", viewRootId, "to", currentTrueRoot);
+        setViewRootId(currentTrueRoot);
+        
+        // Auto-fit view after root change
+        setTimeout(() => fitView({ duration: 800 }), 100);
+      }
     }
-  }, [viewRootId, allPeople, allMarriages]);
+  }, [allPeople, allMarriages, viewRootId, fitView]);
 
   if (loading || !viewRootId) return <div>Loading family tree…</div>;
 

@@ -27,7 +27,7 @@ const gradients = {
   ),
   default: (
     <linearGradient id="defaultGradient" x1="60" y1="-18.4498" x2="60" y2="179.337" gradientUnits="userSpaceOnUse">
-      <stop stopColor="#C48F67" />
+      <stop stopColor="var(--color-background)" />
       <stop offset="1" stopColor="#F3EDE0" />
     </linearGradient>
   ),

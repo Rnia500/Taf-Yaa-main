@@ -2,8 +2,8 @@
 import {
   VERTICAL_NODE_WIDTH,
   VERTICAL_NODE_HEIGHT,
-  HORIZONTAL_SPACING, // Horizontal gap between stacked items in vertical layout
-  VERTICAL_SPACING,   // Vertical gap between generations (rows)
+  HORIZONTAL_SPACING, 
+  VERTICAL_SPACING, 
   MARRIAGE_ICON_Y_OFFSET,
   MARRIAGE_ICON_X_OFFSET,
 } from './treeLayoutConstants.js';
@@ -19,17 +19,15 @@ import { buildTree } from './layoutHelpers.js';
 
 const NODE_WIDTH = VERTICAL_NODE_WIDTH;
 const NODE_HEIGHT = VERTICAL_NODE_HEIGHT;
-const GAP = HORIZONTAL_SPACING; // In vertical, the gap between siblings is horizontal
+const GAP = HORIZONTAL_SPACING;
 
-/* -----------------------------------------------------------
-   Universal Placeholder Creation 
------------------------------------------------------------ */
+
+/* ------------ Placeholders ------------ */
 function createAndInjectPlaceholders(nodesMap, marriages) {
-  console.log("DBG:layoutVertical.createAndInjectPlaceholders -> start", { nodesKeys: Array.from(nodesMap.keys()), marriagesCount: marriages.length });
-
   const processedMarriages = JSON.parse(JSON.stringify(marriages));
 
   for (const marriage of processedMarriages) {
+    // --- Monogamous ---
     if (marriage.marriageType === 'monogamous') {
       const emptyIndex = marriage.spouses.findIndex(id => !id);
       if (emptyIndex !== -1) {
@@ -37,7 +35,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         const knownSpouseNode = nodesMap.get(knownSpouseId);
         const knownSpouse = knownSpouseNode?.data;
         const placeholderId = `placeholder-spouse-${marriage.id}`;
-        console.log("DBG:layoutVertical -> injecting placeholder for marriage", marriage.id, "placeholderId:", placeholderId);
+
         if (!nodesMap.has(placeholderId)) {
           nodesMap.set(placeholderId, {
             id: placeholderId,
@@ -57,19 +55,17 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
       }
     }
 
+    // --- Polygamous ---
     if (marriage.marriageType === 'polygamous') {
       if (!marriage.husbandId) {
         const placeholderId = `placeholder-husband-${marriage.id}`;
-        console.log("DBG:layoutVertical -> injecting polygamous husband placeholder for marriage", marriage.id);
         if (!nodesMap.has(placeholderId)) {
-          // Try to derive husband gender as opposite of a known wife's gender if available
           let derivedGender = 'male';
           if (marriage.wives && marriage.wives.length > 0) {
             const firstWifeId = marriage.wives[0].wifeId;
             const wifeNode = nodesMap.get(firstWifeId);
             const wifeGender = wifeNode?.data?.gender;
             if (wifeGender) derivedGender = wifeGender === 'male' ? 'female' : 'male';
-            else derivedGender = 'male';
           }
           nodesMap.set(placeholderId, {
             id: placeholderId,
@@ -85,9 +81,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         for (let i = 0; i < marriage.wives.length; i++) {
           if (!marriage.wives[i].wifeId) {
             const placeholderId = `placeholder-wife-${marriage.id}-${i}`;
-            console.log("DBG:layoutVertical -> injecting polygamous wife placeholder for marriage", marriage.id, "index", i);
             if (!nodesMap.has(placeholderId)) {
-              // Try to derive wife gender as opposite of the known husband's gender if available
               let derivedGender = 'female';
               const husbandNode = nodesMap.get(marriage.husbandId);
               const husbandGender = husbandNode?.data?.gender;
@@ -108,7 +102,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
     }
   }
 
-  // Filter out floating placeholders (not linked to any marriage)
+  // Cleanup unused placeholders
   for (const [id, node] of nodesMap) {
     if (node.data?.isPlaceholder) {
       const isConnected = processedMarriages.some(m => {
@@ -120,19 +114,16 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         return false;
       });
       if (!isConnected) {
-        console.log("DBG:layoutVertical -> removing unlinked placeholder node:", id);
         nodesMap.delete(id);
       }
     }
   }
 
-  console.log("DBG:layoutVertical.createAndInjectPlaceholders -> done; nodesMap keys:", Array.from(nodesMap.keys()));
   return { processedMarriages, nodesMap };
 }
 
 
-
-/* ------------ Helpers (Orientation-Swapped) ------------ */
+/* ------------ Helpers ------------ */
 function topLeftXFromCenterX(centerX) { return centerX - NODE_WIDTH / 2; }
 
 function parentBlockWidth(marriage) {
@@ -145,7 +136,6 @@ function parentBlockWidth(marriage) {
   return NODE_WIDTH;
 }
 
-/* ------------ Phase 2: measure subtree widths (Swapped from heights) ------------ */
 function firstPass(node) {
   if (!node.children?.length) {
     node.subtreeWidth = parentBlockWidth(node.marriage);
@@ -160,7 +150,6 @@ function firstPass(node) {
   return node.subtreeWidth;
 }
 
-/* ------------ Phase 3: assign positions (Orientation-Swapped) ------------ */
 function secondPass(node, centerX, centerY, nodesMap) {
   const rfNode = nodesMap.get(node.id);
 
@@ -172,9 +161,7 @@ function secondPass(node, centerX, centerY, nodesMap) {
     rfNode.data = {
       ...rfNode.data, 
       isDead,
-      variant: isDead
-        ? "dead"
-        : rfNode.data?.variant || "directline",
+      variant: isDead ? "dead" : rfNode.data?.variant || "directline",
     };
   }
 
@@ -199,9 +186,8 @@ function secondPass(node, centerX, centerY, nodesMap) {
       spouseRF.data = {
         ...spouseRF.data,
         isDead,
-        variant: isDead ? "dead" : "spouse",
+        variant: isDead ? "dead" : "spouse", // normal spouse unless root override later
       };
-      
     }
   }
 
@@ -212,39 +198,27 @@ function secondPass(node, centerX, centerY, nodesMap) {
     let slotC = centerX - blockW / 2 + NODE_WIDTH / 2;
     const leftCount = Math.floor(wives.length / 2);
 
-    // Left wives
     for (let i = leftCount - 1; i >= 0; i--) {
       const wRF = nodesMap.get(wives[i].wifeId);
       if (wRF) {
         const isDead = !!wRF.data?.deathDate;
         wRF.position = { x: topLeftXFromCenterX(slotC), y: centerY };
         wRF.isPositioned = true;
-        wRF.data = {
-          ...wRF.data,
-          isDead,
-          variant: isDead ? "dead" : "spouse",
-        };
-        
+        wRF.data = { ...wRF.data, isDead, variant: isDead ? "dead" : "spouse" };
       }
       slotC += NODE_WIDTH + GAP;
     }
 
-    // Husband in center
     if (rfNode) rfNode.position.x = topLeftXFromCenterX(slotC);
     slotC += NODE_WIDTH + GAP;
 
-    // Right wives
     for (let i = leftCount; i < wives.length; i++) {
       const wRF = nodesMap.get(wives[i].wifeId);
       if (wRF) {
         const isDead = !!wRF.data?.deathDate;
         wRF.position = { x: topLeftXFromCenterX(slotC), y: centerY };
         wRF.isPositioned = true;
-        wRF.data = {
-          ...wRF.data,
-          isDead,
-          variant: isDead ? "dead" : "spouse",
-        };
+        wRF.data = { ...wRF.data, isDead, variant: isDead ? "dead" : "spouse" };
       }
       slotC += NODE_WIDTH + GAP;
     }
@@ -267,7 +241,7 @@ function secondPass(node, centerX, centerY, nodesMap) {
 }
 
 
-/* ------------ Phase 4: edges (Orientation-Swapped) ------------ */
+/* ------------ Edges ------------ */
 function createEdges(marriages, nodesMap) {
   const edges = [];
   for (const marriage of marriages) {
@@ -275,7 +249,6 @@ function createEdges(marriages, nodesMap) {
       const { husbandId, wives = [] } = marriage;
       for (const w of wives) {
         const e = createEdgeWithGuard(
-          // pass marriage.id as the third argument (same shape as layoutHorizontal)
           createPolygamousEdge, nodesMap, husbandId, w.wifeId, marriage.id,
           { orientation: 'vertical', sourceHandle: 'source-top', targetHandle: 'target-top' }
         );
@@ -304,7 +277,6 @@ function createEdges(marriages, nodesMap) {
         isPositioned: true,
       });
 
-
       const e1 = createEdgeWithGuard(createMonogamousEdge, nodesMap, leftId, mId, marriage.id, {
         sourceHandle: 'source-right',
         targetHandle: 'target-left'
@@ -328,43 +300,40 @@ function createEdges(marriages, nodesMap) {
 
 
 /* ------------ Main ------------ */
-export function layoutVertical(nodesMap, marriages, initialEdges) {
+export function layoutVertical(nodesMap, marriages, initialEdges, rootId) {
   if (!nodesMap?.size || !marriages?.length) {
     return { nodes: Array.from(nodesMap.values()), edges: initialEdges };
   }
 
-  // 1️⃣ Inject placeholders only where needed
   const { processedMarriages, nodesMap: updatedNodesMap } = createAndInjectPlaceholders(nodesMap, marriages);
 
-  // 2️⃣ Build tree structure
-  const { root } = buildTree(updatedNodesMap, processedMarriages, NODE_WIDTH, NODE_HEIGHT);
+  const { root } = buildTree(updatedNodesMap, processedMarriages, NODE_WIDTH, NODE_HEIGHT, rootId);
   if (!root) return { nodes: Array.from(updatedNodesMap.values()), edges: initialEdges };
 
-  // 3️⃣ Measure subtree widths
   firstPass(root);
-
-  // 4️⃣ Assign positions (root at 0,0)
   secondPass(root, 0, 0, updatedNodesMap);
 
-  // 5️⃣ Set root variant
-  const setNodeVariant = (node) => {
-    if (!node) return;
-    node.data.variant = node.data.deathDate ? "dead" : "root";
-  };
-  if (root.marriage?.marriageType === "polygamous") {
-    setNodeVariant(updatedNodesMap.get(root.marriage.husbandId));
-    (root.marriage.wives || []).forEach(w => setNodeVariant(updatedNodesMap.get(w.wifeId)));
-  } else if (root.marriage?.marriageType === "monogamous") {
-    (root.marriage.spouses || []).forEach(s => setNodeVariant(updatedNodesMap.get(s)));
-  } else {
-    setNodeVariant(updatedNodesMap.get(root.id));
+
+  function setRootVariantFor(ids, nodesMap) {
+    ids.forEach(id => {
+      const node = nodesMap.get(id);
+      if (node) {
+        node.data.variant = node.data.deathDate ? "dead" : "root";
+      }
+    });
   }
 
-  // 6️⃣ Create edges
+  const allRootIds = [root.id];
+  if (root.marriage?.marriageType === "monogamous") {
+    allRootIds.push(...root.marriage.spouses.filter(s => s !== root.id));
+  } else if (root.marriage?.marriageType === "polygamous") {
+    allRootIds.push(...(root.marriage.wives || []).map(w => w.wifeId).filter(id => id !== root.id));
+  }
+  setRootVariantFor(allRootIds, updatedNodesMap);
+
   const edges = createEdges(processedMarriages, updatedNodesMap);
 
-  // 7️⃣ Filter out unlinked placeholders
-const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
+  const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
     if (!node.data?.isPlaceholder) return true;
     return processedMarriages.some(m => {
       if (m.marriageType === "monogamous") return m.spouses.includes(node.id);
@@ -376,7 +345,5 @@ const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
     });
   });
 
-  console.log("DBG:layoutVertical -> final filtered nodes count:", filteredNodes.length, "edges count:", edges?.length || 0);
   return { nodes: filteredNodes, edges };
 }
-

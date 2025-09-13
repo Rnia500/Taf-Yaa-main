@@ -21,11 +21,8 @@ const NODE_WIDTH = HORIZONTAL_NODE_WIDTH;
 const NODE_HEIGHT = HORIZONTAL_NODE_HEIGHT;
 const GAP = HORIZONTAL_COLUMN_GAP;
 
-/* -----------------------------------------------------------
-   ✨ Universal Placeholder Creation
------------------------------------------------------------ */
+
 function createAndInjectPlaceholders(nodesMap, marriages) {
-  // ✨ THE FIX: Create a deep copy here to prevent mutating the original state
   const processedMarriages = JSON.parse(JSON.stringify(marriages));
 
   for (const marriage of processedMarriages) {
@@ -252,7 +249,7 @@ function createEdges(marriages, nodesMap) {
 }
 
 /* ------------ Main ------------ */
-export function layoutHorizontal(nodesMap, marriages, initialEdges) {
+export function layoutHorizontal(nodesMap, marriages, initialEdges, rootId) {
 
   console.log("DATA RECEIVED BY LAYOUT:", JSON.parse(JSON.stringify(marriages)));
 
@@ -261,7 +258,7 @@ export function layoutHorizontal(nodesMap, marriages, initialEdges) {
 
   const { processedMarriages, nodesMap: finalNodesMap } = createAndInjectPlaceholders(nodesMap, marriages);
 
-  const { root } = buildTree(finalNodesMap, processedMarriages, NODE_WIDTH, NODE_HEIGHT);
+  const { root } = buildTree(finalNodesMap, processedMarriages, NODE_WIDTH, NODE_HEIGHT, rootId);
   if (!root) return { nodes: Array.from(finalNodesMap.values()), edges: initialEdges };
 
   firstPass(root);

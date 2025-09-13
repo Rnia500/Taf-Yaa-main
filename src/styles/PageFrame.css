@@ -119,8 +119,8 @@
   transition: opacity 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* Mobile styles (<=350px) */
-@media (max-width: 350px) {
+/* Mobile styles (<=768px) */
+@media (max-width: 768px) {
   .pf-body {
     position: relative;
   }

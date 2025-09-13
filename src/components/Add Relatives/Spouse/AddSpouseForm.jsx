@@ -346,7 +346,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
 
         <div className="form-grid">
 
-          {/* ✨ CONDITIONAL FIELD: Only show "Marriage Type" for the FIRST spouse */}
+          {/*  CONDITIONAL FIELD: Only show "Marriage Type" for the FIRST spouse */}
           {isFirstSpouse && (
             <div className="form-group">
               <label className="form-label">Marriage Type *</label>

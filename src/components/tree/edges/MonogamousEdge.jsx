@@ -1,6 +1,6 @@
 // src/components/tree/edges/MonogamousEdge.jsx
 import React from 'react';
-// ✨ CHANGE getBezierPath to getStraightPath
+//  CHANGE getBezierPath to getStraightPath
 import { getStraightPath, BaseEdge } from 'reactflow';
 
 export default function MonogamousEdge({
@@ -9,7 +9,7 @@ export default function MonogamousEdge({
   targetX,
   targetY,
 }) {
-  // ✨ Use the new path generator
+  //  Use the new path generator
   const [edgePath] = getStraightPath({
     sourceX,
     sourceY,

@@ -147,7 +147,7 @@ function normalizeLocalDBIds(db) {
     if (Array.isArray(ev.personIds)) ev.personIds = ev.personIds.map(id => oldToNew[id] || id);
   }
 
-  // (Future-proof) Update references in Trees if they store personIds
+  //  Update references in Trees if they store personIds
   for (const t of db.trees) {
     if (!t) continue;
     if (t.currentRootId && oldToNew[t.currentRootId]) t.currentRootId = oldToNew[t.currentRootId];
@@ -158,4 +158,3 @@ function normalizeLocalDBIds(db) {
     }
   }
 }
-  saveDB(); // Persist changes

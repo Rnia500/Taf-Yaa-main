@@ -6,9 +6,8 @@ import { handleSpouseAddition } from "./marriages";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createAudioStory } from "./stories";
 
-/**
- * The new, clean, and orchestrated function to add a spouse.
- */
+// Orchestrator function to add a spouse to an existing person in the tree.
+// This function handles validation, file uploads, person creation, and delegates marriage logic.
 export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
     const { onError, confirmConvert, createdBy = "system" } = options;
     try {

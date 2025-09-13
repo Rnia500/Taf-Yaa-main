@@ -67,7 +67,7 @@ function createTreeNode(id, marriage, NODE_WIDTH, NODE_HEIGHT, isSpouse = false)
   };
 }
 
-export function buildTree(nodesMap, marriages, NODE_WIDTH, NODE_HEIGHT) {
+export function buildTree(nodesMap, marriages, NODE_WIDTH, NODE_HEIGHT, expectedRootId = null) {
   const treeNodes = new Map();
   let root = null;
 
@@ -120,21 +120,28 @@ export function buildTree(nodesMap, marriages, NODE_WIDTH, NODE_HEIGHT) {
     }
   }
 
-  const allChildrenIds = new Set(Array.from(treeNodes.values()).flatMap(n => n.children.map(c => c.id)));
-  for (const node of treeNodes.values()) {
-    if (!allChildrenIds.has(node.id)) {
-      root = node;
-      break;
-    }
-  }
-
-  if (!root && treeNodes.size > 0) {
-    root = treeNodes.values().next().value;
-    console.log("DBG:buildTree -> fallback root selected:", root.id);
-  } else if (root) {
-    console.log("DBG:buildTree -> root selected:", root.id);
+  // : Use expectedRootId if provided, otherwise fall back to old logic
+  if (expectedRootId && treeNodes.has(expectedRootId)) {
+    root = treeNodes.get(expectedRootId);
+    console.log("DBG:buildTree -> using expected root:", root.id);
   } else {
-    console.log("DBG:buildTree -> no nodes in treeNodes");
+    // Fallback to old logic
+    const allChildrenIds = new Set(Array.from(treeNodes.values()).flatMap(n => n.children.map(c => c.id)));
+    for (const node of treeNodes.values()) {
+      if (!allChildrenIds.has(node.id)) {
+        root = node;
+        break;
+      }
+    }
+
+    if (!root && treeNodes.size > 0) {
+      root = treeNodes.values().next().value;
+      console.log("DBG:buildTree -> fallback root selected:", root.id);
+    } else if (root) {
+      console.log("DBG:buildTree -> root selected:", root.id);
+    } else {
+      console.log("DBG:buildTree -> no nodes in treeNodes");
+    }
   }
 
   return { root, treeNodes };
