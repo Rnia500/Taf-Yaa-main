@@ -32,10 +32,7 @@ function updatePerson(personId, updatedPersonData) {
   return Promise.resolve(db.people[idx]);
 }
 
-/**
- * Deletes a person and cleans up their relationships in other data models.
- * This is a perfect 1:1 copy of the logic from your original dataService.
- */
+
 function deletePerson(personId) {
     const db = getDB();
     const personIdx = db.people.findIndex(p => p.id === personId);
@@ -85,10 +82,12 @@ function deletePerson(personId) {
     return Promise.resolve({ person: removedPerson, removedMarriageIds: marriagesToRemove });
 }
 
+
 function getAllPeople() {
   const db = getDB();
   return Promise.resolve([...db.people]);
 }
+
 
 function findPeopleByName(query) {
   const db = getDB();
@@ -97,6 +96,7 @@ function findPeopleByName(query) {
   const results = db.people.filter(p => (p.name || '').toLowerCase().includes(q));
   return Promise.resolve(results);
 }
+
 
 function getPeopleByTreeId(treeId) {
   const db = getDB();

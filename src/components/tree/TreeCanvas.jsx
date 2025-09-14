@@ -30,6 +30,7 @@ import Legend from "./Legend";
 import AddSpouseModal from "../Add Relatives/Spouse/AddSpouseModal";
 import AddChildModal from "../Add Relatives/Child/AddChildModal";
 import AddParentModal from "../Add Relatives/Parent/AddParentModal";
+import EditPersonModal from "../Edit Person/EditPersonModal";
 
 import usePersonMenuStore from "../../store/usePersonMenuStore";
 import useSidebarStore from "../../store/useSidebarStore";
@@ -99,6 +100,17 @@ function TreeCanvasComponent({ treeId }) {
   // ---- State ----
   const [peopleWithCollapseState, setPeopleWithCollapseState] =
     useState(allPeople);
+
+  // Listen for familyTreeDataUpdated event to reload data
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      reload();
+    };
+    window.addEventListener('familyTreeDataUpdated', handleDataUpdate);
+    return () => {
+      window.removeEventListener('familyTreeDataUpdated', handleDataUpdate);
+    };
+  }, [reload]);
   const [viewRootId, setViewRootId] = useState(null);
 
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
@@ -272,10 +284,14 @@ useEffect(() => {
           setTargetNodeId(personId);
           openModal("addChildModal", { targetNodeId: personId });
         }}
-        onAddParent={(personId) => {
-          setTargetNodeId(personId);
-          openModal("addParentModal", { targetNodeId: personId });
-        }}
+      onAddParent={(personId) => {
+        setTargetNodeId(personId);
+        openModal("addParentModal", { targetNodeId: personId });
+      }}
+      onEditPerson={(personId) => {
+        setTargetNodeId(personId);
+        openModal("editPerson", { personId });
+      }}
       />
 
       {/* Modals */}
@@ -298,6 +314,13 @@ useEffect(() => {
         reload();
         setTargetNodeId(null);
       }} />
+
+      <EditPersonModal
+        personId={targetNodeId}
+        onClose={() => {
+          setTargetNodeId(null);
+        }}
+      />
 
       {/* Reset button */}
       <Button

@@ -5,7 +5,7 @@ import dataService from '../services/dataService';
 import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent }) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent, onEditPerson }) {
   const { isOpen, targetNodeId, position, actions, targetPerson } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
@@ -179,7 +179,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
             <span className="person-menu-text">Add Relative</span>
             <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
           </button>
-          <button className="person-menu-item" onClick={() => { actions.closeMenu(); setShowSubmenu(false); }}>
+          <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
             <UserRoundPen size={15} />
             <span className="person-menu-text">Edit Person</span>
           </button>

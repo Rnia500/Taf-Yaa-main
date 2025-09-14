@@ -93,29 +93,46 @@ function addChildToMarriage(marriageId, childId, motherId = null) {
   const db = getDB();
   const marriage = db.marriages.find((m) => m.id === marriageId);
 
+  console.log("DBG:addChildToMarriage -> marriage:", marriageId, "child:", childId, "mother:", motherId);
+
   if (marriage) {
     if (marriage.marriageType === 'monogamous') {
       marriage.childrenIds = marriage.childrenIds || [];
-      marriage.childrenIds.push(childId);
+      if (!marriage.childrenIds.includes(childId)) {
+        marriage.childrenIds.push(childId);
+      } else {
+        console.warn(`DBG: child ${childId} already in monogamous marriage ${marriageId}`);
+      }
     } else if (marriage.marriageType === 'polygamous') {
       if (!motherId) {
-          console.error("addChildToMarriage Error: motherId is required for polygamous marriages.");
-          return Promise.reject(new Error("Mother ID is required for polygamous marriages."));
+        console.error("addChildToMarriage Error: motherId is required for polygamous marriages.");
+        return Promise.reject(new Error("Mother ID is required for polygamous marriages."));
       }
       const wife = marriage.wives.find(w => w.wifeId === motherId);
       if (wife) {
         wife.childrenIds = wife.childrenIds || [];
-        wife.childrenIds.push(childId);
-        wife.updatedAt = new Date().toISOString();
+        if (!wife.childrenIds.includes(childId)) {
+          wife.childrenIds.push(childId);
+        } else {
+          console.warn(`DBG: child ${childId} already assigned to wife ${motherId} in marriage ${marriageId}`);
+        }
       } else {
         console.error(`Could not find mother with ID ${motherId} in marriage ${marriageId}`);
         return Promise.reject(new Error(`Mother with ID ${motherId} not found in marriage ${marriageId}.`));
+      }
+
+      for (const w of marriage.wives) {
+        if (w.wifeId !== motherId && w.childrenIds?.includes(childId)) {
+          console.warn(`DBG: Removing duplicate child ${childId} from wife ${w.wifeId}`);
+          w.childrenIds = w.childrenIds.filter(c => c !== childId);
+        }
       }
     }
     saveDB();
   }
   return Promise.resolve(marriage);
 }
+
 
 // Export all the functions in a single, coherent service object.
 export const marriageServiceLocal = {

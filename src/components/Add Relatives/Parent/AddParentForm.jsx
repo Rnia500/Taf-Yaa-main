@@ -14,9 +14,9 @@ import Text from '../../Text';
 import Column from '../../../layout/containers/Column';
 import countryList from "react-select-country-list";
 
-const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], isSubmitting = false }) => {
+const AddParentForm = ({ onSubmit, onCancel, childName, isSubmitting = false }) => {
   const [formData, setFormData] = useState({
- fullName: '',
+    fullName: '',
     gender: '',
     dateOfBirth: '',
     isDeceased: false,
@@ -42,9 +42,7 @@ const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], i
     // Section 4: Privacy
     privacyLevel: 'membersOnly',
     allowGlobalMatching: true,
-    
-    // CRITICAL NEW FIELD for the Step-Parent Scenario (Scenario 3)
-    parentToMarryId:''
+
   });
 
   const [errors, setErrors] = useState({});
@@ -67,10 +65,6 @@ const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], i
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
     if (!formData.gender) newErrors.gender = 'Gender is required';
-    // For step-parent scenario, ensure a parent to marry is selected
-    if (existingParents.length >= 2 && !formData.parentToMarryId) {
-      newErrors.parentToMarryId = 'Please select the parent this person is marrying.';
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -95,8 +89,6 @@ const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], i
 
   const countryOptions = useMemo(() => countryList().getData(), []);
 
-  const parentToMarryOptions = existingParents.map(p => ({ value: p.id, label: p.name }));
-
   return (
     <form onSubmit={handleSubmit} className="premium-form">
 
@@ -105,26 +97,6 @@ const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], i
         <Text variant='heading3' as='p'>Adding a Parent for {childName}</Text>
       </Card>
 
-
-       {existingParents.length >= 2 && (
-        <div className="section-card">
-          <div className="section-header">
-            <Card fitContent margin='0.5rem' className="section-icon"><Users size={20} /></Card>
-            <Text as='p' variant='heading2'>Relationship</Text>
-          </div>
-          <div className="form-group">
-            <label className="form-label">This new parent is the spouse of:*</label>
-            <SelectDropdown
-              value={formData.parentToMarryId}
-              onChange={(e) => handleInputChange('parentToMarryId', e.target.value)}
-              options={parentToMarryOptions}
-              required
-              placeholder="Select an existing parent"
-            />
-            {errors.parentToMarryId && <span className="error-message">{errors.parentToMarryId}</span>}
-          </div>
-        </div>
-      )}
 
       {/* Section 1: Personal Information */}
       <div className="section-card">
@@ -388,11 +360,11 @@ const AddParentForm  = ({ onSubmit, onCancel, childName, existingParents = [], i
           Cancel
         </Button>
         <Button fullWidth type="submit">
-          Add Child
+          Add Parent
         </Button>
       </Row>
     </form>
   );
 };
 
-export default AddParentForm ;
+export default AddParentForm;
