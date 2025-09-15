@@ -112,6 +112,7 @@ function TreeCanvasComponent({ treeId }) {
     };
   }, [reload]);
   const [viewRootId, setViewRootId] = useState(null);
+  const [isManualRoot, setIsManualRoot] = useState(false);
 
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [highlightedPath, setHighlightedPath] = useState({ nodes: [], edges: [] });
@@ -122,6 +123,7 @@ function TreeCanvasComponent({ treeId }) {
   // For spouse/child modals
   const [partnerName, setPartnerName] = useState("");
   const [targetNodeId, setTargetNodeId] = useState(null);
+
 
 
 
@@ -188,6 +190,7 @@ function TreeCanvasComponent({ treeId }) {
 
   const handleSetAsRoot = useCallback((personId) => {
     setViewRootId(personId);
+    setIsManualRoot(true)
     setHighlightedPath({ nodes: [], edges: [] });
     // Also reset people collapse state to expanded on root change
     setPeopleWithCollapseState((current) =>
@@ -195,18 +198,21 @@ function TreeCanvasComponent({ treeId }) {
     );
   }, []);
 
-  const handleResetView = useCallback(() => {
-    if (allPeople.length > 0) {
-      const ultimateRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
-      setViewRootId(ultimateRoot);
-    }
-    setPeopleWithCollapseState((current) =>
-      current.map((p) => ({ ...p, isCollapsed: false }))
-    );
-    setHighlightedPath({ nodes: [], edges: [] });
-    closeMenu();
-    setTimeout(() => fitView({ duration: 800 }), 50);
-  }, [allPeople, allMarriages, fitView, closeMenu]);
+const handleResetView = useCallback(() => {
+  if (allPeople.length > 0) {
+    const ultimateRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
+    setViewRootId(ultimateRoot);
+    setIsManualRoot(false); 
+    setTimeout(() => fitView({ duration: 800 }), 100);
+  }
+
+  setPeopleWithCollapseState((current) =>
+    current.map((p) => ({ ...p, isCollapsed: false }))
+  );
+  setHighlightedPath({ nodes: [], edges: [] });
+  closeMenu();
+}, [allPeople, allMarriages, fitView, closeMenu]);
+
 
   const clearHighlight = useCallback(() => {
     if (highlightedPath.nodes.length || highlightedPath.edges.length) {
@@ -247,12 +253,35 @@ function TreeCanvasComponent({ treeId }) {
 
 
 useEffect(() => {
-  if (!viewRootId && allPeople.length > 0) {
-    const currentTrueRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
-    setViewRootId(currentTrueRoot);
+  if (allPeople.length === 0) return;
+
+  const newTrueRoot = findHighestAncestor(allPeople[0].id, allPeople, allMarriages);
+
+  if (!viewRootId) {
+    // First initialization
+    setViewRootId(newTrueRoot);
+    setIsManualRoot(false); // auto mode
+    setTimeout(() => fitView({ duration: 800 }), 100);
+    return;
+  }
+
+  // If user never set a manual root → always follow the ultimate root
+  if (!isManualRoot && newTrueRoot !== viewRootId) {
+    setViewRootId(newTrueRoot);
+    setTimeout(() => fitView({ duration: 800 }), 100);
+    return;
+  }
+
+  // If the current root was deleted → fallback to ultimate root
+  const currentRootStillExists = allPeople.some(p => p.id === viewRootId);
+  if (!currentRootStillExists && newTrueRoot) {
+    setViewRootId(newTrueRoot);
+    setIsManualRoot(false); // back to auto mode
     setTimeout(() => fitView({ duration: 800 }), 100);
   }
-}, [allPeople, allMarriages, viewRootId, fitView]);
+}, [allPeople, allMarriages, viewRootId, isManualRoot, fitView]);
+
+
 
 
   if (loading || !viewRootId) return <div>Loading family tree…</div>;
