@@ -1,6 +1,7 @@
 // src/controllers/tree/addChild.js
 
 import { createPerson } from "../../models/treeModels/PersonModel";
+import * as storageService from "../../services/storageService";
 import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createMarriage, addChildToMarriage } from "./marriages";
@@ -12,6 +13,16 @@ export async function addChild(treeId, options) {
   try {
     if (!marriageId && !parentId) {
       throw new Error("addChild requires either a marriageId or a parentId to proceed.");
+    }
+
+    let uploadedPhotoUrl = null;
+    if (childData.profilePhoto) {
+      try {
+        const uploaded = await dataService.uploadFile(childData.profilePhoto, "image");
+        uploadedPhotoUrl = uploaded.url;
+      } catch (err) {
+        console.error("Photo upload failed", err);
+      }
     }
 
     // 1. Create child record
@@ -27,7 +38,7 @@ export async function addChild(treeId, options) {
       phoneNumber: childData.phoneNumber,
       nationality: childData.nationality,
       countryOfResidence: childData.countryOfResidence,
-      photoUrl: childData.profilePhoto,
+      photoUrl: uploadedPhotoUrl,
       bio: childData.biography,
       tribe: childData.tribe,
       language: childData.language,

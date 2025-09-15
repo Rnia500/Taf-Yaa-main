@@ -5,8 +5,6 @@ import { handleSpouseAddition } from "./marriages";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createAudioStory } from "./stories";
 
-// Orchestrator function to add a spouse to an existing person in the tree.
-// This function handles validation, file uploads, person creation, and delegates marriage logic.
 export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
     const { onError, confirmConvert, createdBy = "system" } = options;
     try {
@@ -31,7 +29,6 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
                 console.error("Photo upload failed", err);
             }
         }
-
         // --- 3. PERSON "FIND OR CREATE" LOGIC ---
         let newSpouse = await dataService.findPersonByFields?.({
             treeId,
@@ -86,7 +83,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
                     audioFile: newSpouseData.audioFile, // Pass the file directly to the service
                 });
             }
-            
+
         }
 
 

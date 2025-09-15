@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import dataService from '../services/dataService';
+import dataService from '../services/dataService.js';
 import '../styles/FileUpload.css';
 
 function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = 'default' }) {
@@ -14,27 +14,17 @@ function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = '
     setFileName(file.name);
 
     // Image: create immediate preview and try to persist via dataService.uploadFile(image,'image')
+     onChange(file);
+
+    // It can still generate a local preview for the UI without affecting the parent.
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
-      reader.onload = async (e) => {
-        const dataUrl = e.target.result;
-        setFilePreview(dataUrl);
-
-        // attempt to persist image via dataService; if it fails, fall back to dataUrl
-        try {
-          const result = await dataService.uploadFile(file, 'image');
-          // result: { id, url, type }
-          onChange(result.url);
-        } catch (err) {
-          console.error('FileUpload -> uploadImage failed', err);
-          onChange(dataUrl);
-        }
+      reader.onload = (e) => {
+        setFilePreview(e.target.result);
       };
       reader.readAsDataURL(file);
     } else {
       setFilePreview(null);
-      // for non-images, pass the File object up (caller may upload it via uploadFile)
-      onChange(file);
     }
   };
 
@@ -62,7 +52,7 @@ function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = '
         reader.onload = async (ev) => {
           const dataUrl = ev.target.result;
           setFilePreview(dataUrl);
-          try {
+      try {
             const result = await dataService.uploadFile(file, 'image');
             onChange(result.url);
           } catch (err) {
