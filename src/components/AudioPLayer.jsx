@@ -27,7 +27,9 @@ export default function AudioPlayer({ audioURL, isActive, onActivate }) {
     });
 
     return () => {
-      waveSurferRef.current.destroy();
+      if (waveSurferRef.current) {
+        waveSurferRef.current.destroy();
+      }
     };
   }, [audioURL]);
 

@@ -99,7 +99,7 @@ const AddChildForm = ({ onSubmit, onCancel, parent1Name, parent2Name, wives = []
   const countryOptions = useMemo(() => countryList().getData(), []);
 
   return (
-    <form onSubmit={handleSubmit} className="premium-form">
+    <form onSubmit={handleSubmit} className="form">
 
       {/* Display the parents' names at the top of the form */}
       <Card margin='0px 0px 20px 0px' >

@@ -1,11 +1,12 @@
 // The complete, corrected file: src/controllers/tree/stories.js
 
-import * as dataService from "../../services/dataService";
+import dataService from "../../services/dataService";
 import { createStory } from "../../models/treeModels/StoryModel";
-import { storageService } from "../../services/storageService";
+
 
 
  
+
 export async function addStory(params) {
   console.log("DBG:stories.addStory ->", params);
 
@@ -32,7 +33,7 @@ export async function getStoriesByPerson(personId) {
 
 
 export async function createAudioStory(params) {
-  const { treeId, personId, addedBy, storyTitle, language, audioFile } = params;
+  const { treeId, personId, addedBy, storyTitle, language, audioFile, subtitle, tags } = params;
   let audioUrl = null;
 
   if (audioFile) {
@@ -47,7 +48,7 @@ export async function createAudioStory(params) {
 
   if (!storyTitle && !audioUrl) return null;
 
-  return addStory({
+  const saved = await addStory({
     treeId,
     personId,
     addedBy,
@@ -55,5 +56,14 @@ export async function createAudioStory(params) {
     type: "audio",
     language: language || null,
     audioUrl,
+    text: subtitle || null,
+    tags: Array.isArray(tags) && tags.length ? tags : undefined,
   });
+
+  try {
+    // Inform listeners that stories changed (so UI can reload)
+    window.dispatchEvent(new Event('familyDataChanged'));
+  } catch {}
+
+  return saved;
 }

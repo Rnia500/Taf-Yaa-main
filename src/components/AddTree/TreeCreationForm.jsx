@@ -94,7 +94,7 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
   const countryOptions = useMemo(() => countryList().getData(), []);
 
   return (
-    <form onSubmit={handleSubmit} className="premium-form">
+    <form onSubmit={handleSubmit} className="form">
 
       {/* Section 1: Tree Information */}
       <div className="section-card">

@@ -45,16 +45,102 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
     setLoading(true);
     setError(null);
     try {
-      // Assuming dataService has updatePerson method
-      await dataService.updatePerson(personId, updatedData.person);
-      // Similarly update marriages, events, stories if needed
+      const {
+        fullName,
+        gender,
+        dateOfBirth,
+        isDeceased,
+        phoneNumber,
+        email,
+        dateOfDeath,
+        placeOfBirth,
+        placeOfDeath,
+        nationality,
+        countryOfResidence,
+        profilePhoto,
+        biography,
+        tribe,
+        language,
+        privacyLevel,
+        allowGlobalMatching,
+        photos,
+        stories,
+      } = updatedData;
+
+      const updates = {
+        name: fullName || '',
+        gender: gender || null,
+        dob: dateOfBirth || null,
+        isDeceased: !!isDeceased,
+        phoneNumber: phoneNumber || null,
+        email: email || null,
+        dod: dateOfDeath || null,
+        placeOfBirth: placeOfBirth || null,
+        placeOfDeath: placeOfDeath || null,
+        nationality: nationality || null,
+        countryOfResidence: countryOfResidence || null,
+        bio: biography || '',
+        tribe: tribe || null,
+        language: language || null,
+        privacyLevel: privacyLevel || 'membersOnly',
+        allowGlobalMatching: !!allowGlobalMatching,
+      };
+
+      // Upload profile photo if a File was provided
+      if (profilePhoto instanceof File) {
+        try {
+          const uploaded = await dataService.uploadFile(profilePhoto, 'image');
+          updates.photoUrl = uploaded.url;
+        } catch (e) {
+          console.warn('Profile photo upload failed, keeping existing photoUrl', e);
+        }
+      }
+
+      // Normalize photos: upload any new files and keep existing urls
+      if (Array.isArray(photos)) {
+        const normalized = [];
+        for (const p of photos) {
+          if (p?.file instanceof File) {
+            try {
+              const uploaded = await dataService.uploadFile(p.file, 'image');
+              normalized.push({ url: uploaded.url, alt: p.alt || updatedData.fullName || 'Photo' });
+            } catch (e) {
+              console.warn('Photo upload failed for one item', e);
+            }
+          } else if (p?.url) {
+            normalized.push({ url: p.url, alt: p.alt || updatedData.fullName || 'Photo' });
+          }
+        }
+        updates.photos = normalized;
+      }
+
+      // Persist story deletions (compare initial stories vs submitted stories)
+      try {
+        const originalStories = Array.isArray(formData?.stories) ? formData.stories : [];
+        const submittedStories = Array.isArray(stories) ? stories : [];
+        const originalIds = new Set(originalStories.map(s => s?.storyId).filter(Boolean));
+        const submittedIds = new Set(submittedStories.map(s => s?.storyId).filter(Boolean));
+        const toDelete = [...originalIds].filter(id => !submittedIds.has(id));
+
+        for (const storyId of toDelete) {
+          try {
+            await dataService.deleteStory(storyId);
+          } catch (e) {
+            console.warn('Failed to delete story', storyId, e);
+          }
+        }
+      } catch (e) {
+        console.warn('Story deletion diff failed', e);
+      }
+
+      await dataService.updatePerson(personId, updates);
 
       addToast("Person updated successfully!", "success");
-      onSuccess && onSuccess(updatedData.person);
+      onSuccess && onSuccess(updates);
       closeModal("editPerson");
 
       if (typeof window !== 'undefined' && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('familyTreeDataUpdated', {
+        window.dispatchEvent(new CustomEvent('familyDataChanged', {
           detail: { updatedPersonId: personId }
         }));
       }

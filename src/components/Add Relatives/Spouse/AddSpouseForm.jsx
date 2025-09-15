@@ -113,7 +113,7 @@ const AddSpouseForm = ({ onSubmit, onCancel, husbandName, isFirstSpouse = false,
   const countryOptions = useMemo(() => countryList().getData(), []);
 
   return (
-    <form onSubmit={handleSubmit} className="premium-form">
+    <form onSubmit={handleSubmit} className="form">
 
       {/* Display the husband's name at the top of the form */}
       {husbandName && (

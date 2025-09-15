@@ -11,7 +11,8 @@ const useModalStore = create((set) => ({
     addChildModal: false,
     addParentModal: false,
     addTreeModal: false,
-    confirmationModal: false,  
+    confirmationModal: false,
+    editPerson: false,  // Added editPerson modal
   },
   
   // Modal data
@@ -24,13 +25,16 @@ const useModalStore = create((set) => ({
       parent1Id: null,
       parent2Id: null
     },
-    confirmationModal: {        // <-- add this
+    confirmationModal: {
       title: '',
       message: '',
       onConfirm: null,
     },
     addTree: {
       userId: null,
+    },
+    editPerson: {  // Added editPerson modal data
+      personId: null,
     }
   },
   
@@ -60,7 +64,8 @@ const useModalStore = create((set) => ({
       addChildModal: false,
       addParentModal: false,
       addTreeModal: false,
-      confirmationModal: false
+      confirmationModal: false,
+      editPerson: false  // Added editPerson to closeAllModals
     }
   }),
 }));

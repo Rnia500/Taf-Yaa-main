@@ -22,28 +22,39 @@ export default function useAudioRecorder() {
   }, []);
 
   const startRecording = useCallback(async () => {
-    const hasMic = await requestMic();
-    if (!hasMic) return;
+    try {
+      const hasMic = await requestMic();
+      if (!hasMic) return;
 
-    audioChunks.current = [];
-    const recorder = new MediaRecorder(streamRef.current);
-
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        audioChunks.current.push(e.data);
+      // Check if MediaRecorder is supported
+      if (!window.MediaRecorder) {
+        setError('Audio recording not supported in this browser');
+        return;
       }
-    };
 
-    recorder.onstop = () => {
-      const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
-      const url = URL.createObjectURL(blob);
-      setAudioURL(url);
-      setStatus('stopped');
-    };
+      audioChunks.current = [];
+      const recorder = new MediaRecorder(streamRef.current);
 
-    recorder.start();
-    mediaRecorderRef.current = recorder;
-    setStatus('recording');
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setAudioURL(url);
+        setStatus('stopped');
+      };
+
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setStatus('recording');
+    } catch (err) {
+      console.error('Recording failed:', err);
+      setError('Failed to start recording');
+    }
   }, [requestMic]);
 
   const pauseRecording = () => {

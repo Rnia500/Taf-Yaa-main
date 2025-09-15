@@ -11,7 +11,7 @@
  */
 export function validateAudioFile(file, options = {}) {
   const {
-    allowedTypes = ["audio/mpeg", "audio/wav", "audio/mp4", "audio/ogg"],
+    allowedTypes = ["audio/mpeg", "audio/wav", "audio/mp4", "audio/ogg", "audio/webm"],
     maxSizeMB = 50,
   } = options;
 

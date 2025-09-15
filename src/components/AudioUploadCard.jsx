@@ -10,6 +10,7 @@ import { CheckCircle, X } from 'lucide-react';
 import '../styles/AudioUploadCard.css';
 
 import dataService from '../services/dataService';
+import { validateAudioFile } from '../utils/featuresUtils/audioValidator.js';
 
 function AudioUploadCard({ onAudioUpload, storyTitle }) {
   const [audioFile, setAudioFile] = useState(null);
@@ -18,13 +19,19 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
   const [audioPreview, setAudioPreview] = useState(null);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [validationError, setValidationError] = useState(null);
 
   // Called by FileUpload (onChange). The FileUpload will pass the File object for non-image files.
   const handleFileUpload = async (file) => {
     if (!file) return;
-    if (!file.type || !file.type.startsWith('audio/')) {
+
+    const validation = validateAudioFile(file, { maxSizeMB: 5 }); // cap max size to 5MB for localStorage safety
+    if (!validation.valid) {
+      setValidationError(validation.error);
       setUploadStatus('error');
       return;
+    } else {
+      setValidationError(null);
     }
 
     setAudioFile(file);
@@ -57,7 +64,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
   };
 
   const handleRemoveAudio = () => {
-    if (audioPreview && typeof audioPreview === 'object' && audioPreview.startsWith === undefined) {
+    if (audioPreview && typeof audioPreview === 'string' && audioPreview.startsWith('blob:')) {
       // revoke object URL only if we created it
       try { URL.revokeObjectURL(audioPreview); } catch {}
     }
@@ -67,6 +74,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
     setIsPlaying(false);
     setDuration(0);
     setCurrentTime(0);
+    setValidationError(null);
   };
 
   const formatFileSize = (bytes) => {
@@ -179,7 +187,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
             {uploadStatus === 'error' && (
               <div className="audio-upload-card__status audio-upload-card__status--error">
                 <X size={16} />
-                <Text variant="caption2">Upload failed. Please try again.</Text>
+                <Text variant="caption2">{validationError || 'Upload failed. Please try again.'}</Text>
               </div>
             )}
           </Card>
@@ -190,7 +198,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
             Supported formats: MP3, WAV, M4A, OGG
           </Text>
           <Text variant="caption2" color="var(--color-gray)">
-            Max file size: 50MB
+            Max file size: 5MB
           </Text>
         </div>
       </Column>

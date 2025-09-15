@@ -164,6 +164,7 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true }) => {
                   backgroundColor='var(--color-white)'
                   key={event.id}
                   width='240px'
+                  height='100px'
                   margin="0.4rem"
                   style={{ cursor: 'pointer' }}
                   onClick={() => handleSelectEventForEdit(event)}

@@ -81,7 +81,6 @@ export const getCountryLabel = (countryCode?: string | null): string => {
 };
 
 
-// src/models/people.ts
 export function createPerson(input: Partial<Person>): Person {
   const id = input.id || generateId("person");
   return {

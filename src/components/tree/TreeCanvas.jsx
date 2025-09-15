@@ -101,14 +101,16 @@ function TreeCanvasComponent({ treeId }) {
   const [peopleWithCollapseState, setPeopleWithCollapseState] =
     useState(allPeople);
 
-  // Listen for familyTreeDataUpdated event to reload data
+  // Listen for family data change events to reload data
   useEffect(() => {
     const handleDataUpdate = () => {
       reload();
     };
     window.addEventListener('familyTreeDataUpdated', handleDataUpdate);
+    window.addEventListener('familyDataChanged', handleDataUpdate);
     return () => {
       window.removeEventListener('familyTreeDataUpdated', handleDataUpdate);
+      window.removeEventListener('familyDataChanged', handleDataUpdate);
     };
   }, [reload]);
   const [viewRootId, setViewRootId] = useState(null);
@@ -123,9 +125,6 @@ function TreeCanvasComponent({ treeId }) {
   // For spouse/child modals
   const [partnerName, setPartnerName] = useState("");
   const [targetNodeId, setTargetNodeId] = useState(null);
-
-
-
 
   // ---- Handlers ----
   const handleToggleCollapse = useCallback((personId) => {
@@ -344,12 +343,15 @@ useEffect(() => {
         setTargetNodeId(null);
       }} />
 
+      {/* Remove direct rendering of EditPersonModal to avoid duplicate modals */}
+      {/*
       <EditPersonModal
         personId={targetNodeId}
         onClose={() => {
           setTargetNodeId(null);
         }}
       />
+      */}
 
       {/* Reset button */}
       <Button

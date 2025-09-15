@@ -1,6 +1,6 @@
 // src/services/storageService.js
 import { getDB, saveDB } from "./data/localDB.js";
-import { generateId } from "../utils/personUtils/idGenerator";
+import { generateId } from "../utils/personUtils/idGenerator.js";
 
 const USE_LOCAL = true;
 

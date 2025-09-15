@@ -13,11 +13,14 @@ import PhotoMemorySection from './ProfileSidebarComponents/PhotoMemorySection';
 import RecordModal from './RecordModal/RecordModal'
 import AddEditEvent from '../AddEditEvent';
 import useSidebarStore from '../../store/useSidebarStore';
+import useModalStore from '../../store/useModalStore';
 import dataService from '../../services/dataService';
 import Row from '../../layout/containers/Row';
 import Button from '../Button';
 import Spacer from '../Spacer';
 import { getPrivacyLabel, getCountryLabel } from '../../models/treeModels/PersonModel';
+import { useParams } from 'react-router-dom';
+import PhotoUploadModal from './PhotoUploadModal';
 
 export default function ProfileSidebar() {
   const [profileData, setProfileData] = useState({});
@@ -31,7 +34,11 @@ export default function ProfileSidebar() {
   const [photos, setPhotos] = useState([]);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isAddEditEventModalOpen, setIsAddEditEventModalOpen] = useState(false);
+  const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
+  const [currentTreeId, setCurrentTreeId] = useState("t1");
   const { activeProfileId, closeSidebar } = useSidebarStore();
+  const { openModal } = useModalStore();
+  const { treeId } = useParams();
 
 
   const handleRecordAudio = () => {
@@ -48,6 +55,10 @@ export default function ProfileSidebar() {
 
   const handleCloseAddEditEventModal = () => {
     setIsAddEditEventModalOpen(false);
+  };
+
+  const handleEditPerson = () => {
+    openModal('editPerson', { personId: activeProfileId });
   };
 
 
@@ -248,9 +259,14 @@ export default function ProfileSidebar() {
       if (!mounted) return;
       setAudioStories(personStories || []);
 
-      // Photos - include person's photo
+      // Photos - include person's photo and persisted photos
       const personPhotos = [];
       if (person.photoUrl) personPhotos.push({ url: person.photoUrl, alt: person.name });
+      if (Array.isArray(person.photos)) {
+        person.photos.forEach(p => {
+          if (p?.url) personPhotos.push({ url: p.url, alt: p.alt || person.name });
+        });
+      }
       setPhotos(personPhotos);
     }
 
@@ -311,24 +327,35 @@ export default function ProfileSidebar() {
       <RecordModal
         isOpen={isRecordModalOpen}
         onClose={() => setIsRecordModalOpen(false)}
+        personId={activeProfileId}
+        treeId={treeId} // pass actual tree id
       />
 
-      <PhotoMemorySection photos={photos} onUpload={() => {}} />
+      <PhotoMemorySection photos={photos} onUpload={() => setIsPhotoUploadOpen(true)} />
       <Spacer size='md' />
+
+      <PhotoUploadModal
+        isOpen={isPhotoUploadOpen}
+        onClose={() => setIsPhotoUploadOpen(false)}
+        personId={activeProfileId}
+      />
 
 
       <Spacer size='lg'/>
       <Row padding='0px' margin='0px'>
-        <Button fullWidth variant='secondary'>Edit </Button>
+        <Button fullWidth variant='secondary' onClick={handleEditPerson}>Edit </Button>
         <Button fullWidth variant='danger'>Delete </Button>
       </Row>
 
+      {/* Temporarily hide AddEditEvent modal to avoid double modal issue */}
+      {/*
       <AddEditEvent
         isOpen={isAddEditEventModalOpen}
         onClose={handleCloseAddEditEventModal}
         events={timelineEvents}
         onEventsChange={handleEventsChange}
       />
+      */}
     </FlexContainer>
   );
 }

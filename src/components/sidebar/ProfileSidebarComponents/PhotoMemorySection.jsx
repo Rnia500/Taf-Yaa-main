@@ -8,10 +8,13 @@ import Button from '../../Button';
 import { Camera } from 'lucide-react';
 
 
-function PhotoMemorySection({ photos = [], onUpload }) {
+function PhotoMemorySection({ photos = [], size = '80px', isSideBar = true, onSelect, onUpload }) {
+
+  const bgColor = isSideBar ? "var(--color-background)" : "var(--color-transparent)"
+
   return (
-    <Card alignItems="start" padding="0rem" backgroundColor="var(--color-background)">
-      <Text variant="heading3">Photos & Memories</Text>
+    <Card alignItems="start" padding="0rem" backgroundColor={bgColor}>
+      {isSideBar && <Text variant="heading3">Photos & Memories</Text>}
 
       <Spacer size="md" />
 
@@ -21,22 +24,34 @@ function PhotoMemorySection({ photos = [], onUpload }) {
         )}
         <Row gap="0.25rem" padding="0.5rem" width="max-content" justifyContent="start" alignItems="center" style={{ overflowY: 'hidden' }}>
           {photos.map((photo, index) => (
-            <ImageCard
-              key={index}
-              borderRadius="6px"
-              image={photo.url}
-              size="80px"
-              alt={photo.alt || `Photo ${index + 1}`}
-            />
+            isSideBar ?
+              <ImageCard
+                key={index}
+                borderRadius="6px"
+                image={photo.url}
+                size={size}
+                alt={photo.alt || `Photo ${index + 1}`}
+              />
+              : <Card backgroundColor='var(--color-transparent)' fitContent padding='0px' margin='0px' onClick={onSelect}>
+                <ImageCard
+                  key={index}
+                  borderRadius="6px"
+                  image={photo.url}
+                  size={size}
+                  alt={photo.alt || `Photo ${index + 1}`}
+                />
+              </Card>
+
           ))}
         </Row>
       </Card>
 
       <Spacer size="sm" />
 
-      <Button variant="primary" fullWidth onClick={onUpload}>
+      {isSideBar && <Button variant="primary" fullWidth onClick={onUpload}>
         <Camera size={20} />Upload Photo
       </Button>
+      }
     </Card>
   );
 }

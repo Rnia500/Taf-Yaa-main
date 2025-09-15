@@ -9,7 +9,7 @@ import Button from '../../Button';
 import WaveformPlayer from '../../WaveformPlayer';
 import AudioPlayer from '../../AudioPLayer';
 
-function AudioStory({ stories = [], onRecord, onTranscribe }) {
+function AudioStory({ stories = [], onRecord, onTranscribe, isSideBar = true, showRecordButton = true, selectedIndex = null, onSelect = () => {} }) {
   const [activeIndex, setActiveIndex] = useState(null);
   const [durations, setDurations] = useState({});
   const [times, setTimes] = useState({});
@@ -27,11 +27,12 @@ function AudioStory({ stories = [], onRecord, onTranscribe }) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
+    const bgColor = isSideBar ? "var(--color-background)" : "var(--color-transparent)"
 
 
   return (
-    <Card alignItems='start' padding='0rem' backgroundColor="var(--color-background)">
-      <Text variant='heading3'>Audio Story</Text>
+    <Card alignItems='start' padding='0rem' backgroundColor={bgColor}>
+      {isSideBar && <Text variant='heading3'>Audio Story</Text>}
       <Spacer size='md' />
 
       <Card alignItems='flex-start' scrolling="horizontal" padding="0px 0px 0px 10px" margin='0px' backgroundColor="var(--color-transparent)" width='100%'>
@@ -49,19 +50,22 @@ function AudioStory({ stories = [], onRecord, onTranscribe }) {
               height='90px'
               padding='8px 8px 0px 8px'
               width='270px'
-              margin='0px'
+              margin='8px'
+              onClick={() => onSelect(index)}
+              style={selectedIndex === index ? { outline: '2px solid var(--color-primary)' } : undefined}
             >
               {/* Top Row */}
               <Row padding='0px' width='100%' gap='0.5rem' justifyContent='space-between' fitContent alignItems='center'>
                 <Row padding='0px' gap='0.5rem' alignItems='center' fitContent>
-                  <ImageCard borderRadius='10px' image={story.thumbnail} size="55px" />
+                  {/* Optional thumbnail placeholder to keep layout consistent */}
+                  <ImageCard borderRadius='10px' image={story.thumbnail || ''} size="55px" />
                   <Column alignItems='start' gap='0px' padding='0px' >
-                    <Text ellipsis variant='body1' bold>{story.title}</Text>
-                    <Text as='p' ellipsis variant='caption1'>{story.subTitle || 'Oral History Recording'}</Text>
+                    <Text ellipsis variant='body1' bold>{story.title || 'Oral History'}</Text>
+                    <Text as='p' ellipsis variant='caption1'>{story.text || 'Oral History Recording'}</Text>
                   </Column>
                 </Row>
                 <AudioPlayer
-                  audioURL={story.audioURL}
+                  audioURL={story.audioUrl}
                   isActive={activeIndex === index}
                   onActivate={() => handleActivate(index)}
                 />
@@ -77,7 +81,7 @@ function AudioStory({ stories = [], onRecord, onTranscribe }) {
                   backgroundColor="var(--color-transparent)"
                 >
                   <WaveformPlayer
-                    audioUrl={story.audioURL}
+                    audioUrl={story.audioUrl}
                     isPlaying={activeIndex === index}
                     onTogglePlay={(playing) => {
                       if (playing) setActiveIndex(index);
@@ -109,14 +113,16 @@ function AudioStory({ stories = [], onRecord, onTranscribe }) {
       </Card>
 
       <Spacer size='sm' />
-      <Row gap='1rem' padding='0.5rem'>
-        <Button variant='primary' fullWidth onClick={onRecord}>
-          Record
-        </Button>
-        {/* <Button variant='primary' fullWidth onClick={onTranscribe}>
-          Transcribe
-        </Button> */}
-      </Row>
+      {showRecordButton && (
+        <Row gap='1rem' padding='0.5rem'>
+          <Button variant='primary' fullWidth onClick={onRecord}>
+            Record
+          </Button>
+          {/* <Button variant='primary' fullWidth onClick={onTranscribe}>
+            Transcribe
+          </Button> */}
+        </Row>
+      )}
     </Card>
   );
 }
