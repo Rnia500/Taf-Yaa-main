@@ -1,6 +1,7 @@
 // src/components/PersonMenu.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
+import useModalStore from '../store/useModalStore';
 import dataService from '../services/dataService';
 import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight } from 'lucide-react';
 import '../styles/PersonMenu.css';
@@ -79,6 +80,15 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
       cancelled = true;
     };
   }, [isOpen, targetNodeId, targetPerson]);
+
+  const { openModal } = useModalStore();
+
+  const onDelete = () => {
+    const person = targetPerson || { id: targetNodeId, name: targetPerson?.name };
+    openModal('deletePerson', { person });
+    actions.closeMenu();
+    setShowSubmenu(false);
+  };
 
   if (!isOpen) return null;
 
@@ -182,6 +192,10 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
           <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
             <UserRoundPen size={15} />
             <span className="person-menu-text">Edit Person</span>
+          </button>
+          <button className="person-menu-item" onClick={onDelete}>
+            <User size={15} />
+            <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
           </button>
         </div>
       </div>

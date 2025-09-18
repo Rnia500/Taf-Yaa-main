@@ -1,4 +1,4 @@
-// src/models/eventModel.ts
+﻿// src/models/eventModel.ts
 import { generateId } from "../../utils/personUtils/idGenerator"; 
 
 export interface Event {
@@ -13,6 +13,13 @@ export interface Event {
   location?: string;
   createdAt: string;
   updatedAt: string;
+  // Deletion metadata for soft/cascade delete with undo
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletionMode?: "soft" | "cascade";
+  pendingDeletion?: boolean;
+  undoExpiresAt?: string;
+  deletionBatchId?: string;
 }
 
 export type EventType =

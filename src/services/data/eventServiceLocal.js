@@ -1,4 +1,4 @@
-// src/services/data/eventServiceLocal.js
+﻿// src/services/data/eventServiceLocal.js
 
 // 1. Import the database manager, not the DB itself.
 import { getDB, saveDB } from "./localDB.js";
@@ -51,12 +51,19 @@ function deleteEvent(eventId) {
 
 function getAllEvents() {
   const db = getDB();
-  return Promise.resolve([...(db.events || [])]);
+  // Filter out deleted events
+  const events = (db.events || []).filter(e => !e.isDeleted);
+  return Promise.resolve(events);
 }
 
 function getEventsByPersonId(personId) {
   const db = getDB();
-  const evts = (db.events || []).filter(e => Array.isArray(e.personIds) && e.personIds.includes(personId));
+  // Filter out deleted events and only return events involving this person
+  const evts = (db.events || []).filter(e => 
+    !e.isDeleted && 
+    Array.isArray(e.personIds) && 
+    e.personIds.includes(personId)
+  );
   return Promise.resolve(evts);
 }
 
@@ -64,10 +71,80 @@ function findEventsByTitle(query) {
   const db = getDB();
   if (!query) return Promise.resolve([]);
   const q = String(query).trim().toLowerCase();
-  const results = (db.events || []).filter(e => (e.title || '').toLowerCase().includes(q));
+  // Filter out deleted events
+  const results = (db.events || []).filter(e => 
+    !e.isDeleted && 
+    (e.title || '').toLowerCase().includes(q)
+  );
   return Promise.resolve(results);
 }
 
+// Mark events as deleted for a person (used during person deletion)
+function markEventsForPersonDeleted(personId, batchId, undoExpiresAt) {
+  const db = getDB();
+  const now = new Date().toISOString();
+  let markedCount = 0;
+
+  for (const event of db.events || []) {
+    if (Array.isArray(event.personIds) && event.personIds.includes(personId)) {
+      event.isDeleted = true;
+      event.deletedAt = now;
+      event.deletionMode = "cascade";
+      event.pendingDeletion = true;
+      event.undoExpiresAt = undoExpiresAt;
+      event.deletionBatchId = batchId;
+      markedCount++;
+    }
+  }
+
+  saveDB();
+  console.log(`DBG:eventServiceLocal.markEventsForPersonDeleted -> marked ${markedCount} events for person ${personId}`);
+  return Promise.resolve({ markedCount });
+}
+
+// Undo deletion for events in a batch
+function undoEventsDeletion(batchId) {
+  const db = getDB();
+  let restoredCount = 0;
+
+  for (const event of db.events || []) {
+    if (event.deletionBatchId === batchId && event.pendingDeletion) {
+      delete event.isDeleted;
+      delete event.deletedAt;
+      delete event.deletionMode;
+      delete event.pendingDeletion;
+      delete event.undoExpiresAt;
+      delete event.deletionBatchId;
+      restoredCount++;
+    }
+  }
+
+  saveDB();
+  console.log(`DBG:eventServiceLocal.undoEventsDeletion -> restored ${restoredCount} events for batch ${batchId}`);
+  return Promise.resolve({ restoredCount });
+}
+
+// Permanently remove expired deleted events
+function purgeExpiredDeletedEvents() {
+  const db = getDB();
+  const now = new Date();
+  let removedCount = 0;
+
+  db.events = (db.events || []).filter(event => {
+    if (event.pendingDeletion && event.undoExpiresAt) {
+      const isExpired = new Date(event.undoExpiresAt) < now;
+      if (isExpired) {
+        removedCount++;
+        return false; // Remove from array
+      }
+    }
+    return true; // Keep in array
+  });
+
+  saveDB();
+  console.log(`DBG:eventServiceLocal.purgeExpiredDeletedEvents -> removed ${removedCount} expired events`);
+  return Promise.resolve({ removedCount });
+}
 
 // Export all the functions in a single, coherent service object.
 export const eventServiceLocal = {
@@ -78,4 +155,7 @@ export const eventServiceLocal = {
   getAllEvents,
   getEventsByPersonId,
   findEventsByTitle,
+  markEventsForPersonDeleted,
+  undoEventsDeletion,
+  purgeExpiredDeletedEvents,
 };

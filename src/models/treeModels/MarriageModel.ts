@@ -1,4 +1,4 @@
-// src/models/marriage.ts
+﻿// src/models/marriage.ts
 
 import { generateId } from "../../utils/personUtils/idGenerator";
 
@@ -30,6 +30,13 @@ export interface MonogamousMarriage {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  // Deletion metadata for cascade delete with undo
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletionMode?: "cascade";
+  pendingDeletion?: boolean;
+  undoExpiresAt?: string;
+  deletionBatchId?: string;
 }
 
 export interface PolygamousMarriage {
@@ -41,6 +48,13 @@ export interface PolygamousMarriage {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  // Deletion metadata for cascade delete with undo
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletionMode?: "cascade";
+  pendingDeletion?: boolean;
+  undoExpiresAt?: string;
+  deletionBatchId?: string;
 }
 
 export type Marriage = MonogamousMarriage | PolygamousMarriage;
@@ -60,6 +74,13 @@ export class MarriageModel {
             createdBy,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            // Deletion metadata defaults
+            isDeleted: false,
+            deletedAt: undefined,
+            deletionMode: undefined,
+            pendingDeletion: false,
+            undoExpiresAt: undefined,
+            deletionBatchId: undefined,
           }
         : {
             id: generateId("marriage"),
@@ -70,6 +91,13 @@ export class MarriageModel {
             createdBy,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            // Deletion metadata defaults
+            isDeleted: false,
+            deletedAt: undefined,
+            deletionMode: undefined,
+            pendingDeletion: false,
+            undoExpiresAt: undefined,
+            deletionBatchId: undefined,
           };
   }
 

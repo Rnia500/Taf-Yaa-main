@@ -6,6 +6,7 @@ const Column = ({
   children,
   gap = '1rem',
   padding = '1rem',
+  margin = '0px',
   wrap = true,
   width = '100%',
   height = 'auto',
@@ -20,6 +21,7 @@ const Column = ({
       style={{
         gap,
         padding,
+        margin,
         width,
         height,
         flexWrap: wrap ? 'wrap' : 'nowrap',

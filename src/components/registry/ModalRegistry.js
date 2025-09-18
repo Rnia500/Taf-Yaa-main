@@ -5,6 +5,7 @@ import AddParentModal from "../Add Relatives/Parent/AddParentModal";
 import AddTreeModal from "../AddTree/AddTreeModal";
 import ConfirmationModal from "../modals/ConfirmationModal";
 import EditPersonModal from "../Edit Person/EditPersonModal";
+import DeletePersonModal from "../modals/DeletePersonModal";
 
 export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
@@ -13,4 +14,5 @@ export const modalRegistry = {
   addTreeModal: AddTreeModal,
   confirmationModal: ConfirmationModal,
   editPerson: EditPersonModal,
+  deletePerson: DeletePersonModal,
 };

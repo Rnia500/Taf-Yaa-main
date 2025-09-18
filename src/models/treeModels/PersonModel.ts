@@ -1,4 +1,4 @@
-// src/models/people.ts
+﻿// src/models/people.ts
 import { generateId } from "../../utils/personUtils/idGenerator"; 
 export interface Person {
   id: string;  
@@ -23,6 +23,13 @@ export interface Person {
   allowGlobalMatching?: boolean;
   privacyLevel: "public" | "membersOnly" | "authenticated" | "private";
   isPlaceholder?: boolean;      
+  // Deletion metadata for soft/cascade delete with undo
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletionMode?: "soft" | "cascade";
+  pendingDeletion?: boolean;
+  undoExpiresAt?: string;
+  deletionBatchId?: string;
   createdAt: string;            
   updatedAt: string;            
 }
@@ -106,6 +113,13 @@ export function createPerson(input: Partial<Person>): Person {
     allowGlobalMatching: input.allowGlobalMatching ?? true,
     privacyLevel: input.privacyLevel || "membersOnly",
     isPlaceholder: input.isPlaceholder || false,
+    // Deletion metadata defaults
+    isDeleted: input.isDeleted || false,
+    deletedAt: input.deletedAt || undefined,
+    deletionMode: input.deletionMode || undefined,
+    pendingDeletion: input.pendingDeletion || false,
+    undoExpiresAt: input.undoExpiresAt || undefined,
+    deletionBatchId: input.deletionBatchId || undefined,
     createdAt: input.createdAt || new Date().toISOString(),
     updatedAt: input.updatedAt || new Date().toISOString(),
   };

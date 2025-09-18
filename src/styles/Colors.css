@@ -21,6 +21,7 @@
 
   /* Danger, Default & Info */
   --color-danger: #ef4444;
+  --color-danger-light: #f7caca;
   --color-success: #22c55e;
   --color-danger-hover: #dc2626;
   --color-warning1: #FFB732;

@@ -1,4 +1,4 @@
-import { generateId } from "../../utils/personUtils/idGenerator";
+﻿import { generateId } from "../../utils/personUtils/idGenerator";
 
 export interface Story {
   storyId: string;
@@ -11,6 +11,13 @@ export interface Story {
   addedBy: string;
   timestamp: string;  // ISO string
   tags?: string[];
+  // Deletion metadata for soft/cascade delete with undo
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletionMode?: "soft" | "cascade";
+  pendingDeletion?: boolean;
+  undoExpiresAt?: string;
+  deletionBatchId?: string;
 }
 
 // --- Helpers ---

@@ -13,6 +13,7 @@ const useModalStore = create((set) => ({
     addTreeModal: false,
     confirmationModal: false,
     editPerson: false,  // Added editPerson modal
+    deletePerson: false,
   },
   
   // Modal data
@@ -35,6 +36,14 @@ const useModalStore = create((set) => ({
     },
     editPerson: {  // Added editPerson modal data
       personId: null,
+    },
+    deletePerson: {
+      person: null,
+      onDeleteComplete: null,
+    },
+    deletePerson: {
+      person: null,
+      onDeleteComplete: null,
     }
   },
   
@@ -65,7 +74,8 @@ const useModalStore = create((set) => ({
       addParentModal: false,
       addTreeModal: false,
       confirmationModal: false,
-      editPerson: false  // Added editPerson to closeAllModals
+      editPerson: false,  // Added editPerson to closeAllModals
+      deletePerson: false,
     }
   }),
 }));

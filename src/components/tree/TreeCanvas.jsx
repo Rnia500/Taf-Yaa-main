@@ -343,15 +343,7 @@ useEffect(() => {
         setTargetNodeId(null);
       }} />
 
-      {/* Remove direct rendering of EditPersonModal to avoid duplicate modals */}
-      {/*
-      <EditPersonModal
-        personId={targetNodeId}
-        onClose={() => {
-          setTargetNodeId(null);
-        }}
-      />
-      */}
+
 
       {/* Reset button */}
       <Button
