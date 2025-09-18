@@ -31,6 +31,12 @@ const gradients = {
       <stop offset="1" stopColor="#F3EDE0" />
     </linearGradient>
   ),
+  placeholder: (
+    <linearGradient id="placeholderGradientHorizontal" x1="-22.0664" y1="46.75" x2="223.603" y2="46.75" gradientUnits="userSpaceOnUse">
+      <stop stopColor="#d1d5db" />
+      <stop offset="1" stopColor="#f9fafb" />
+    </linearGradient>
+  ),
 };
 
 const gradientIds = {
@@ -39,6 +45,7 @@ const gradientIds = {
   spouse: "spouseGradientHorizontal",
   dead: "deadGradientHorizontal",
   default: "defaultGradientHorizontal",
+  placeholder: "placeholderGradientHorizontal",
 };
 
 const PersonCardHorizontalSVG = ({ children, style, variant = "default", width = 170, ...props }) => {

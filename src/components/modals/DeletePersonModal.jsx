@@ -9,6 +9,7 @@ import Column from '../../layout/containers/Column'
 import { TextInput } from '../../components/Input';
 import { personServiceLocal } from '../../services/data/personServiceLocal';
 import useToastStore from '../../store/useToastStore';
+import UndoCountdown from '../UndoCountdown';
 
 const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
   const [mode, setMode] = useState('soft');
@@ -16,6 +17,7 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
   const [confirmationText, setConfirmationText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [deletionInfo, setDeletionInfo] = useState(null);
   const addToast = useToastStore(state => state.addToast);
 
   useEffect(() => {
@@ -43,6 +45,16 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
     setIsLoading(true);
     try {
       const result = await personServiceLocal.deletePerson(person.id, mode, { undoWindowDays: 30 });
+      
+      // Set deletion info for undo countdown
+      setDeletionInfo({
+        personId: person.id,
+        mode: mode,
+        undoExpiresAt: result.undoExpiresAt,
+        affectedCount: mode === 'cascade' ? result.deletedIds?.length || 0 : 1,
+        marriageCount: result.deletedMarriageIds?.length || 0
+      });
+      
       addToast(`Person ${mode === 'soft' ? 'replaced with placeholder' : 'and descendants marked deleted'}. Undo available for 30 days.`, 'success');
       if (onDeleteComplete) onDeleteComplete(result);
       onClose();
@@ -51,6 +63,11 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleUndoComplete = () => {
+    setDeletionInfo(null);
+    if (onDeleteComplete) onDeleteComplete({ action: 'undo' });
   };
 
   const requiredText = person?.name;
@@ -140,6 +157,14 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
           </div>
         )}
       </Column>
+      
+      {/* Undo Countdown */}
+      {deletionInfo && (
+        <UndoCountdown 
+          deletionInfo={deletionInfo} 
+          onUndoComplete={handleUndoComplete}
+        />
+      )}
     </Modal>
   );
 };

@@ -161,6 +161,8 @@ export function formatPersonData(person, marriages, handleToggleCollapse, handle
     role: person.role,
     isCollapsed: person.isCollapsed,
     hasChildren,
+    isPlaceholder: person.isPlaceholder || false,
+    isSoftDeleted: person.deletionMode === "soft" && person.pendingDeletion || false,
     onToggleCollapse: () => handleToggleCollapse(person.id),
     onOpenProfile: () => handleOpenProfile(person.id),
     variant,

@@ -31,6 +31,12 @@ const gradients = {
       <stop offset="1" stopColor="#F3EDE0" />
     </linearGradient>
   ),
+  placeholder: (
+    <linearGradient id="placeholderGradient" x1="60" y1="-18.4498" x2="60" y2="179.337" gradientUnits="userSpaceOnUse">
+      <stop stopColor="#d1d5db" />
+      <stop offset="1" stopColor="#f9fafb" />
+    </linearGradient>
+  ),
 };
 
 const gradientIds = {
@@ -39,6 +45,7 @@ const gradientIds = {
   spouse: "spouseGradient",
   dead: "deadGradient",
   default: "defaultGradient",
+  placeholder: "placeholderGradient",
 };
 
 const PersonCardSVG = ({ children, style, variant = "default", ...props }) => (

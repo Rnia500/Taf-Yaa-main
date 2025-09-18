@@ -31,6 +31,7 @@ import AddSpouseModal from "../Add Relatives/Spouse/AddSpouseModal";
 import AddChildModal from "../Add Relatives/Child/AddChildModal";
 import AddParentModal from "../Add Relatives/Parent/AddParentModal";
 import EditPersonModal from "../Edit Person/EditPersonModal";
+import UndoCountdown from "../UndoCountdown";
 
 import usePersonMenuStore from "../../store/usePersonMenuStore";
 import useSidebarStore from "../../store/useSidebarStore";
@@ -38,7 +39,7 @@ import useModalStore from "../../store/useModalStore";
 import dataService from "../../services/dataService";
 import Button from "../Button";
 
-// ----- React Flow config -----
+// ----- React Flow `config -----
 const nodeTypes = {
   person: FlowPersonNode,
   marriage: MarriageNode,
@@ -387,6 +388,8 @@ useEffect(() => {
         />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
+      
+      {/* Global Undo Countdown - could be enhanced to track multiple deletions */}
     </div>
   );
 }

@@ -68,6 +68,15 @@ function deletePerson(personId, mode = "soft", options = {}) {
     person.pendingDeletion = true;
     person.undoExpiresAt = undoExpiresAt;
     person.deletionBatchId = batchId;
+    
+    // Mark related events and stories as deleted (but keep them in DB for undo)
+    Promise.all([
+      eventServiceLocal.markEventsForPersonDeleted(personId, batchId, undoExpiresAt),
+      storyServiceLocal.markStoriesForPersonDeleted(personId, batchId, undoExpiresAt)
+    ]).then(() => {
+      console.log(`DBG:personServiceLocal.deletePerson[soft] -> marked related events and stories`);
+    });
+    
     saveDB();
     console.log(`DBG:personServiceLocal.deletePerson[soft] -> ${personId} now placeholder, batch=${batchId}`);
     return Promise.resolve({ person, removedMarriageIds: [], batchId, undoExpiresAt });
@@ -396,10 +405,11 @@ function findPeopleByName(query) {
 function getPeopleByTreeId(treeId) {
   const db = getDB();
   if (!treeId) return Promise.resolve([]);
-  // Filter out deleted people
+  // Filter out cascade-deleted people, but include soft-deleted placeholders
   const results = (db.people || []).filter(p => 
-    !p.isDeleted && 
+    !p.isDeleted &&  // Exclude cascade-deleted people
     p.treeId === treeId
+    // Include soft-deleted people (they become placeholders)
   );
   return Promise.resolve(results);
 }

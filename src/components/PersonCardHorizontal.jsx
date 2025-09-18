@@ -9,7 +9,7 @@ import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBa
 import Spacer from "./Spacer";
 //variants are root, directline, spouce, dead
 
-function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', isDead = false, profileImage, onAdd, onClick }) {
+function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', isDead = false, profileImage, isPlaceholder = false, isSoftDeleted = false, onAdd, onClick }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -46,7 +46,31 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
         <Row padding="0px" margin="0px" gap="0.25rem" fitContent style={{overflowX :"hidden"}}>
 
           <Card positionType="relative" backgroundColor="var(--color-transparent)" padding="2px 0px 3px 3px"  margin="0px">
-            <ImageCard overlay={deathDate ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : null} width="150px" height="87px" borderRadius="17px" image={profileImage} />
+            <ImageCard 
+              overlay={
+                deathDate ? { backgroundColor: "var(--color-gray)", opacity: 0.45 } : 
+                isPlaceholder ? { backgroundColor: "var(--color-gray-light)", opacity: 0.3 } : null
+              } 
+              width="150px" 
+              height="87px" 
+              borderRadius="17px" 
+              image={isPlaceholder ? null : profileImage} 
+            />
+            {isSoftDeleted && (
+              <div style={{
+                position: 'absolute',
+                top: '5px',
+                right: '5px',
+                backgroundColor: 'var(--color-warning)',
+                color: 'white',
+                padding: '2px 6px',
+                borderRadius: '10px',
+                fontSize: '10px',
+                fontWeight: 'bold'
+              }}>
+                DELETED
+              </div>
+            )}
             {finalRole(role)}
           </Card>
 
@@ -59,7 +83,11 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
 
 
             <Row width="12rem" gap="0.15rem" padding="0px" fitContent style={{ justifyContent: "center" }}>
-              {deathDate ? (
+              {isPlaceholder ? (
+                <Text as="span" variant="caption1" style={{fontSize: "0.8em", color: "var(--color-gray-dark)"}}>
+                  {isSoftDeleted ? "🗑️ Soft Deleted" : "👤 Placeholder"}
+                </Text>
+              ) : deathDate ? (
                 <>
                   <Text as="span" bold variant="caption1" style={{ fontSize: "0.8em" }}>🎂</Text>
                   <Text as="span" bold variant="caption1">{birthDate ? new Date(birthDate).getFullYear() : "?"}</Text>
