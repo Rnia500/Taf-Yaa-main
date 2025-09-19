@@ -1,6 +1,6 @@
 // src/services/commands/addTree.js
 import dataService from "../../services/dataService";
-import { createTree } from "../../models/treeModels/TreeModel";
+import { createTree } from "../../models/treeModels/treeModel";
 import { createPerson } from "../../models/treeModels/PersonModel";
 import { addBirth, addDeath } from "./events";
 import { createAudioStory } from "./stories";

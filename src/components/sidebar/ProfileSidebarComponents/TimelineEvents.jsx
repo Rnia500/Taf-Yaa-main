@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Divider from '../../Divider';
 import Button from '../../Button';
 import Card from '../../../layout/containers/Card';
-import '../../../styles/Timeline.css';
+import '../../../styles/TimeLine.css';
 import ClampText from '../../ClampText';
 import Text from '../../Text';
 

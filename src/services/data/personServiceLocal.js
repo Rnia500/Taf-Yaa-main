@@ -414,6 +414,117 @@ function getPeopleByTreeId(treeId) {
   return Promise.resolve(results);
 }
 
+/**
+ * Get all deleted persons (both soft and cascade deleted) with their deletion metadata
+ */
+function getDeletedPersons() {
+  const db = getDB();
+  const now = new Date();
+  
+  const deletedPersons = (db.people || []).filter(p => 
+    p.pendingDeletion && (p.isPlaceholder || p.isDeleted)
+  ).map(person => {
+    const undoExpiresAt = person.undoExpiresAt ? new Date(person.undoExpiresAt) : null;
+    const timeRemaining = undoExpiresAt ? Math.max(0, undoExpiresAt.getTime() - now.getTime()) : 0;
+    const isExpired = timeRemaining === 0;
+    
+    return {
+      ...person,
+      timeRemaining,
+      isExpired,
+      daysRemaining: Math.ceil(timeRemaining / (1000 * 60 * 60 * 24)),
+      hoursRemaining: Math.ceil(timeRemaining / (1000 * 60 * 60)),
+      minutesRemaining: Math.ceil(timeRemaining / (1000 * 60))
+    };
+  });
+  
+  return Promise.resolve(deletedPersons);
+}
+
+/**
+ * Get deleted persons by tree ID
+ */
+function getDeletedPersonsByTreeId(treeId) {
+  const db = getDB();
+  const now = new Date();
+  
+  const deletedPersons = (db.people || []).filter(p => 
+    p.treeId === treeId && 
+    p.pendingDeletion && (p.isPlaceholder || p.isDeleted)
+  ).map(person => {
+    const undoExpiresAt = person.undoExpiresAt ? new Date(person.undoExpiresAt) : null;
+    const timeRemaining = undoExpiresAt ? Math.max(0, undoExpiresAt.getTime() - now.getTime()) : 0;
+    const isExpired = timeRemaining === 0;
+    
+    return {
+      ...person,
+      timeRemaining,
+      isExpired,
+      daysRemaining: Math.ceil(timeRemaining / (1000 * 60 * 60 * 24)),
+      hoursRemaining: Math.ceil(timeRemaining / (1000 * 60 * 60)),
+      minutesRemaining: Math.ceil(timeRemaining / (1000 * 60))
+    };
+  });
+  
+  return Promise.resolve(deletedPersons);
+}
+
+/**
+ * Permanently delete a person (purge) - this is irreversible
+ */
+function purgePerson(personId) {
+  const db = getDB();
+  const person = db.people.find(p => p.id === personId);
+  if (!person) {
+    return Promise.reject(new Error("Person not found"));
+  }
+
+  if (!person.pendingDeletion) {
+    return Promise.reject(new Error("Person is not marked for deletion"));
+  }
+
+  // Remove the person from the database
+  db.people = db.people.filter(p => p.id !== personId);
+  
+  // Clean up references in marriages
+  for (const marriage of db.marriages) {
+    if (!marriage) continue;
+    
+    // Remove from spouses array
+    if (Array.isArray(marriage.spouses)) {
+      marriage.spouses = marriage.spouses.filter(id => id !== personId);
+    }
+    
+    // Remove from husbandId
+    if (marriage.husbandId === personId) {
+      marriage.husbandId = null;
+    }
+    
+    // Remove from wives array
+    if (Array.isArray(marriage.wives)) {
+      marriage.wives = marriage.wives.filter(w => w.wifeId !== personId);
+    }
+    
+    // Remove from childrenIds
+    if (Array.isArray(marriage.childrenIds)) {
+      marriage.childrenIds = marriage.childrenIds.filter(id => id !== personId);
+    }
+    
+    // Remove from wives childrenIds
+    if (Array.isArray(marriage.wives)) {
+      marriage.wives.forEach(w => {
+        if (Array.isArray(w.childrenIds)) {
+          w.childrenIds = w.childrenIds.filter(id => id !== personId);
+        }
+      });
+    }
+  }
+  
+  saveDB();
+  console.log(`DBG:personServiceLocal.purgePerson -> permanently removed ${personId}`);
+  return Promise.resolve({ purgedId: personId });
+}
+
 // Export all the functions in a single service object.
 export const personServiceLocal = {
   addPerson,
@@ -426,4 +537,7 @@ export const personServiceLocal = {
   getAllPeople,
   findPeopleByName,
   getPeopleByTreeId,
+  getDeletedPersons,
+  getDeletedPersonsByTreeId,
+  purgePerson,
 };

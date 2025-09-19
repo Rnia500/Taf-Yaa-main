@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { Link, useParams } from 'react-router-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
-import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell } from 'lucide-react';
+import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell, Trash2 } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
 
 export default function AdminNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { treeId } = useParams();
 
   const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
@@ -29,6 +31,7 @@ export default function AdminNavbar() {
     { label: 'Notification', href: '#content' },
     { label: 'Suggestions', href: '#content' },
     { label: 'Export', href: '#content' },
+    { label: 'Deleted Persons', href: treeId ? `/deleted-persons/${treeId}` : '/deleted-persons' },
     { label: 'Settings', href: '#content' },
     { label: 'Language', href: '#content' },
     
@@ -50,6 +53,19 @@ export default function AdminNavbar() {
               {item.label}
             </Text>
           ))}
+
+          <Link to={treeId ? `/deleted-persons/${treeId}` : '/deleted-persons'}>
+            <Card
+              fitContent
+              size={30}
+              padding='3px'
+              margin='5px'
+              backgroundColor="var(--color-gray)"
+              style={{ cursor: 'pointer' }}
+            >
+              <Trash2 size={25} color="var(--color-primary-text)" />
+            </Card>
+          </Link>
 
           <Card
             fitContent
@@ -118,14 +134,25 @@ export default function AdminNavbar() {
         <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
           <div className="mobile-nav-content">
             {MobileNavItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="mobile-nav-item"
-                onClick={closeMobileMenu}
-              >
-                {item.label}
-              </a>
+              item.label === 'Deleted Persons' ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="mobile-nav-item"
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="mobile-nav-item"
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </a>
+              )
             ))}
           </div>
         </div>,

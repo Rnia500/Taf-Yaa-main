@@ -163,6 +163,7 @@ export function formatPersonData(person, marriages, handleToggleCollapse, handle
     hasChildren,
     isPlaceholder: person.isPlaceholder || false,
     isSoftDeleted: person.deletionMode === "soft" && person.pendingDeletion || false,
+    undoExpiresAt: person.undoExpiresAt,
     onToggleCollapse: () => handleToggleCollapse(person.id),
     onOpenProfile: () => handleOpenProfile(person.id),
     variant,
@@ -372,6 +373,30 @@ visibleMarriages.forEach((marriage) => {
         }
       }
     }
+
+    // Include soft-deleted nodes that might not be connected through marriages
+    for (const [personId, node] of nodesMap) {
+      if (node.data?.isSoftDeleted && !visitedPeople.has(personId)) {
+        // Find any marriages where this person is a child
+        const parentMarriages = visibleMarriages.filter(m => {
+          if (m.marriageType === "monogamous") {
+            return m.childrenIds?.includes(personId);
+          } else if (m.marriageType === "polygamous") {
+            return m.wives?.some(w => w.childrenIds?.includes(personId));
+          }
+          return false;
+        });
+
+        // If we found parent marriages, add them to sortedMarriages
+        for (const marriage of parentMarriages) {
+          if (!visitedMarriages.has(marriage.id)) {
+            visitedMarriages.add(marriage.id);
+            sortedMarriages.push(marriage);
+          }
+        }
+      }
+    }
+
     return sortedMarriages;
   };
 

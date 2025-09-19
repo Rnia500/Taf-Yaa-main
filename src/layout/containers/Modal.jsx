@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import '../../styles/Modal.css';
+import '../../styles/modal.css';
 import Button from '../../components/Button';
 import Card from './Card';
 import { X } from 'lucide-react';

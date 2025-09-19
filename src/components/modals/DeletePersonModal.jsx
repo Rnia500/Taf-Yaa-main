@@ -9,6 +9,7 @@ import Column from '../../layout/containers/Column'
 import { TextInput } from '../../components/Input';
 import { personServiceLocal } from '../../services/data/personServiceLocal';
 import useToastStore from '../../store/useToastStore';
+import useModalStore from '../../store/useModalStore';
 import UndoCountdown from '../UndoCountdown';
 
 const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
@@ -19,6 +20,7 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [deletionInfo, setDeletionInfo] = useState(null);
   const addToast = useToastStore(state => state.addToast);
+  const { openModal, closeModal } = useModalStore();
 
   useEffect(() => {
     if (!person || !isOpen) return;
@@ -68,6 +70,33 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
   const handleUndoComplete = () => {
     setDeletionInfo(null);
     if (onDeleteComplete) onDeleteComplete({ action: 'undo' });
+  };
+
+  const handleCascadeWarning = () => {
+    const warningMessage = `This action will permanently delete ${person?.name} and ALL their descendants, marriages, and related family connections. This affects ${preview.peopleIds.length} people and ${preview.marriageIds.length} marriages. This action is irreversible and will break family relationships. Are you absolutely sure you want to proceed?`;
+    
+    openModal('warningModal', {
+      title: '⚠️ Cascade Delete Warning',
+      message: warningMessage,
+      confirmText: 'Yes, Delete Everything',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+      onConfirm: (dontRemindMe) => {
+        closeModal('warningModal');
+        setShowConfirmation(true);
+      },
+      onCancel: () => {
+        closeModal('warningModal');
+      }
+    });
+  };
+
+  const handleContinue = () => {
+    if (mode === 'cascade') {
+      handleCascadeWarning();
+    } else {
+      setShowConfirmation(true);
+    }
   };
 
   const requiredText = person?.name;
@@ -129,7 +158,7 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
         {!showConfirmation ? (
           <Row margin='0px' padding='10px 0px 0px 0px'>
             <Button fullWidth variant="secondary" onClick={onClose}>Cancel</Button>
-            <Button fullWidth variant="primary" onClick={() => setShowConfirmation(true)}>Continue</Button>
+            <Button fullWidth variant="primary" onClick={handleContinue}>Continue</Button>
           </Row>
         ) : (
           <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>

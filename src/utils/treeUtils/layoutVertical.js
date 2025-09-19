@@ -102,23 +102,6 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
     }
   }
 
-  // Cleanup unused placeholders
-  for (const [id, node] of nodesMap) {
-    if (node.data?.isPlaceholder) {
-      const isConnected = processedMarriages.some(m => {
-        if (m.marriageType === 'monogamous') return m.spouses.includes(id);
-        if (m.marriageType === 'polygamous') {
-          if (m.husbandId === id) return true;
-          if (m.wives?.some(w => w.wifeId === id)) return true;
-        }
-        return false;
-      });
-      if (!isConnected) {
-        nodesMap.delete(id);
-      }
-    }
-  }
-
   return { processedMarriages, nodesMap };
 }
 
@@ -298,7 +281,6 @@ function createEdges(marriages, nodesMap) {
   return edges;
 }
 
-
 /* ------------ Main ------------ */
 export function layoutVertical(nodesMap, marriages, initialEdges, rootId) {
   if (!nodesMap?.size || !marriages?.length) {
@@ -333,17 +315,5 @@ export function layoutVertical(nodesMap, marriages, initialEdges, rootId) {
 
   const edges = createEdges(processedMarriages, updatedNodesMap);
 
-  const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
-    if (!node.data?.isPlaceholder) return true;
-    return processedMarriages.some(m => {
-      if (m.marriageType === "monogamous") return m.spouses.includes(node.id);
-      if (m.marriageType === "polygamous") {
-        if (m.husbandId === node.id) return true;
-        if (m.wives?.some(w => w.wifeId === node.id)) return true;
-      }
-      return false;
-    });
-  });
-
-  return { nodes: filteredNodes, edges };
+  return { nodes: Array.from(updatedNodesMap.values()), edges };
 }

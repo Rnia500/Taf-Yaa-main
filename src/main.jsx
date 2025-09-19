@@ -9,6 +9,7 @@ import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import BaseLayout from "./pages/BaseLayout.jsx";
 import { CreateTreePage } from "./pages/CreateTreePage.jsx";
+import DeletedPersonsPage from "./pages/DeletedPersonsPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,14 @@ const router = createBrowserRouter([
   {
     path: "/create-tree",
     element: <CreateTreePage />, 
+  },
+  {
+    path: "/deleted-persons",
+    element: <DeletedPersonsPage />,
+  },
+  {
+    path: "/deleted-persons/:treeId",
+    element: <DeletedPersonsPage />,
   },
 ]);
 

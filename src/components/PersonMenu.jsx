@@ -3,15 +3,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
 import useModalStore from '../store/useModalStore';
 import dataService from '../services/dataService';
-import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight } from 'lucide-react';
+import { personServiceLocal } from '../services/data/personServiceLocal';
+import useToastStore from '../store/useToastStore';
+import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight, Undo2 } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
-function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent, onEditPerson }) {
+function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent, onEditPerson, onDeleteComplete }) {
   const { isOpen, targetNodeId, position, actions, targetPerson } = usePersonMenuStore();
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
   const submenuRef = useRef(null);
-  const [isSpouse, setIsSpouse] = useState(false)
+  const [isSpouse, setIsSpouse] = useState(false);
+  const [isSoftDeleted, setIsSoftDeleted] = useState(false);
+  const addToast = useToastStore(state => state.addToast);
 
 
   useEffect(() => {
@@ -56,6 +60,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     let cancelled = false;
     if (!isOpen || !targetNodeId) {
       setIsSpouse(false);
+      setIsSoftDeleted(false);
       return;
     }
 
@@ -65,15 +70,19 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
         if (cancelled) return;
         if (personModel) {
           setIsSpouse(Boolean(personModel.isSpouse));
+          setIsSoftDeleted(Boolean(personModel.deletionMode === "soft" && personModel.pendingDeletion));
         } else if (targetPerson && typeof targetPerson.isSpouse !== 'undefined') {
           setIsSpouse(Boolean(targetPerson.isSpouse));
+          setIsSoftDeleted(Boolean(targetPerson.isSoftDeleted));
         } else {
           setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
+          setIsSoftDeleted(Boolean(targetPerson && targetPerson.isSoftDeleted));
         }
       })
       .catch(() => {
         if (cancelled) return;
         setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
+        setIsSoftDeleted(Boolean(targetPerson && targetPerson.isSoftDeleted));
       });
 
     return () => {
@@ -85,9 +94,23 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
 
   const onDelete = () => {
     const person = targetPerson || { id: targetNodeId, name: targetPerson?.name };
-    openModal('deletePerson', { person });
+    openModal('deletePerson', { person, onDeleteComplete });
     actions.closeMenu();
     setShowSubmenu(false);
+  };
+
+  const onRestore = async () => {
+    if (!targetNodeId) return;
+    
+    try {
+      await personServiceLocal.undoDelete(targetNodeId);
+      addToast('Person restored successfully!', 'success');
+      if (onDeleteComplete) onDeleteComplete({ action: 'restore' });
+      actions.closeMenu();
+      setShowSubmenu(false);
+    } catch (error) {
+      addToast(`Failed to restore person: ${error.message}`, 'error');
+    }
   };
 
   if (!isOpen) return null;
@@ -168,35 +191,44 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
         </div>
 
         <div className="person-menu-items">
-          <button className="person-menu-item" onClick={onCollapse}>
-            <ListCollapse size={15} />
-            <span className="person-menu-text">Collapse / Expand</span>
-          </button>
-          <button className="person-menu-item" onClick={onOpenProfile}>
-            <CircleUserRound size={15} />
-            <span className="person-menu-text">Open Profile</span>
-          </button>
-          <button className="person-menu-item" onClick={onTraceLineage}>
-            <MapPinHouse size={15} />
-            <span className="person-menu-text">Trace Lineage</span>
-          </button>
-          <button className="person-menu-item" onClick={onSetAsRoot}>
-            <GitCompareArrows size={15} />
-            <span className="person-menu-text">Set as Root</span>
-          </button>
-          <button className="person-menu-item" onClick={toggleSubmenu}>
-            <UserRoundPlus size={15} />
-            <span className="person-menu-text">Add Relative</span>
-            <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
-          </button>
-          <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
-            <UserRoundPen size={15} />
-            <span className="person-menu-text">Edit Person</span>
-          </button>
-          <button className="person-menu-item" onClick={onDelete}>
-            <User size={15} />
-            <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
-          </button>
+          {isSoftDeleted ? (
+            <button className="person-menu-item" onClick={onRestore}>
+              <Undo2 size={15} />
+              <span className="person-menu-text" style={{ color: '#28a745' }}>Restore Person</span>
+            </button>
+          ) : (
+            <>
+              <button className="person-menu-item" onClick={onCollapse}>
+                <ListCollapse size={15} />
+                <span className="person-menu-text">Collapse / Expand</span>
+              </button>
+              <button className="person-menu-item" onClick={onOpenProfile}>
+                <CircleUserRound size={15} />
+                <span className="person-menu-text">Open Profile</span>
+              </button>
+              <button className="person-menu-item" onClick={onTraceLineage}>
+                <MapPinHouse size={15} />
+                <span className="person-menu-text">Trace Lineage</span>
+              </button>
+              <button className="person-menu-item" onClick={onSetAsRoot}>
+                <GitCompareArrows size={15} />
+                <span className="person-menu-text">Set as Root</span>
+              </button>
+              <button className="person-menu-item" onClick={toggleSubmenu}>
+                <UserRoundPlus size={15} />
+                <span className="person-menu-text">Add Relative</span>
+                <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
+              </button>
+              <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
+                <UserRoundPen size={15} />
+                <span className="person-menu-text">Edit Person</span>
+              </button>
+              <button className="person-menu-item" onClick={onDelete}>
+                <User size={15} />
+                <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

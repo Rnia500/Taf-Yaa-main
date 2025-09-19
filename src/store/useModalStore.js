@@ -14,6 +14,7 @@ const useModalStore = create((set) => ({
     confirmationModal: false,
     editPerson: false,  // Added editPerson modal
     deletePerson: false,
+    warningModal: false,
   },
   
   // Modal data
@@ -41,9 +42,11 @@ const useModalStore = create((set) => ({
       person: null,
       onDeleteComplete: null,
     },
-    deletePerson: {
-      person: null,
-      onDeleteComplete: null,
+    warningModal: {
+      title: '',
+      message: '',
+      onConfirm: null,
+      onCancel: null,
     }
   },
   
@@ -76,6 +79,7 @@ const useModalStore = create((set) => ({
       confirmationModal: false,
       editPerson: false,  // Added editPerson to closeAllModals
       deletePerson: false,
+      warningModal: false,
     }
   }),
 }));

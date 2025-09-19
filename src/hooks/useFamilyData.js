@@ -39,6 +39,16 @@ export function useFamilyData(treeId) {
       // 2. Load people
       let p = await personServiceLocal.getPeopleByTreeId(treeId);
 
+      // Debug log for people including placeholders
+      console.log("DBG:useFamilyData.reload -> people loaded:", p.map(person => ({
+        id: person.id,
+        name: person.name,
+        isPlaceholder: person.isPlaceholder,
+        isDeleted: person.isDeleted,
+        deletionMode: person.deletionMode,
+        pendingDeletion: person.pendingDeletion,
+      })));
+
       // 3. Load marriages
       const m = await marriageServiceLocal.getAllMarriages();
       const personIds = new Set(p.map(per => per.id));
