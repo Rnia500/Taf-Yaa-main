@@ -69,5 +69,4 @@ export default function PDFDownloadModal({ isOpen, onClose }) {
       </Card>
     </div>
   );
-}
- 
+} 

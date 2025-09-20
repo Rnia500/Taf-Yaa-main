@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import FlexContainer from '../../layout/containers/FlexContainer';
 import ProfileHeader from './ProfileSidebarComponents/ProfileHeader';
 import IdentityOverview from './ProfileSidebarComponents/IdentityOverview';
@@ -22,6 +22,11 @@ import { getPrivacyLabel, getCountryLabel } from '../../models/treeModels/Person
 import { useParams } from 'react-router-dom';
 import PhotoUploadModal from './PhotoUploadModal';
 
+// Download modals
+import DownloadProfileModal from './ProfileSidebarComponents/DownloadProfileModal';
+import PDFDownloadModal from './ProfileSidebarComponents/PDFDownloadModal';
+import PNGDownloadModal from './ProfileSidebarComponents/PNGDownloadModal';
+
 export default function ProfileSidebar() {
   const [profileData, setProfileData] = useState({});
   const [identityData, setIdentityData] = useState({});
@@ -39,6 +44,15 @@ export default function ProfileSidebar() {
   const { activeProfileId, closeSidebar } = useSidebarStore();
   const { openModal } = useModalStore();
   const { treeId } = useParams();
+
+  // Download modal states
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+  const [isPNGModalOpen, setIsPNGModalOpen] = useState(false);
+  const [selectedProfileName, setSelectedProfileName] = useState("");
+  
+  // Ref for capturing the profile sidebar
+  const profileSidebarRef = useRef(null);
 
 
   const handleRecordAudio = () => {
@@ -59,6 +73,21 @@ export default function ProfileSidebar() {
 
   const handleEditPerson = () => {
     openModal('editPerson', { personId: activeProfileId });
+  };
+
+  // Download handlers
+  const handleDownload = () => {
+    setSelectedProfileName(profileData.profileName || "profile");
+    setIsDownloadModalOpen(true);
+  };
+
+  const handleDownloadSelect = (format) => {
+    setIsDownloadModalOpen(false);
+    if (format === "pdf") {
+      setIsPDFModalOpen(true);
+    } else if (format === "png") {
+      setIsPNGModalOpen(true);
+    }
   };
 
 
@@ -291,14 +320,17 @@ export default function ProfileSidebar() {
 
 
   return (
-    <FlexContainer gap='12px' backgroundColor="var(--color-background)">
+    <FlexContainer gap='12px' backgroundColor="var(--color-background)" ref={profileSidebarRef} className="profile-sidebar">
       <ProfileHeader
         profileName={profileData.profileName}
         birthDate={profileData.birthDate}
         deathDate={profileData.deathDate}
         profileImage={profileData.profileImage}
-        onClose={closeSidebar} 
+        onClose={closeSidebar}
+        onDownload={handleDownload}
       />
+
+      
       <IdentityOverview identity={identityData} />
       <Spacer size='md' />
 
@@ -356,6 +388,27 @@ export default function ProfileSidebar() {
         onEventsChange={handleEventsChange}
       />
       */}
+
+      {/* Download Modals */}
+      <DownloadProfileModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        onSelect={handleDownloadSelect}
+      />
+
+      <PDFDownloadModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        profileName={selectedProfileName}
+        profileRef={profileSidebarRef}
+      />
+
+      <PNGDownloadModal
+        isOpen={isPNGModalOpen}
+        onClose={() => setIsPNGModalOpen(false)}
+        profileName={selectedProfileName}
+        profileRef={profileSidebarRef}
+      />
     </FlexContainer>
   );
 }

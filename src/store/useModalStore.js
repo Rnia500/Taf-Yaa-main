@@ -15,6 +15,7 @@ const useModalStore = create((set) => ({
     editPerson: false,  // Added editPerson modal
     deletePerson: false,
     warningModal: false,
+    pdfExportModal: false,
   },
   
   // Modal data
@@ -47,9 +48,8 @@ const useModalStore = create((set) => ({
       message: '',
       onConfirm: null,
       onCancel: null,
-    }
+    },
     pdfExportModal: false,
-    
   },
   
   // Open a specific modal with optional data
@@ -83,8 +83,6 @@ const useModalStore = create((set) => ({
       deletePerson: false,
       warningModal: false,
       pdfExportModal: false,
-     
-
     }
   }),
 }));

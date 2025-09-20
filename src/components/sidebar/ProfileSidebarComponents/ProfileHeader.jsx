@@ -19,6 +19,7 @@ export default function ProfileHeader({
   statusIcons,
   onUseAsRoot,
   onClose,
+  onDownload,
 }) {
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
@@ -27,7 +28,17 @@ export default function ProfileHeader({
   return (
     <FlexContainer  gap='12px' backgroundColor="var(--color-background)" padding='0px'>
       <Card positionType='relative' backgroundColor="var(--color-background)" padding="24px" height="100%" >
-        <Card onClick={() => {onDownload}} rounded height='24px' width='24px' positionType='absolute' margin='10px 0px 0px 10px' position='top-left' backgroundColor="var(--color-transparent)">
+        <Card 
+          onClick={onDownload || (() => setDownloadModalOpen(true))} 
+          rounded 
+          height='24px' 
+          width='24px' 
+          positionType='absolute' 
+          margin='10px 0px 0px 10px' 
+          position='top-left' 
+          backgroundColor="var(--color-transparent)"
+          style={{ cursor: 'pointer' }}
+        >
           <ArrowDownToLine color="var(--color-info)" />
         </Card>
 
@@ -77,11 +88,13 @@ export default function ProfileHeader({
       <PDFDownloadModal
         isOpen={pdfModalOpen}
         onClose={() => setPdfModalOpen(false)}
+        profileName={profileName}
       />
 
       <PNGDownloadModal
         isOpen={pngModalOpen}
         onClose={() => setPngModalOpen(false)}
+        profileName={profileName}
       />
     </FlexContainer>
   );
