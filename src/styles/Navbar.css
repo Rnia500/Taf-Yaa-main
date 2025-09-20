@@ -2,13 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 0rem;
   width: 100%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+  background: var(--color-transparent);
   overflow: visible !important;
   position: relative;
   z-index: 1000;
@@ -235,6 +231,12 @@
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .NavBar .action-buttons .action-btn:hover {
@@ -256,20 +258,47 @@
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
+/* Nav items container for better responsive behavior */
+.nav-items-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.nav-items-container .navItem {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Navbar row improvements */
+.navbar-row {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* Responsive behavior */
 @media screen and (max-width: 1200px) {
   .desktop-nav .navItem {
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
   }
-  
-  .reset-tree-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-  }
-  
+
   .NavBar .action-buttons .action-btn {
     padding: 0.4rem;
+  }
+
+  .nav-items-container {
+    gap: 0.25rem;
+  }
+
+  .nav-items-container .navItem {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -278,14 +307,27 @@
     padding: 0.5rem 0.5rem;
     font-size: 0.85rem;
   }
-  
+
   .reset-tree-btn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
   }
-  
+
   .NavBar .action-buttons {
     gap: 0.25rem;
+  }
+
+  .NavBar .action-buttons .action-btn {
+    padding: 0.4rem;
+  }
+
+  .nav-items-container {
+    gap: 0.25rem;
+  }
+
+  .nav-items-container .navItem {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -293,19 +335,19 @@
   .NavBar {
     padding: 1rem;
   }
-  
+
   .desktop-nav {
     display: none;
   }
-  
+
   .mobile-menu-button {
     display: block;
   }
-  
+
   .NavBar .action-buttons {
     gap: 0.25rem;
   }
-  
+
   .NavBar .action-buttons .action-btn {
     padding: 0.4rem;
   }
@@ -315,7 +357,7 @@
   .NavBar {
     padding: 0.75rem;
   }
-  
+
   .NavBar .logo-section .brand-text {
     font-size: 1.25rem;
   }

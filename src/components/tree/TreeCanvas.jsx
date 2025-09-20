@@ -349,22 +349,6 @@ useEffect(() => {
       }} />
 
 
-
-      {/* Reset button */}
-      <Button
-        positionType="absolute"
-        position="top-left"
-        margin="10px 0px 0px 200px"
-        variant="danger"
-        onClick={() => {
-          dataService.clearLocalDB();
-          // dataService.deletePerson()
-          window.location.reload();
-        }}
-      >
-        Reset Family Tree
-      </Button>
-
       {/* React Flow canvas */}
       <ReactFlow
         edges={[...finalBaseEdges, ...lineageEdges]}

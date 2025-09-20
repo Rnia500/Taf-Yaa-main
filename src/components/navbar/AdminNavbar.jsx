@@ -34,62 +34,63 @@ export default function AdminNavbar() {
     { label: 'Deleted Persons', href: treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons', isLink: true },
     { label: 'Settings', href: '#content', isLink: false },
     { label: 'Language', href: '#content', isLink: false },
-    
+
   ];
 
   return (
     <nav className='NavBar'>
       {/* Logo Section */}
-      <div className="logo-section">
-        <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
-        <Text variant='heading2' className="brand-text">Taf'Yaa</Text>
-      </div>
+      <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
+        <div className="logo-section">
+          <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
+          <Text variant='heading2' className="brand-text">Taf'Yaa</Text>
+        </div>
 
-      {/* Desktop Nav */}
-      <div className="desktop-nav">
-          <Row width='100%' maxWidth='750px' fitContent={true} gap='0.75rem' justifyContent='end' padding='0px' margin='0px' className='navbar-row'>
-          {navItems.map((item) => (
-            item.isLink ? (
-              <Link key={item.label} to={item.href}>
-                <Text className='navItem' variant='body1' bold>
-                  {item.label}
-                </Text>
+        {/* Desktop Nav */}
+        <div className="desktop-nav">
+          <Row width='100%' fitContent={true} gap='0.5rem' padding='0px' margin='0px' className='navbar-row'>
+            <div className="nav-items-container">
+              {navItems.map((item) => (
+                item.isLink ? (
+                  <Link key={item.label} to={item.href}>
+                    <Text className='navItem' variant='body1' bold>
+                      {item.label}
+                    </Text>
+                  </Link>
+                ) : (
+                  <Text key={item.label} className='navItem' as='a' variant='body1' bold href={item.href}>
+                    {item.label}
+                  </Text>
+                )
+              ))}
+            </div>
+
+            <div className="action-buttons">
+              <Link to={treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons'}>
+                <div className="action-btn">
+                  <Trash2 size={20} color="var(--color-primary-text)" />
+                </div>
               </Link>
-            ) : (
-              <Text key={item.label} className='navItem' as='a' variant='body1' bold href={item.href}>
-                {item.label}
-              </Text>
-            )
-          ))}
 
-          <div className="action-buttons">
-            <Link to={treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons'}>
-              <div className="action-btn">
-                <Trash2 size={20} color="var(--color-primary-text)" />
-              </div>
-            </Link>
-
-            <div className="action-btn">
-              <Row fitContent={true} gap='0.25rem' padding='0px' margin='0px'>
+              <div className="action-btn" onClick={() => { alert("hello boy") }}>
                 <EarthIcon size={20} color="var(--color-primary-text)" />
-                <ChevronDown onClick={() => {alert("hello boy")}} color='var(--color-primary-text)' size={16} />
-              </Row>
-            </div>
+              </div>
 
-            <div className="action-btn" onClick={toggleSubmenu}>
-              <Settings size={20} color="var(--color-primary-text)" />
-            </div>
-            
-            <div className="action-btn" onClick={toggleSubmenu}>
-              <Bell size={20} color="var(--color-primary-text)" />
-            </div>
+              <div className="action-btn" onClick={toggleSubmenu}>
+                <Settings size={20} color="var(--color-primary-text)" />
+              </div>
 
-            <div className="action-btn" onClick={toggleSubmenu}>
-              <CircleUser size={20} color="var(--color-primary-text)" />
+              <div className="action-btn" onClick={toggleSubmenu}>
+                <Bell size={20} color="var(--color-primary-text)" />
+              </div>
+
+              <div className="action-btn" onClick={toggleSubmenu}>
+                <CircleUser size={20} color="var(--color-primary-text)" />
+              </div>
             </div>
-          </div>
-        </Row>
-      </div>
+          </Row>
+        </div>
+      </Row>
 
       {/* Mobile Menu Button */}
       <button
