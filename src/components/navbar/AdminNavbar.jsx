@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
-import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell, Trash2, ArrowDownToLine } from 'lucide-react';
+import { CircleUser, Menu, X, EarthIcon, Settings, Bell, Trash2, ArrowDownToLine } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
 import PDFExport from '../PdfExport';

@@ -8,6 +8,7 @@ import App from "./App.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import BaseLayout from "./pages/BaseLayout.jsx";
+import ExportPage from "./pages/ExportPage.jsx";
 import { CreateTreePage } from "./pages/CreateTreePage.jsx";
 import DeletedPersonsPage from "./pages/DeletedPersonsPage.jsx";
 
@@ -24,15 +25,11 @@ const router = createBrowserRouter([
         path: "deleted-persons",
         element: <DeletedPersonsPage />,
       },
-      // Add more child routes here as needed
-      // {
-      //   path: "members",
-      //   element: <MembersPage />,
-      // },
-      // {
-      //   path: "settings",
-      //   element: <SettingsPage />,
-      // },
+      {
+        path: "export",
+        element: <ExportPage />,
+      },
+
     ],
   },
   {
