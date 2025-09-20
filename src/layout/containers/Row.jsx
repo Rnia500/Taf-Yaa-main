@@ -8,17 +8,20 @@ const Row = ({
   padding = '1rem',
   margin = "0px",
   width = '100%',
+  maxWidth,
   justifyContent = 'center',
   alignItems = 'center',
   style,
-  fitContent = false, 
+  fitContent = false,
+  // className = '',
 }) => {
   return (
     <div
-      className="layout-row"
+      className={`layout-row`}
       style={{
         gap,
         width,
+        maxWidth,
         margin,
         padding,
         alignItems,

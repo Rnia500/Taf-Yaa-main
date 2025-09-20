@@ -105,8 +105,10 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
     visiblePeopleIds.add(currentPersonId);
 
     const personMarriages = allMarriages.filter(m =>
-      (m.marriageType === "monogamous" && m.spouses.includes(currentPersonId)) ||
-      (m.marriageType === "polygamous" && m.husbandId === currentPersonId)
+      !m.isDeleted && !m.pendingDeletion && (
+        (m.marriageType === "monogamous" && m.spouses.includes(currentPersonId)) ||
+        (m.marriageType === "polygamous" && m.husbandId === currentPersonId)
+      )
     );
 
     for (const marriage of personMarriages) {
@@ -126,6 +128,11 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
 
   const visiblePeople = allPeople.filter(p => visiblePeopleIds.has(p.id));
   const visibleMarriages = allMarriages.filter(m => {
+    // Filter out deleted marriages
+    if (m.isDeleted || m.pendingDeletion) {
+      return false;
+    }
+    
     if (m.marriageType === "monogamous") {
       if (m.spouses.some(id => !id)) return false;
       return m.spouses.every(id => visiblePeopleIds.has(id));

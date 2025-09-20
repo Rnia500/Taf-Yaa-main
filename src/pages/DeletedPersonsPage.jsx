@@ -244,7 +244,7 @@ const DeletedPersonsPage = () => {
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <Row gap="0.5rem" justifyContent="center">
                         <Button
-                          variant="success"
+                          variant="primary"
                           size="sm"
                           onClick={() => handleRestore(person)}
                           loading={actionLoading[person.id]}

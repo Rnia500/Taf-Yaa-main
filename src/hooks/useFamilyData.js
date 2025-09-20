@@ -53,6 +53,11 @@ export function useFamilyData(treeId) {
       const m = await marriageServiceLocal.getAllMarriages();
       const personIds = new Set(p.map(per => per.id));
       const mFiltered = m.filter(marr => {
+        // Filter out deleted marriages
+        if (marr.isDeleted || marr.pendingDeletion) {
+          return false;
+        }
+        
         if (marr.marriageType === "monogamous") {
           return marr.spouses?.some(id => personIds.has(id));
         }

@@ -19,18 +19,25 @@ const router = createBrowserRouter([
   {
     path: "/family-tree/:treeId",
     element: <App />,
+    children: [
+      {
+        path: "deleted-persons",
+        element: <DeletedPersonsPage />,
+      },
+      // Add more child routes here as needed
+      // {
+      //   path: "members",
+      //   element: <MembersPage />,
+      // },
+      // {
+      //   path: "settings",
+      //   element: <SettingsPage />,
+      // },
+    ],
   },
   {
     path: "/create-tree",
     element: <CreateTreePage />, 
-  },
-  {
-    path: "/deleted-persons",
-    element: <DeletedPersonsPage />,
-  },
-  {
-    path: "/deleted-persons/:treeId",
-    element: <DeletedPersonsPage />,
   },
 ]);
 

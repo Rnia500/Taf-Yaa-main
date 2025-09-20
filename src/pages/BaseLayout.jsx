@@ -16,8 +16,8 @@ export default function BaseLayout() {
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
   const location = useLocation();
 
-  // Check if we're on a deleted persons page
-  const isDeletedPersonsPage = location.pathname.includes('/deleted-persons');
+  // Check if we're on a nested route (any child route of family-tree)
+  const isNestedRoute = location.pathname.split('/').length > 3;
 
   return (
     <PageFrame
@@ -31,7 +31,7 @@ export default function BaseLayout() {
     >
       <>
         <Toast />
-        {isDeletedPersonsPage ? <Outlet /> : <FamilyTreePage />}
+        {isNestedRoute ? <Outlet /> : <FamilyTreePage />}
       </>
     </PageFrame>
   );

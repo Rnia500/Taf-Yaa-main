@@ -12,7 +12,7 @@ import useToastStore from '../../store/useToastStore';
 import useModalStore from '../../store/useModalStore';
 import UndoCountdown from '../UndoCountdown';
 
-const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
+export const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
   const [mode, setMode] = useState('soft');
   const [preview, setPreview] = useState({ peopleIds: [], marriageIds: [] });
   const [confirmationText, setConfirmationText] = useState('');
@@ -198,4 +198,4 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
   );
 };
 
-export default DeletePersonModal;
+// export default DeletePersonModal;

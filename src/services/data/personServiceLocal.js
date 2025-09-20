@@ -86,36 +86,105 @@ function deletePerson(personId, mode = "soft", options = {}) {
     const toDelete = new Set();
     const marriagesToDelete = new Set();
 
-    // Recursive helper
-    const collectDescendants = (id) => {
-      if (toDelete.has(id)) return;
-      toDelete.add(id);
+    // Determine if the person being deleted is a spouse or direct line person
+    const isSpouseDeletion = () => {
+      // Check if person is only a spouse (not a child in any marriage)
+      const isChild = db.marriages.some(m => 
+        (m.marriageType === "monogamous" && m.childrenIds?.includes(personId)) ||
+        (m.marriageType === "polygamous" && m.wives?.some(w => w.childrenIds?.includes(personId)))
+      );
+      
+      const isSpouse = db.marriages.some(m =>
+        (m.marriageType === "monogamous" && m.spouses?.includes(personId)) ||
+        (m.marriageType === "polygamous" && (m.husbandId === personId || m.wives?.some(w => w.wifeId === personId)))
+      );
+      
+      // If person is a spouse but not a child, it's a spouse deletion
+      return isSpouse && !isChild;
+    };
 
+    const isSpouseOnly = isSpouseDeletion();
+
+    // Helper function to handle marriages where a person is a spouse
+    const handleSpouseMarriages = (id) => {
       for (const m of db.marriages) {
         if (!m) continue;
 
-        // --- Case 1: Person is a spouse (direct line) ---
+        // Check if this person is a spouse in this marriage
         if (
           (m.marriageType === "monogamous" && Array.isArray(m.spouses) && m.spouses.includes(id)) ||
           (m.marriageType === "polygamous" && (m.husbandId === id || (Array.isArray(m.wives) && m.wives.some(w => w.wifeId === id))))
         ) {
-          marriagesToDelete.add(m.id);
+          if (isSpouseOnly) {
+            // Spouse deletion: only delete the specific spouse and their children
+            if (m.marriageType === "monogamous") {
+              // For monogamous: delete the marriage and all children
+              marriagesToDelete.add(m.id);
+              if (Array.isArray(m.childrenIds)) {
+                m.childrenIds.forEach(childId => collectDescendants(childId));
+              }
+            } else if (m.marriageType === "polygamous") {
+              // For polygamous: only delete the specific spouse and their children
+              if (m.husbandId === id) {
+                // Deleting husband: delete all wives and their children
+                marriagesToDelete.add(m.id);
+                if (Array.isArray(m.wives)) {
+                  m.wives.forEach(w => {
+                    toDelete.add(w.wifeId);
+                    (w.childrenIds || []).forEach(childId => collectDescendants(childId));
+                  });
+                }
+              } else {
+                // Deleting a wife: only delete that wife and her children
+                const wifeData = m.wives.find(w => w.wifeId === id);
+                if (wifeData) {
+                  (wifeData.childrenIds || []).forEach(childId => collectDescendants(childId));
+                }
+                // Don't delete the marriage, just remove the wife from it
+              }
+            }
+          } else {
+            // Direct line deletion: delete all spouses and children
+            marriagesToDelete.add(m.id);
 
-          // Cascade to all children of this marriage
-          if (Array.isArray(m.childrenIds)) {
-            m.childrenIds.forEach(childId => collectDescendants(childId));
-          }
-          if (Array.isArray(m.wives)) {
-            m.wives.forEach(w => (w.childrenIds || []).forEach(childId => collectDescendants(childId)));
+            // Add all spouses in this marriage to deletion set
+            if (m.marriageType === "monogamous" && Array.isArray(m.spouses)) {
+              m.spouses.forEach(spouseId => toDelete.add(spouseId));
+            } else if (m.marriageType === "polygamous") {
+              toDelete.add(m.husbandId);
+              if (Array.isArray(m.wives)) {
+                m.wives.forEach(w => toDelete.add(w.wifeId));
+              }
+            }
+
+            // Cascade to all children of this marriage
+            if (Array.isArray(m.childrenIds)) {
+              m.childrenIds.forEach(childId => collectDescendants(childId));
+            }
+            if (Array.isArray(m.wives)) {
+              m.wives.forEach(w => (w.childrenIds || []).forEach(childId => collectDescendants(childId)));
+            }
           }
         }
+      }
+    };
+
+    // Recursive helper to collect descendants only (not ancestors)
+    const collectDescendants = (id) => {
+      if (toDelete.has(id)) return;
+      toDelete.add(id);
+
+      // First, handle marriages where this person is a spouse
+      handleSpouseMarriages(id);
+
+      // Then, handle marriages where this person is a child
+      for (const m of db.marriages) {
+        if (!m) continue;
 
         // --- Case 2: Person is a child (non-direct line) ---
         if (Array.isArray(m.childrenIds) && m.childrenIds.includes(id)) {
           // Cascade delete this child + their descendants
-          (m.childrenIds || []).forEach(childId => {
-            if (childId === id) collectDescendants(id);
-          });
+          collectDescendants(id);
         }
         if (Array.isArray(m.wives)) {
           for (const w of m.wives) {
@@ -181,6 +250,25 @@ function previewCascadeDelete(personId) {
   const toDelete = new Set();
   const marriagesToDelete = new Set();
 
+  // Determine if the person being deleted is a spouse or direct line person
+  const isSpouseDeletion = () => {
+    // Check if person is only a spouse (not a child in any marriage)
+    const isChild = db.marriages.some(m => 
+      (m.marriageType === "monogamous" && m.childrenIds?.includes(personId)) ||
+      (m.marriageType === "polygamous" && m.wives?.some(w => w.childrenIds?.includes(personId)))
+    );
+    
+    const isSpouse = db.marriages.some(m =>
+      (m.marriageType === "monogamous" && m.spouses?.includes(personId)) ||
+      (m.marriageType === "polygamous" && (m.husbandId === personId || m.wives?.some(w => w.wifeId === personId)))
+    );
+    
+    // If person is a spouse but not a child, it's a spouse deletion
+    return isSpouse && !isChild;
+  };
+
+  const isSpouseOnly = isSpouseDeletion();
+
   const collectDescendants = (id) => {
     if (toDelete.has(id)) return;
     toDelete.add(id);
@@ -192,12 +280,62 @@ function previewCascadeDelete(personId) {
         (m.marriageType === "monogamous" && Array.isArray(m.spouses) && m.spouses.includes(id)) ||
         (m.marriageType === "polygamous" && (m.husbandId === id || (Array.isArray(m.wives) && m.wives.some(w => w.wifeId === id))))
       ) {
-        marriagesToDelete.add(m.id);
-        if (Array.isArray(m.childrenIds)) m.childrenIds.forEach(collectDescendants);
-        if (Array.isArray(m.wives)) m.wives.forEach(w => (w.childrenIds || []).forEach(collectDescendants));
+        if (isSpouseOnly) {
+          // Spouse deletion: only delete the specific spouse and their children
+          if (m.marriageType === "monogamous") {
+            // For monogamous: delete the marriage and all children
+            marriagesToDelete.add(m.id);
+            if (Array.isArray(m.childrenIds)) {
+              m.childrenIds.forEach(childId => collectDescendants(childId));
+            }
+          } else if (m.marriageType === "polygamous") {
+            // For polygamous: only delete the specific spouse and their children
+            if (m.husbandId === id) {
+              // Deleting husband: delete all wives and their children
+              marriagesToDelete.add(m.id);
+              if (Array.isArray(m.wives)) {
+                m.wives.forEach(w => {
+                  toDelete.add(w.wifeId);
+                  (w.childrenIds || []).forEach(childId => collectDescendants(childId));
+                });
+              }
+            } else {
+              // Deleting a wife: only delete that wife and her children
+              const wifeData = m.wives.find(w => w.wifeId === id);
+              if (wifeData) {
+                (wifeData.childrenIds || []).forEach(childId => collectDescendants(childId));
+              }
+              // Don't delete the marriage, just remove the wife from it
+            }
+          }
+        } else {
+          // Direct line deletion: delete all spouses and children
+          marriagesToDelete.add(m.id);
+
+          // Add all spouses in this marriage to deletion set
+          if (m.marriageType === "monogamous" && Array.isArray(m.spouses)) {
+            m.spouses.forEach(spouseId => toDelete.add(spouseId));
+          } else if (m.marriageType === "polygamous") {
+            toDelete.add(m.husbandId);
+            if (Array.isArray(m.wives)) {
+              m.wives.forEach(w => toDelete.add(w.wifeId));
+            }
+          }
+
+          // Cascade to all children of this marriage
+          if (Array.isArray(m.childrenIds)) {
+            m.childrenIds.forEach(childId => collectDescendants(childId));
+          }
+          if (Array.isArray(m.wives)) {
+            m.wives.forEach(w => (w.childrenIds || []).forEach(childId => collectDescendants(childId)));
+          }
+        }
       }
 
-      if (Array.isArray(m.childrenIds) && m.childrenIds.includes(id)) collectDescendants(id);
+      // --- Case 2: Person is a child (non-direct line) ---
+      if (Array.isArray(m.childrenIds) && m.childrenIds.includes(id)) {
+        collectDescendants(id);
+      }
       if (Array.isArray(m.wives)) {
         for (const w of m.wives) {
           if (Array.isArray(w.childrenIds) && w.childrenIds.includes(id)) collectDescendants(id);
