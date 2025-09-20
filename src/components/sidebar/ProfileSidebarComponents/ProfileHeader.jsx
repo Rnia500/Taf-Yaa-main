@@ -25,29 +25,9 @@ export default function ProfileHeader({
   const [pngModalOpen, setPngModalOpen] = useState(false);
 
   return (
-    <FlexContainer
-      className="profile-sidebar"
-      gap="12px"
-      backgroundColor="var(--color-background)"
-      padding="0px"
-    >
-      <Card
-        positionType="relative"
-        backgroundColor="var(--color-background)"
-        padding="24px"
-        height="100%"
-      >
-        {/* Download Button */}
-        <Card
-          onClick={() => setDownloadModalOpen(true)}
-          rounded
-          height="24px"
-          width="24px"
-          positionType="absolute"
-          margin="10px 0px 0px 10px"
-          position="top-left"
-          backgroundColor="var(--color-transparent)"
-        >
+    <FlexContainer  gap='12px' backgroundColor="var(--color-background)" padding='0px'>
+      <Card positionType='relative' backgroundColor="var(--color-background)" padding="24px" height="100%" >
+        <Card onClick={() => {onDownload}} rounded height='24px' width='24px' positionType='absolute' margin='10px 0px 0px 10px' position='top-left' backgroundColor="var(--color-transparent)">
           <ArrowDownToLine color="var(--color-info)" />
         </Card>
 
@@ -67,15 +47,14 @@ export default function ProfileHeader({
 
         {/* Profile Info */}
         <ImageCard rounded={true} image={profileImage} size="100px" />
-        <Text color="primary-text" variant="heading2">
-          {profileName}
-        </Text>
-        <Text color="tertiary-text" align="center" variant="caption1">
-          Born on {birthDate} – Died on {deathDate}
-        </Text>
-        <Text color="tertiary-text" align="center" variant="caption1">
-          {statusIcons}
-        </Text>
+
+        <Text color='primary-text' variant='heading2'>{profileName}</Text>
+
+        {deathDate 
+          ? <Text color='tertiary-text' align='center' variant='caption1'>Born on {birthDate} - Died on {deathDate}</Text>
+          : <Text color='tertiary-text' align='center' variant='caption1'>Born on {birthDate}</Text>
+        }
+        <Text color='tertiary-text' align='center' variant='caption1'>{statusIcons}</Text>
 
         <Spacer size="md" />
 
@@ -107,4 +86,3 @@ export default function ProfileHeader({
     </FlexContainer>
   );
 }
-

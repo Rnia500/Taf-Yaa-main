@@ -27,8 +27,14 @@ const gradients = {
   ),
   default: (
     <linearGradient id="defaultGradient" x1="60" y1="-18.4498" x2="60" y2="179.337" gradientUnits="userSpaceOnUse">
-      <stop stopColor="#C48F67" />
+      <stop stopColor="var(--color-background)" />
       <stop offset="1" stopColor="#F3EDE0" />
+    </linearGradient>
+  ),
+  placeholder: (
+    <linearGradient id="placeholderGradient" x1="60" y1="-18.4498" x2="60" y2="179.337" gradientUnits="userSpaceOnUse">
+      <stop stopColor="#d1d5db" />
+      <stop offset="1" stopColor="#f9fafb" />
     </linearGradient>
   ),
 };
@@ -39,6 +45,7 @@ const gradientIds = {
   spouse: "spouseGradient",
   dead: "deadGradient",
   default: "defaultGradient",
+  placeholder: "placeholderGradient",
 };
 
 const PersonCardSVG = ({ children, style, variant = "default", ...props }) => (
@@ -59,7 +66,7 @@ const PersonCardSVG = ({ children, style, variant = "default", ...props }) => (
       fill={`url(#${gradientIds[variant] || gradientIds.default})`}
     />
     <foreignObject x="0" y="0" width="120" height="170">
-      <div style={{ width: "100%", height: "100%" }}>
+      <div style={{ margin:'0px', padding:'0px', width: "100%", height: "100%" }}>
         {children}
       </div>
     </foreignObject>

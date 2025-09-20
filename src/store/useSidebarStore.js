@@ -1,20 +1,16 @@
+// src/store/useSidebarStore.js
 import { create } from 'zustand';
 
 const useSidebarStore = create((set) => ({
-  // Sidebar open/close state
   isSidebarOpen: false,
   
-  // Toggle sidebar open/close
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  activeProfileId: null, 
   
-  // Set sidebar open state
-  openSidebar: () => set({ isSidebarOpen: true }),
   
-  // Set sidebar closed state
-  closeSidebar: () => set({ isSidebarOpen: false }),
+  openSidebar: (personId) => set({ isSidebarOpen: true, activeProfileId: personId }),
   
-  // Set sidebar state explicitly
-  setSidebarOpen: (open) => set({ isSidebarOpen: open }),
+
+  closeSidebar: () => set({ isSidebarOpen: false, activeProfileId: null }),
 }));
 
 export default useSidebarStore;

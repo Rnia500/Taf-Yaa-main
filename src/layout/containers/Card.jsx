@@ -11,7 +11,7 @@ function Card({
   borderRadius = '8px',
   width = '100%',
   height = 'auto',
-  backgroundColor = 'darkGrey',
+  backgroundColor = "var(--color-defaultCardbg)",
   alignItems = 'center',
   justifyContent = 'center',
   borderColor = backgroundColor,

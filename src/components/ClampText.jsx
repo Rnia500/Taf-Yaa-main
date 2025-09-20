@@ -7,10 +7,10 @@ function ClampText({ children, lines = 2 }) {
 
   return (
     <>
-      <Text variant="body1" truncateLines={expanded ? undefined : lines}>
+      <Text variant="body2" truncateLines={expanded ? undefined : lines}>
         {children}
       </Text>
-      <Button variant="link" onClick={() => setExpanded(!expanded)}>
+      <Button size='sm' variant="link" onClick={() => setExpanded(!expanded)}>
         {expanded ? 'Show less' : 'Show more'}
       </Button>
     </>

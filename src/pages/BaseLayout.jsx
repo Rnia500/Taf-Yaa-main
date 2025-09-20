@@ -1,55 +1,37 @@
-import React, { useState } from 'react';
+// src/pages/BaseLayout.jsx
+import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import PageFrame from '../layout/containers/PageFrame';
 import ProfileSidebar from '../components/sidebar/ProfileSidebar';
 import Card from '../layout/containers/Card';
-import ComponentDemo from './ComponentDemo';
-import DefaultNavbar from '../components/navbar/DefaultNavbar';
 import AdminNavbar from '../components/navbar/AdminNavbar';
-import ModeratorNavbar from '../components/navbar/ModeratorNavbar';
-import EditorNavbar from '../components/navbar/EditorNavbar';
-import ViewerNavbar from '../components/navbar/EditorNavbar';
-import PDFExport from '../components/PdfExport';
-import useModalStore from '../store/useModalStore';
-
-
+import FamilyTreePage from './FamilyTreePage';
+import useSidebarStore from '../store/useSidebarStore';
+import Text from '../components/Text';
+import ComponentDemo from './ComponentDemo';
+import Toast from '../components/toasts/Toast';
 
 export default function BaseLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-    const { modals, closeModal } = useModalStore();
+  const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
+  const closeSidebar = useSidebarStore((state) => state.closeSidebar);
+  const location = useLocation();
+
+  // Check if we're on a nested route (any child route of family-tree)
+  const isNestedRoute = location.pathname.split('/').length > 3;
 
   return (
     <PageFrame
       topbar={<AdminNavbar />}
-      sidebar={<ProfileSidebar onClose={() => setSidebarOpen(false)} />}
-      sidebarOpen={sidebarOpen}
-      onSidebarClose={() => setSidebarOpen(false)}
-      footer={
-        <div style={{ textAlign: 'center', width: '100%' }}>
-          © {new Date().getFullYear()} Taf'Yaa · All rights reserved
-        </div>
-      }
-      footerInsideMain={true}
+     
+      sidebar={<ProfileSidebar onClose={closeSidebar} />}
+      
+      sidebarOpen={isSidebarOpen}
+     
+      onSidebarClose={closeSidebar}
     >
       <>
-
-      <PDFExport
-          isOpen={modals.pdfExportModal}
-          onClose={() => closeModal('pdfExportModal')}
-        />
-        <Card>
-          <h1>Welcome to Taf'Yaa</h1>
-          <p>Default navbar is now active for testing</p>
-          <button onClick={() => setSidebarOpen(true)} style={{ padding: '8px 16px', fontSize: 16 }}>
-            Open Profile Sidebar
-          </button>
-        </Card>
-
-              
-
-        {/* <ComponentDemo setSidebarOpen={setSidebarOpen} /> */}
-        <ComponentDemo />
-      
+        <Toast />
+        {isNestedRoute ? <Outlet /> : <FamilyTreePage />}
       </>
     </PageFrame>
   );

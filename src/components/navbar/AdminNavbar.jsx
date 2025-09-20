@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { Link, useParams } from 'react-router-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
-import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell, ArrowDownToLine } from 'lucide-react';
+import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings, Bell, Trash2, ArrowDownToLine } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
 import PDFExport from '../PdfExport';
@@ -15,6 +16,7 @@ import { NavLink } from "react-router-dom";
 export default function AdminNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { treeId } = useParams();
 
   const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
@@ -25,106 +27,79 @@ export default function AdminNavbar() {
     { label: 'Members', href: '#content' },
     { label: 'Notification', href: '#content' },
     { label: 'Suggestions', href: '#content' },
-    { label: 'Export', href: '/export' }
-
+    { label: 'Export', href: '/export' },
   ];
 
-  const { openModal } = useModalStore();
+  const MobileNavItems = [
+    { label: 'Tree View', href: treeId ? `/family-tree/${treeId}` : '#content', isLink: true },
+    { label: 'Members', href: '#content', isLink: false },
+    { label: 'Notification', href: '#content', isLink: false },
+    { label: 'Suggestions', href: '#content', isLink: false },
+    { label: 'Export', action: () => openModal('pdfExportModal'), isLink: false },
+    { label: 'Deleted Persons', href: treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons', isLink: true },
+    { label: 'Settings', href: '#content', isLink: false },
+    { label: 'Language', href: '#content', isLink: false },
 
-const MobileNavItems = [
-  { label: 'Tree View', href: '/base' },
-  { label: 'Members', href: '/members' },
-  { label: 'Notification', href: '/notifications' },
-  { label: 'Suggestions', href: '/suggestions' },
-  { label: 'Export', action: () => openModal('pdfExportModal') },
-  { label: 'Settings', href: '/settings' },
-  { label: 'Language', href: '/language' },
-];
-
+  ];
 
   return (
     <nav className='NavBar'>
       {/* Logo Section */}
-      <Row fitContent justifyContent='start' padding='0px' margin='0px'>
-        <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
-        <Text variant='heading2'>Taf'Yaa</Text>
+      <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
+        <div className="logo-section">
+          <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
+          <Text variant='heading2' className="brand-text">Taf'Yaa</Text>
+        </div>
+
+        {/* Desktop Nav */}
+        <div className="desktop-nav">
+          <Row width='100%' fitContent={true} gap='0.5rem' padding='0px' margin='0px' className='navbar-row'>
+            <div className="nav-items-container">
+              {navItems.map((item) => (
+                item.isLink ? (
+                  <Link key={item.label} to={item.href}>
+                    <Text className='navItem' variant='body1' bold>
+                      {item.label}
+                    </Text>
+                  </Link>
+                ) : (
+                  <Text key={item.label} className='navItem' as='a' variant='body1' bold href={item.href}>
+                    {item.label}
+                  </Text>
+                )
+              ))}
+            </div>
+
+            <div className="action-buttons">
+              <Link to={treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons'}>
+                <div className="action-btn">
+                  <Trash2 size={20} color="var(--color-primary-text)" />
+                </div>
+              </Link>
+
+              <div className="action-btn" onClick={() => { alert("hello boy") }}>
+                <EarthIcon size={20} color="var(--color-primary-text)" />
+              </div>
+
+              <div className="action-btn" onClick={() => openModal('pdfExportModal')}>
+                <ArrowDownToLine size={20} color="var(--color-primary-text)"  />
+              </div>
+
+              <div className="action-btn" onClick={toggleSubmenu}>
+                <Settings size={20} color="var(--color-primary-text)" />
+              </div>
+
+              <div className="action-btn" onClick={toggleSubmenu}>
+                <Bell size={20} color="var(--color-primary-text)" />
+              </div>
+
+              <div className="action-btn" onClick={toggleSubmenu}>
+                <CircleUser size={20} color="var(--color-primary-text)" />
+              </div>
+            </div>
+          </Row>
+        </div>
       </Row>
-
-      {/* Desktop Nav */}
-      <div className="desktop-nav">
-          <Row width='750px' fitContent={true} gap='1rem' justifyContent='end' padding='0px' margin='0px'>
-          {navItems.map((item) => (
-           <NavLink key={item.label} to={item.href} className='navItem'>
-  {item.label}
-</NavLink>
-
-          ))}
-
-          <Card
-            fitContent
-            size={25}
-            padding='3px'
-            margin='5px'
-            backgroundColor="var(--color-gray)"
-            style={{ cursor: 'pointer' }}
-          >
-            <Row fitContent={true} gap='0.25rem' padding='0px' margin='0px'>
-              <EarthIcon size={20} color="var(--color-primary-text)" />
-              <ChevronDown onClick={() => {alert("hello boy")}} color='var(--color-primary-text)' />
-            </Row>
-          </Card>
-
-          <Card
-            fitContent
-            size={20}
-            onClick={toggleSubmenu}
-            padding='3px'
-            margin='2px'
-            backgroundColor="var(--color-gray)"
-            style={{ cursor: 'pointer' }}
-          >
-            <Settings size={20} color="var(--color-primary-text)" />
-          </Card>  
-          
-          <Card
-            fitContent
-            size={20}
-            onClick={toggleSubmenu}
-            padding='3px'
-            margin='2px'
-            backgroundColor="var(--color-gray)"
-            style={{ cursor: 'pointer' }}
-          >
-            <Bell size={20} color="var(--color-primary-text)" />
-          </Card>
-          
-          <Card
-            fitContent
-            size={20}
-            onClick={() => openModal('pdfExportModal')}
-            padding='3px'
-            margin='2px'
-            backgroundColor="var(--color-gray)"
-            style={{ cursor: 'pointer' }}
-          >
-            <ArrowDownToLine size={20} color="var(--color-primary-text)" />
-             
-          </Card>
-
-          <Card
-            fitContent
-            rounded
-            size={35}
-            onClick={toggleSubmenu}
-            padding='0px'
-            margin='5px'
-            backgroundColor="var(--color-transparent)"
-            style={{ cursor: 'pointer' }}
-          >
-            <CircleUser size={30} color="var(--color-primary-text)" />
-          </Card>
-        </Row>
-      </div>
 
       {/* Mobile Menu Button */}
       <button
@@ -139,32 +114,27 @@ const MobileNavItems = [
       {mobileMenuOpen && ReactDOM.createPortal(
         <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
           <div className="mobile-nav-content">
-            {MobileNavItems.map((item) =>
-  item.href ? (
-    <NavLink
-      key={item.label}
-      to={item.href}
-      className="mobile-nav-item"
-      onClick={closeMobileMenu}
-    >
-      {item.label}
-    </NavLink>
-  ) : (
-    <button
-      key={item.label}
-      onClick={() => {
-        item.action();
-        closeMobileMenu();
-      }}
-      className="mobile-nav-item"
-      style={{ background: "none", border: "none", cursor: "pointer" }}
-    >
-      {item.label}
-    </button>
-  )
-)}
-
-
+            {MobileNavItems.map((item) => (
+              item.isLink ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="mobile-nav-item"
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="mobile-nav-item"
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </a>
+              )
+            ))}
           </div>
         </div>,
         document.body

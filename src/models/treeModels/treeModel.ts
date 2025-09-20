@@ -1,0 +1,115 @@
+// src/models/tree.ts
+import { generateId } from "../../utils/personUtils/idGenerator";
+
+export interface Tree {
+  id: string;
+  familyName: string;
+  familyDescription: string;
+  orgineTribe: string,
+  origineTongue: string,
+  origineHomeLand: string,
+  createdBy: string;             
+  createdAt: string;             
+  updatedAt: string;             
+  currentRootId?: string | null; 
+  
+  roles: Record<string, "admin" | "moderator" | "editor" | "viewer">;
+
+  
+  settings: {
+    privacy: {
+      isPublic: boolean;                
+      allowMergeRequests: boolean;      
+      globalMatchOptIn: boolean;        
+      allowInvites:boolean;
+    };
+
+    relationship: {
+      allowPolygamy: boolean;
+      allowMultipleMarriages: boolean;
+      allowUnknownParentLinking: boolean;
+      maxGenerationsDisplayed: number; 
+    };
+
+    display: {
+      showRoleBadges: boolean;
+      showGenderIcons: boolean;
+      defaultRootPerson?: string | null;
+    };
+
+    language: {
+      interfaceLanguage: string;      
+      allowPerUserLanguageOverride: boolean;
+    };
+
+    lifeEvents: {
+      birth: boolean;
+      death: boolean;
+      marriage: boolean;
+      divorce: boolean;
+      migration?: boolean;
+      [key: string]: boolean | undefined;
+    };
+
+    limits: {
+      maxStoryLength: number;          
+      maxImageFileSize: string;        
+      maxAudioFileSize: string;        
+    };
+  };
+}
+
+// --- Factory ---
+export function createTree(input: Partial<Tree>): Tree {
+  const id = input.id || generateId("tree");
+  return {
+    id,
+    familyName: input.familyName || "Untitled Tree",
+    createdBy: input.createdBy!,
+    createdAt: input.createdAt || new Date().toISOString(),
+    updatedAt: input.updatedAt || new Date().toISOString(),
+    currentRootId: input.currentRootId || null,
+    familyDescription: input.familyDescription || "No Description",
+    orgineTribe: input.orgineTribe || "No tribe given",
+    origineHomeLand: input.origineHomeLand || "No homeland given",
+    origineTongue: input.origineTongue || "No mother tongue given",
+    roles: input.roles || { [input.createdBy!]: "admin" },
+
+    settings: {
+      privacy: {
+        isPublic: input.settings?.privacy?.isPublic ?? false,
+        allowMergeRequests: input.settings?.privacy?.allowMergeRequests ?? false,
+        globalMatchOptIn: input.settings?.privacy?.globalMatchOptIn ?? false,
+        allowInvites: input.settings?.privacy?.allowInvites || true,
+      },
+      relationship: {
+        allowPolygamy: input.settings?.relationship?.allowPolygamy ?? false,
+        allowMultipleMarriages: input.settings?.relationship?.allowMultipleMarriages ?? true,
+        allowUnknownParentLinking: input.settings?.relationship?.allowUnknownParentLinking ?? false,
+        maxGenerationsDisplayed: input.settings?.relationship?.maxGenerationsDisplayed || 10,
+      },
+      display: {
+        showRoleBadges: input.settings?.display?.showRoleBadges ?? true,
+        showGenderIcons: input.settings?.display?.showGenderIcons ?? true,
+        defaultRootPerson: input.settings?.display?.defaultRootPerson || null,
+      },
+      language: {
+        interfaceLanguage: input.settings?.language?.interfaceLanguage || "en",
+        allowPerUserLanguageOverride: input.settings?.language?.allowPerUserLanguageOverride ?? true,
+      },
+      lifeEvents: {
+        birth: true,
+        death: true,
+        marriage: true,
+        divorce: true,
+        migration: false,
+        ...(input.settings?.lifeEvents || {}),
+      },
+      limits: {
+        maxStoryLength: input.settings?.limits?.maxStoryLength || 500,
+        maxImageFileSize: input.settings?.limits?.maxImageFileSize || "2mb",
+        maxAudioFileSize: input.settings?.limits?.maxAudioFileSize || "5mb",
+      },
+    },
+  };
+}

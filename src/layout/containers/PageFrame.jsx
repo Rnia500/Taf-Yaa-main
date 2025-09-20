@@ -10,10 +10,10 @@ export default function PageFrame({
   footerInsideMain = false,
   children,
 }) {
-  // Determine if mobile (<=350px)
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 350);
+  // Determine if mobile (<=768px)
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
   React.useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 350);
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);

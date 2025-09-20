@@ -15,6 +15,7 @@ function Text({
   uppercase = false,
   ellipsis = false,
   truncateLines,
+  isClamp = false,
   className = '',
   style = {},
   ...rest
@@ -29,6 +30,7 @@ function Text({
     ellipsis && 'text-ellipsis',
     truncateLines && 'text-line-clamp',
     truncateLines && `text-line-clamp-${truncateLines}`,
+    isClamp && 'text-clamp',
     className,
   ].filter(Boolean).join(' ');
 
