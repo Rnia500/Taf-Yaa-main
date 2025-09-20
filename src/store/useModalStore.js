@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+
 const useModalStore = create((set) => ({
   // Modal states for ComponentDemo
   modals: {
@@ -7,6 +8,7 @@ const useModalStore = create((set) => ({
     settingsModal: false,
     profileModal: false,
     pdfExportModal: false,
+    SuggestionsPage: false,
     
   },
   
@@ -32,7 +34,8 @@ const useModalStore = create((set) => ({
       settingsModal: false,
       profileModal: false,
       pdfExportModal: false,
-     
+      SuggestionsPage: false,
+    
 
     }
   }),

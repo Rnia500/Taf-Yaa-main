@@ -1,0 +1,151 @@
+{
+  "navbar": {
+    "tree_view": "Family Tree",
+    "members": "Members",
+    "notifications": "Notifications",
+    "suggestions": "Suggestions",
+    "export": "Export",
+    "settings": "Settings",
+    "language": "Language",
+    "download_profile": "Download Profile"
+  },
+
+  "modals": {
+    "download_profile": "Download Profile",
+    "choose_format": "Choose your preferred format to download this profile.",
+    "recommended": "Recommended",
+
+    "pdf_title": "PDF Document",
+    "pdf_subtitle": "Perfect for printing and official archives",
+    "pdf_feature1": "High-quality text and images",
+    "pdf_feature2": "Printable format",
+    "pdf_feature3": "Preserves layout and formatting",
+
+    "export_family_tree": "Export Family Tree",
+    "download_tree": "Download your tree as a printable image or PDF to share, archive, or preserve.",
+    "export_as_pdf": "Export as PDF",
+    "pdf_subtitle2": "This will capture the profile layout and download it as PDF.",
+
+    "png_title": "PNG Image",
+    "png_subtitle": "Ideal for sharing on social media",
+    "png_feature1": "Easy to share online",
+    "png_feature2": "High resolution image",
+    "png_feature3": "Compatible with all devices",
+
+    "export_as_png": "Export as PNG",
+    "png_subtitle2": "This will capture the profile layout and download it as an image.",
+
+    "scope": "Scope",
+    "current_view": "Current View",
+    "centered_view": "Centered View",
+    "complete_view": "Complete View",
+    "custom_view": "Custom View",
+    "export_settings": "Export Settings",
+    "format": "Format",
+    "pdf_document": "PDF Document",
+    "png_image": "PNG Image"
+  },
+
+  "relations": {
+    "test": "Test Family Tree",
+    "father": "Father",
+    "mother": "Mother",
+    "son": "Son",
+    "daughter": "Daughter",
+    "uncle": "Uncle",
+    "aunt": "Aunt",
+    "cousin": "Cousin",
+    "grandmother": "Grandmother",
+    "grandfather": "Grandfather",
+    "sister": "Sister",
+    "brother": "Brother",
+    "niece": "Niece"
+  },
+
+  "suggestions_panel": {
+    "title": "Suggestions",
+    "apply": "Apply",
+    "dismiss": "Dismiss",
+    "s1": "Add missing biography details",
+    "s2": "Connect the member to their parents",
+    "s3": "Upload a profile picture"
+  },
+
+  "baselayout": {
+  "welcome_title": "Welcome to Taf’Yaa",
+  "navbar_status": "Default navbar is now active for testing",
+  "open_sidebar": "Open Profile Sidebar",
+  "footer": "All rights reserved"
+},
+
+
+  "demo": {
+    "title": "Components Demo",
+    "texts": "Texts",
+    "welcome": "Welcome to Taf'Yaa",
+    "warning": "This is a warning",
+    "paragraph": "This is a paragraph rendered as a paragraph element.",
+    "clamp_text": "Clamp Text",
+    "clamp_sample": "This is a sample text that will be truncated after two lines. Click \"Show more\" to expand the text and see the full content.",
+    "buttons": "Button",
+    "checkbox": "Checkbox",
+    "accept_terms": "Accept Terms",
+    "dateinput": "Date Input",
+    "pick_date": "Pick a date",
+    "divider": "Divider",
+    "fileupload": "File Upload",
+    "inputs": "Inputs",
+    "name": "Name",
+    "enter_name": "Enter name",
+    "search_placeholder": "Search for a Tree...",
+    "searching": "Searching for:",
+    "description": "Description",
+    "slider": "Slider",
+    "volume": "Volume",
+    "dropdown": "Select Dropdown",
+    "choose": "Choose",
+    "one": "One",
+    "two": "Two",
+    "spacer": "Spacer",
+    "stepper": "Stepper Input",
+    "toggle": "Toggle Switch",
+    "pills": "Pills",
+    "default_pill": "Default Pill",
+    "primary_pill": "Primary Pill",
+    "row": "Row",
+    "column": "Column",
+    "card1": "Card 1",
+    "card2": "Card 2",
+    "card3": "Card 3",
+    "flexible": "Flexible Container",
+    "grid": "Grid",
+    "card": "Card",
+    "card_title": "Card Title",
+    "card_content": "Card content goes here.",
+    "image_card": "Image Card",
+    "sample_image1": "Sample image 1",
+    "sample_image3": "Sample image 3",
+    "fallback_icon": "Fallback icon",
+    "audio": "Audio Player",
+    "sample_audio": "Sample Audio Player",
+    "waveform": "Waveform Player",
+    "sample_waveform": "Sample Waveform Player",
+    "person_card": "Person Card"
+  },
+
+  "buttons": {
+    "cancel": "Cancel",
+    "download": "Download",
+    "save": "Save",
+    "export": "Export",
+    "primary": "Primary Button",
+    "secondary": "Secondary",
+    "loading": "Loading",
+    "disabled": "Disabled",
+    "small": "Small button",
+    "medium": "Medium button",
+    "large": "Large button",
+    "learn_more": "Learn more",
+    "full_width": "Full Width"
+  }
+}

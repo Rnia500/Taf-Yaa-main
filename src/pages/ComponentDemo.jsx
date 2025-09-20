@@ -26,10 +26,9 @@ import PersonCardContainer from '../layout/containers/PersonCardContainer';
 import RecordingIcon from '../components/RecordingIcon';
 import PersonCardSVG from '../layout/containers/PersonCardSVG';
 import PersonCard from '../components/PersonCard';
+import { useTranslation } from 'react-i18next';
 
-
-
-const ComponentDemo = ({setSidebarOpen}) => {
+const ComponentDemo = ({ setSidebarOpen }) => {
   const [checked, setChecked] = useState(false);
   const [date, setDate] = useState('');
   const [step, setStep] = useState(1);
@@ -43,6 +42,7 @@ const ComponentDemo = ({setSidebarOpen}) => {
   const [audioDurations, setAudioDurations] = useState({});
   const [audioTimes, setAudioTimes] = useState({});
 
+  const { t } = useTranslation();
 
   const handleAudioActivate = (index) => {
     setActiveAudioIndex(prev => (prev === index ? null : index));
@@ -56,88 +56,88 @@ const ComponentDemo = ({setSidebarOpen}) => {
 
   return (
     <div style={{ padding: 32 }}>
-      <h1>Components Demo</h1>
+      <h1>{t("demo.title")}</h1>
       <Divider />
 
-      <h2>Texts</h2>
+      <h2>{t("demo.texts")}</h2>
       <Text variant="heading1" bold color="primary-text" align="center">
-        Welcome to Taf'Yaa
+        {t("demo.welcome")}
       </Text>
 
       <Text variant="caption2" italic color="danger">
-        * This is a warning
+        * {t("demo.warning")}
       </Text>
 
       <Text as="p" color="gray-dark">
-        This is a paragraph rendered as a paragraph element.
+        {t("demo.paragraph")}
       </Text>
 
       <Divider />
 
-      <h2>Clamp Text</h2>
+      <h2>{t("demo.clamp_text")}</h2>
       <Card padding="16px" backgroundColor="#f5f5f5" borderRadius="8px">
         <ClampText lines={2}>
-          This is a sample text that will be truncated after two lines. Click "Show more" to expand the text and see the full content. This is useful for displaying long text in a limited space while still allowing users to access the full content if needed. The component automatically handles the truncation and provides a toggle button for expanding/collapsing the text.
+          {t("demo.clamp_sample")}
         </ClampText>
       </Card>
       <Divider />
 
       <RecordingIcon isRecording={true}></RecordingIcon>
 
-      <h2>Button</h2>
-      <Button onClick={() => alert('Clicked!')}>Primary Button</Button>
+      <h2>{t("demo.buttons")}</h2>
+      <Button onClick={() => alert('Clicked!')}>{t("buttons.primary")}</Button>
       <Spacer />
-      <Button variant="secondary">Secondary</Button>
+      <Button variant="secondary">{t("buttons.secondary")}</Button>
       <Spacer />
-      <Button loading>Loading</Button>
+      <Button loading>{t("buttons.loading")}</Button>
       <Spacer />
-      <Button disabled>Disabled</Button>
+      <Button disabled>{t("buttons.disabled")}</Button>
       <Spacer />
-      <Button size='sm'>Small button</Button>
+      <Button size='sm'>{t("buttons.small")}</Button>
       <Spacer />
-      <Button size='md'>Medium button</Button>
+      <Button size='md'>{t("buttons.medium")}</Button>
       <Spacer />
-      <Button size='lg'>Large button</Button>
+      <Button size='lg'>{t("buttons.large")}</Button>
       <Spacer />
-      <Button variant='link'>Learn more</Button>
+      <Button variant='link'>{t("buttons.learn_more")}</Button>
       <Spacer />
-      <Button fullWidth>Full Width</Button>
+      <Button fullWidth>{t("buttons.full_width")}</Button>
       <Divider />
 
-      <h2>Checkbox</h2>
-      <Checkbox label="Accept Terms" checked={checked} onChange={() => setChecked(!checked)} />
+      <h2>{t("demo.checkbox")}</h2>
+      <Checkbox label={t("demo.accept_terms")} checked={checked} onChange={() => setChecked(!checked)} />
       <Divider />
 
-      <h2>DateInput</h2>
-      <DateInput label="Pick a date" value={date} onChange={e => setDate(e.target.value)} />
+      <h2>{t("demo.dateinput")}</h2>
+      <DateInput label={t("demo.pick_date")} value={date} onChange={e => setDate(e.target.value)} />
       <Divider />
 
-      <h2>Divider</h2>
+      <h2>{t("demo.divider")}</h2>
       <Divider />
       <Divider color="red" thickness="2px" borderRadius='2px' />
       <Divider vertical style={{ height: 40 }} />
       <Divider />
 
-      <h2>FileUpload</h2>
+      <h2>{t("demo.fileupload")}</h2>
       <FileUpload onChange={() => {}} />
       <Divider />
 
-      <h2>Input</h2>
-      <TextInput label="Name" value={text} onChange={e => setText(e.target.value)} placeholder="Enter name" />
+      <h2>{t("demo.inputs")}</h2>
+      <TextInput label={t("demo.name")} value={text} onChange={e => setText(e.target.value)} placeholder={t("demo.enter_name")} />
       <Spacer />
       <SearchInput
-        placeholder="Search for a Tree..."
+        placeholder={t("demo.search_placeholder")}
         value={search}
         onChange={setSearch}
-        onSearch={val => alert('Searching for:'+' '+ val)}
+        onSearch={val => alert(t("demo.searching") + ' ' + val)}
       />
       <Spacer />
-      <TextArea label="Description" value={textarea} onChange={e => setTextarea(e.target.value)} />
+      <TextArea label={t("demo.description")} value={textarea} onChange={e => setTextarea(e.target.value)} />
       <Divider />
 
-      <h2>Slider</h2>
+      <h2>{t("demo.slider")}</h2>
       <Slider
-        label="Volume"
+        label={t("demo.volume")}
         min={0}
         max={100}
         step={2}
@@ -146,104 +146,98 @@ const ComponentDemo = ({setSidebarOpen}) => {
       />
       <Divider />
 
-      <h2>SelectDropdown</h2>
+      <h2>{t("demo.dropdown")}</h2>
       <SelectDropdown
-        label="Choose"
-        options={[{ label: 'One', value: 1 }, { label: 'Two', value: 2 }]}
+        label={t("demo.choose")}
+        options={[{ label: t("demo.one"), value: 1 }, { label: t("demo.two"), value: 2 }]}
         value={dropdown}
         onChange={e => setDropdown(e.target.value)}
       />
       <Divider />
 
-      <h2>Spacer</h2>
+      <h2>{t("demo.spacer")}</h2>
       <Spacer size="md" />
       <Spacer size="28px" />
       <Spacer size="lg" vertical={false} />
       <Divider />
 
-      <h2>StepperInput</h2>
+      <h2>{t("demo.stepper")}</h2>
       <StepperInput value={step} onChange={setStep} />
       <Divider />
 
-      <h2>ToggleSwitch</h2>
-        <ToggleSwitch
-          checked={toggle}
-          onChange={newValue => {
-            setToggle(newValue);
-            // setTimeout(() => {
-            //   alert(newValue ? "this is On" : "this is Off");
-            // }, 0);
-          }}
-        /> 
+      <h2>{t("demo.toggle")}</h2>
+      <ToggleSwitch
+        checked={toggle}
+        onChange={newValue => {
+          setToggle(newValue);
+        }}
+      /> 
       <Divider />
 
-      <h2>Pill</h2>
+      <h2>{t("demo.pills")}</h2>
       <Row gap="10px" alignItems="center">
-        <Pill backgroundColor="#e0e0e0" color="#333">Default Pill</Pill>
-        <Pill backgroundColor="#007bff" color="white">Primary Pill</Pill>
+        <Pill backgroundColor="#e0e0e0" color="#333">{t("demo.default_pill")}</Pill>
+        <Pill backgroundColor="#007bff" color="white">{t("demo.primary_pill")}</Pill>
         <Pill backgroundColor="#28a745" color="white" icon={<CircleUser size={20} />}>
         </Pill>
       </Row>
       <Divider />
 
-      <h2>Row</h2>
+      <h2>{t("demo.row")}</h2>
       <Row gap="1rem" padding="1rem" justifyContent='space-between'  >
         <Card backgroundColor='#7c0786' height='50px' width='150px'>Card 2</Card>
         <Card backgroundColor='#7c0786' height='50px' width='150px'>Card 2</Card>
       </Row>
       <Divider />
 
-      <h2>Column</h2>
+      <h2>{t("demo.column")}</h2>
       <FlexContainer direction="column" height='400px'>
         <Column gap="1rem" padding="1rem" justifyContent='space-between' height='100%'>
-          <Card backgroundColor='#1F724A' height='50px'> Card 1 </Card>
-          <Card backgroundColor='#1F724A' height='50px'> Card 2 </Card>
+          <Card backgroundColor='#1F724A' height='50px'> {t("demo.card1")} </Card>
+          <Card backgroundColor='#1F724A' height='50px'> {t("demo.card2")} </Card>
         </Column>
       </FlexContainer>
       <Divider />
 
-      <h2>Flexible Container</h2>
-       <FlexContainer direction="column" responsiveDirection="row" gap="1rem">
-        <Card backgroundColor='#1F724A' height='50px'> Card 1 </Card>
-        <Card backgroundColor='#1F724A' height='50px'> Card 2 </Card>
-       </FlexContainer>
+      <h2>{t("demo.flexible")}</h2>
+      <FlexContainer direction="column" responsiveDirection="row" gap="1rem">
+        <Card backgroundColor='#1F724A' height='50px'> {t("demo.card1")} </Card>
+        <Card backgroundColor='#1F724A' height='50px'> {t("demo.card2")} </Card>
+      </FlexContainer>
       <Divider />
 
-      <h2>Grid</h2>
+      <h2>{t("demo.grid")}</h2>
       <Grid columns={2} gap="10px">
-        <Card backgroundColor='#1F724A' height='50px' borderRadius='5px'> Card 1 </Card>
-        <Card backgroundColor='#1F724A' height='50px'> Card 2 </Card>
-        <Card backgroundColor='#1F724A' height='50px'> Card 3 </Card>
+        <Card backgroundColor='#1F724A' height='50px' borderRadius='5px'> {t("demo.card1")} </Card>
+        <Card backgroundColor='#1F724A' height='50px' borderRadius='5px'> {t("demo.card2")} </Card>
+        <Card backgroundColor='#1F724A' height='50px' borderRadius='5px'> {t("demo.card3")} </Card>
       </Grid>
       <Divider />
 
-      <h2>Card</h2>
+      <h2>{t("demo.card")}</h2>
       <Card padding="24px" shadow borderRadius="12px" backgroundColor='black' positionType='Relative'>
-        <h3>Card Title</h3>
-        <p>Card content goes here.</p>
-        <Card rounded positionType='Absolute' position='top-right' backgroundColor='white' onClick={() => {}} margin='5px 5px 0px 0px' ><CircleUser strokeWidth={2} size={50} color='#1F724A'/></Card>
-        <Card width='100px'  positionType='Absolute' position='bottom-right' onClick={() => {}} margin='0px 10px 10px 0px' ><Text variant='caption1' color='danger'> others</Text></Card>
-        <Card width='100px' positionType='Absolute' position='bottom-left' onClick={() => {}} margin='0px 0px 10px 10px' ><Text variant='caption1' color='link'> others</Text></Card>
+        <h3>{t("demo.card_title")}</h3>
+        <p>{t("demo.card_content")}</p>
       </Card>
 
-      <h2>Image Card</h2>
+      <h2>{t("demo.image_card")}</h2>
       <Row gap="16px" justifyContent="start">
         <ImageCard 
           image="/Images/image1.png" 
-          alt="Sample image 1" 
+          alt={t("demo.sample_image1")} 
           width="150px" 
           height="150px"
           borderRadius="10px" 
         />
         <ImageCard 
           image="/Images/image3.png" 
-          alt="Sample image 3" 
+          alt={t("demo.sample_image3")} 
           width="150px" 
           height="150px" 
           borderRadius="10px"
         />
         <ImageCard 
-          alt="Fallback icon" 
+          alt={t("demo.fallback_icon")} 
           width="150px" 
           height="150px" 
           rounded
@@ -251,9 +245,9 @@ const ComponentDemo = ({setSidebarOpen}) => {
       </Row>
       <Divider />
 
-      <h2>Audio Player</h2>
+      <h2>{t("demo.audio")}</h2>
       <Card padding="16px" backgroundColor="#f0f0f0" borderRadius="8px">
-        <Text variant="body1" bold>Sample Audio Player</Text>
+        <Text variant="body1" bold>{t("demo.sample_audio")}</Text>
         <Spacer size="sm" />
         <AudioPlayer
           audioURL="/Audio/Gorillaz_-_Feel_Good_Inc.__Official_Video_(140).m4a"
@@ -263,9 +257,9 @@ const ComponentDemo = ({setSidebarOpen}) => {
       </Card>
       <Divider />
 
-      <h2>Waveform Player</h2>
+      <h2>{t("demo.waveform")}</h2>
       <Card padding="16px" backgroundColor="#f0f0f0" borderRadius="8px">
-        <Text variant="body1" bold>Sample Waveform Player</Text>
+        <Text variant="body1" bold>{t("demo.sample_waveform")}</Text>
         <Spacer size="sm" />
         <div style={{ width: '100%' }}>
           <WaveformPlayer
@@ -290,7 +284,7 @@ const ComponentDemo = ({setSidebarOpen}) => {
       </Card>
       <Divider />
 
-      <h2>Person Card</h2>
+      <h2>{t("demo.person_card")}</h2>
       <Row alignItems='center' padding="0px" gap="1rem" margin='0px'>
           <PersonCard
             variant="root"
@@ -336,9 +330,6 @@ const ComponentDemo = ({setSidebarOpen}) => {
             onAdd={() => {}}
           />
       </Row>
-        
-      
-
     </div>
   );
 };

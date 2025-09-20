@@ -3,20 +3,15 @@ import PageFrame from '../layout/containers/PageFrame';
 import ProfileSidebar from '../components/sidebar/ProfileSidebar';
 import Card from '../layout/containers/Card';
 import ComponentDemo from './ComponentDemo';
-import DefaultNavbar from '../components/navbar/DefaultNavbar';
 import AdminNavbar from '../components/navbar/AdminNavbar';
-import ModeratorNavbar from '../components/navbar/ModeratorNavbar';
-import EditorNavbar from '../components/navbar/EditorNavbar';
-import ViewerNavbar from '../components/navbar/EditorNavbar';
 import PDFExport from '../components/PdfExport';
 import useModalStore from '../store/useModalStore';
-
-
+import { useTranslation } from 'react-i18next';
 
 export default function BaseLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-    const { modals, closeModal } = useModalStore();
+  const { modals, closeModal } = useModalStore();
+  const { t } = useTranslation();
 
   return (
     <PageFrame
@@ -26,30 +21,29 @@ export default function BaseLayout() {
       onSidebarClose={() => setSidebarOpen(false)}
       footer={
         <div style={{ textAlign: 'center', width: '100%' }}>
-          © {new Date().getFullYear()} Taf'Yaa · All rights reserved
+          © {new Date().getFullYear()} Taf'Yaa · {t("baselayout.footer")}
         </div>
       }
       footerInsideMain={true}
     >
       <>
-
-      <PDFExport
+        <PDFExport
           isOpen={modals.pdfExportModal}
           onClose={() => closeModal('pdfExportModal')}
         />
+
         <Card>
-          <h1>Welcome to Taf'Yaa</h1>
-          <p>Default navbar is now active for testing</p>
-          <button onClick={() => setSidebarOpen(true)} style={{ padding: '8px 16px', fontSize: 16 }}>
-            Open Profile Sidebar
+          <h1>{t("baselayout.welcome_title")}</h1>
+          <p>{t("baselayout.navbar_status")}</p>
+          <button 
+            onClick={() => setSidebarOpen(true)} 
+            style={{ padding: '8px 16px', fontSize: 16 }}
+          >
+            {t("baselayout.open_sidebar")}
           </button>
         </Card>
 
-              
-
-        {/* <ComponentDemo setSidebarOpen={setSidebarOpen} /> */}
         <ComponentDemo />
-      
       </>
     </PageFrame>
   );

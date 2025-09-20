@@ -1,0 +1,151 @@
+{
+  "navbar": {
+    "tree_view": "شجرة العائلة",
+    "members": "الأعضاء",
+    "notifications": "الإشعارات",
+    "suggestions": "الاقتراحات",
+    "export": "تصدير",
+    "settings": "الإعدادات",
+    "language": "اللغة",
+    "download_profile": "تحميل الملف الشخصي"
+  },
+
+  "modals": {
+    "download_profile": "تحميل الملف الشخصي",
+    "choose_format": "اختر الصيغة المفضلة لتحميل هذا الملف.",
+    "recommended": "موصى به",
+
+    "pdf_title": "مستند PDF",
+    "pdf_subtitle": "مثالي للطباعة والأرشيف الرسمي",
+    "pdf_feature1": "نصوص وصور عالية الجودة",
+    "pdf_feature2": "صيغة قابلة للطباعة",
+    "pdf_feature3": "يحافظ على التخطيط والتنسيق",
+
+    "export_family_tree": "تصدير شجرة العائلة",
+    "download_tree": "قم بتحميل شجرتك كصورة قابلة للطباعة أو PDF للمشاركة أو الأرشفة أو الحفظ.",
+    "export_as_pdf": "تصدير كـ PDF",
+    "pdf_subtitle2": "سيتم التقاط تصميم الملف الشخصي وتحميله كـ PDF.",
+
+    "png_title": "صورة PNG",
+    "png_subtitle": "مثالي للمشاركة على وسائل التواصل الاجتماعي",
+    "png_feature1": "سهل المشاركة عبر الإنترنت",
+    "png_feature2": "صورة عالية الدقة",
+    "png_feature3": "متوافق مع جميع الأجهزة",
+
+    "export_as_png": "تصدير كـ PNG",
+    "png_subtitle2": "سيتم التقاط تصميم الملف الشخصي وتحميله كصورة.",
+
+    "scope": "النطاق",
+    "current_view": "العرض الحالي",
+    "centered_view": "العرض المركزي",
+    "complete_view": "العرض الكامل",
+    "custom_view": "عرض مخصص",
+    "export_settings": "إعدادات التصدير",
+    "format": "الصيغة",
+    "pdf_document": "مستند PDF",
+    "png_image": "صورة PNG"
+  },
+
+  "relations": {
+    "test": "اختبار شجرة العائلة",
+    "father": "الأب",
+    "mother": "الأم",
+    "son": "الابن",
+    "daughter": "الابنة",
+    "uncle": "العم",
+    "aunt": "العمة",
+    "cousin": "ابن/ابنة العم",
+    "grandmother": "الجدة",
+    "grandfather": "الجد",
+    "sister": "الأخت",
+    "brother": "الأخ",
+    "niece": "ابنة الأخ/الأخت"
+  },
+
+  "suggestions_panel": {
+    "title": "الاقتراحات",
+    "apply": "تطبيق",
+    "dismiss": "تجاهل",
+    "s1": "إضافة تفاصيل السيرة المفقودة",
+    "s2": "ربط العضو بوالديه",
+    "s3": "تحميل صورة الملف الشخصي"
+  },
+
+  "baselayout": {
+  "welcome_title": "مرحبًا بك في Taf’Yaa",
+  "navbar_status": "شريط التنقل الافتراضي مفعل الآن للاختبار",
+  "open_sidebar": "فتح الشريط الجانبي للملف الشخصي",
+  "footer": "جميع الحقوق محفوظة"
+},
+
+  "demo": {
+    "title": "عرض المكونات",
+    "texts": "النصوص",
+    "welcome": "مرحبًا بك في Taf'Yaa",
+    "warning": "هذا تحذير",
+    "paragraph": "هذه فقرة معروضة كعنصر فقرة.",
+    "clamp_text": "النص المقتطع",
+    "clamp_sample": "هذا نص تجريبي سيتم اقتطاعه بعد سطرين. اضغط على «عرض المزيد» لعرض النص الكامل.",
+    "buttons": "الأزرار",
+    "checkbox": "خانة اختيار",
+    "accept_terms": "الموافقة على الشروط",
+    "dateinput": "إدخال التاريخ",
+    "pick_date": "اختر تاريخًا",
+    "divider": "فاصل",
+    "fileupload": "رفع ملف",
+    "inputs": "المدخلات",
+    "name": "الاسم",
+    "enter_name": "أدخل الاسم",
+    "search_placeholder": "ابحث عن شجرة...",
+    "searching": "جارٍ البحث:",
+    "description": "الوصف",
+    "slider": "شريط التمرير",
+    "volume": "الصوت",
+    "dropdown": "قائمة منسدلة",
+    "choose": "اختر",
+    "one": "واحد",
+    "two": "اثنان",
+    "spacer": "فراغ",
+    "stepper": "مدخل رقمي",
+    "toggle": "مفتاح تبديل",
+    "pills": "الوسوم",
+    "default_pill": "وسم افتراضي",
+    "primary_pill": "وسم رئيسي",
+    "row": "صف",
+    "column": "عمود",
+    "card1": "بطاقة 1",
+    "card2": "بطاقة 2",
+    "card3": "بطاقة 3",
+    "flexible": "حاوية مرنة",
+    "grid": "شبكة",
+    "card": "بطاقة",
+    "card_title": "عنوان البطاقة",
+    "card_content": "محتوى البطاقة هنا.",
+    "image_card": "بطاقة صورة",
+    "sample_image1": "صورة نموذجية 1",
+    "sample_image3": "صورة نموذجية 3",
+    "fallback_icon": "أيقونة بديلة",
+    "audio": "مشغل الصوت",
+    "sample_audio": "مشغل صوت نموذجي",
+    "waveform": "مشغل الموجات",
+    "sample_waveform": "مشغل الموجات النموذجي",
+    "person_card": "بطاقة شخص"
+  },
+  
+
+  "buttons": {
+    "cancel": "إلغاء",
+    "download": "تحميل",
+    "save": "حفظ",
+    "export": "تصدير",
+    "primary": "الزر الرئيسي",
+    "secondary": "ثانوي",
+    "loading": "جارٍ التحميل",
+    "disabled": "معطل",
+    "small": "زر صغير",
+    "medium": "زر متوسط",
+    "large": "زر كبير",
+    "learn_more": "تعرف على المزيد",
+    "full_width": "كامل العرض"
+  }
+}

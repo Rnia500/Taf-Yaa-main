@@ -1,0 +1,152 @@
+{
+  "navbar": {
+    "tree_view": "Arbre Généalogique",
+    "members": "Membres",
+    "notifications": "Notifications",
+    "suggestions": "Suggestions",
+    "export": "Exporter",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "download_profile": "Télécharger le Profil"
+  },
+
+  "modals": {
+    "download_profile": "Télécharger le profil",
+    "choose_format": "Choisissez votre format préféré pour télécharger ce profil.",
+    "recommended": "Recommandé",
+
+    "pdf_title": "Document PDF",
+    "pdf_subtitle": "Parfait pour l'impression et les archives officielles",
+    "pdf_feature1": "Texte et images de haute qualité",
+    "pdf_feature2": "Format imprimable",
+    "pdf_feature3": "Préserve la mise en page et la mise en forme",
+
+    "export_family_tree": "Exporter l'Arbre Généalogique",
+    "download_tree": "Téléchargez votre arbre sous forme d'image imprimable ou de PDF à partager, archiver ou préserver.",
+    "export_as_pdf": "Exporter comme PDF",
+    "pdf_subtitle2": "Ceci capturera la mise en page du profil et le téléchargera en PDF.",
+
+    "png_title": "Image PNG",
+    "png_subtitle": "Idéal pour partager sur les réseaux sociaux",
+    "png_feature1": "Facile à partager en ligne",
+    "png_feature2": "Image haute résolution",
+    "png_feature3": "Compatible avec tous les appareils",
+
+    "export_as_png": "Exporter comme PNG",
+    "png_subtitle2": "Ceci capturera la mise en page du profil et le téléchargera en Image.",
+
+    "scope": "Portée",
+    "current_view": "Vue actuelle",
+    "centered_view": "Vue centrée",
+    "complete_view": "Vue complète",
+    "custom_view": "Vue personnalisée",
+    "export_settings": "Paramètres d'exportation",
+    "format": "Format",
+    "pdf_document": "Document PDF",
+    "png_image": "Image PNG"
+  },
+
+  "relations": {
+    "test": "Tester l'Arbre Généalogique",
+    "father": "Père",
+    "mother": "Mère",
+    "son": "Fils",
+    "daughter": "Fille",
+    "uncle": "Oncle",
+    "aunt": "Tante",
+    "cousin": "Cousin",
+    "grandmother": "Grand-mère",
+    "grandfather": "Grand-père",
+    "sister": "Sœur",
+    "brother": "Frère",
+    "niece": "Nièce"
+  },
+
+  "suggestions_panel": {
+    "title": "Suggestions",
+    "apply": "Appliquer",
+    "dismiss": "Ignorer",
+    "s1": "Ajouter les détails manquants de la biographie",
+    "s2": "Connecter le membre à ses parents",
+    "s3": "Télécharger une photo de profil"
+  },
+
+  "baselayout": {
+  "welcome_title": "Bienvenue sur Taf’Yaa",
+  "navbar_status": "La barre de navigation par défaut est maintenant active pour les tests",
+  "open_sidebar": "Ouvrir la barre latérale du profil",
+  "footer": "Tous droits réservés"
+},
+
+
+  "demo": {
+    "title": "Démo des Composants",
+    "texts": "Textes",
+    "welcome": "Bienvenue sur Taf'Yaa",
+    "warning": "Ceci est un avertissement",
+    "paragraph": "Ceci est un paragraphe rendu comme un élément de paragraphe.",
+    "clamp_text": "Texte Tronqué",
+    "clamp_sample": "Ceci est un texte d’exemple qui sera tronqué après deux lignes. Cliquez sur « Voir plus » pour afficher tout le contenu.",
+    "buttons": "Boutons",
+    "checkbox": "Case à cocher",
+    "accept_terms": "Accepter les conditions",
+    "dateinput": "Champ de Date",
+    "pick_date": "Choisir une date",
+    "divider": "Séparateur",
+    "fileupload": "Téléchargement de fichier",
+    "inputs": "Champs de saisie",
+    "name": "Nom",
+    "enter_name": "Entrer le nom",
+    "search_placeholder": "Rechercher un Arbre...",
+    "searching": "Recherche de :",
+    "description": "Description",
+    "slider": "Curseur",
+    "volume": "Volume",
+    "dropdown": "Menu déroulant",
+    "choose": "Choisir",
+    "one": "Un",
+    "two": "Deux",
+    "spacer": "Espace",
+    "stepper": "Champ incrémenté",
+    "toggle": "Interrupteur",
+    "pills": "Étiquettes",
+    "default_pill": "Étiquette par défaut",
+    "primary_pill": "Étiquette principale",
+    "row": "Ligne",
+    "column": "Colonne",
+    "card1": "Carte 1",
+    "card2": "Carte 2",
+    "card3": "Carte 3",
+    "flexible": "Conteneur Flexible",
+    "grid": "Grille",
+    "card": "Carte",
+    "card_title": "Titre de la Carte",
+    "card_content": "Le contenu de la carte apparaît ici.",
+    "image_card": "Carte d’image",
+    "sample_image1": "Image exemple 1",
+    "sample_image3": "Image exemple 3",
+    "fallback_icon": "Icône de secours",
+    "audio": "Lecteur Audio",
+    "sample_audio": "Lecteur Audio Exemple",
+    "waveform": "Lecteur Waveform",
+    "sample_waveform": "Lecteur Waveform Exemple",
+    "person_card": "Carte de Personne"
+  },
+ 
+
+  "buttons": {
+    "cancel": "Annuler",
+    "download": "Télécharger",
+    "save": "Enregistrer",
+    "export": "Exporter",
+    "primary": "Bouton Principal",
+    "secondary": "Secondaire",
+    "loading": "Chargement",
+    "disabled": "Désactivé",
+    "small": "Petit bouton",
+    "medium": "Bouton moyen",
+    "large": "Grand bouton",
+    "learn_more": "En savoir plus",
+    "full_width": "Pleine largeur"
+  }
+}

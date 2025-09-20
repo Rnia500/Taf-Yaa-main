@@ -1,22 +1,26 @@
+// PNGDownloadModal.jsx
 import React from "react";
 import Card from "../../../layout/containers/Card";
+import Row from "../../../layout/containers/Row";
 import Text from "../../Text";
 import Spacer from "../../Spacer";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, X } from "lucide-react";
 import html2canvas from "html2canvas";
-import Row from "../../../layout/containers/Row";
+import { useTranslation } from "react-i18next";
+  
 
-
-export default function PNGDownloadModal({ isOpen, onClose }) {
+export default function PNGDownloadModal({ isOpen, onClose, profileName }) {
+  const { t } = useTranslation();
+  
   if (!isOpen) return null;
 
   const handleDownloadPNG = () => {
     const profileElement = document.querySelector(".profile-sidebar");
     if (!profileElement) return;
 
-    html2canvas(profileElement).then(canvas => {
+    html2canvas(profileElement).then((canvas) => {
       const link = document.createElement("a");
-      link.download = "profile.png";
+      link.download = `${profileName || "profile"}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
@@ -26,40 +30,68 @@ export default function PNGDownloadModal({ isOpen, onClose }) {
 
   return (
     <div className="modal-overlay">
-      <Card padding="24px" width="400px">
-        <Text variant="heading3">Export as PNG</Text>
+      <Card padding="24px" width="400px" style={{ borderRadius: 16 }}>
+        {/* Header */}
+        <div style={{ position: "relative" }}>
+          <Row gap="10px" alignItems="center">
+            <ImageIcon color="var(--color-secondary1)" />
+            <Text variant="heading3" as="h3" style={{ color: "var(--color-primary-text)" }}>
+              {t("modals.export_as_png")}
+            </Text>
+          </Row>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: "absolute",
+              left: 200,
+              top: 0,
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              color: "var(--color-danger)",
+            }}
+          >
+            <X />
+          </button>
+        </div>
+
+        <Spacer size="xs" />
         <Text variant="caption1" color="secondary-text">
-          This will capture the profile layout and download it as an image.
+          {t("modals.png_subtitle2")}
         </Text>
 
         <Spacer size="lg" />
-         {/* Buttons horizontally aligned */}
+
+        {/* Buttons horizontally aligned */}
         <Row gap="12px" justifyContent="flex-end">
           <button
-            onClick={handleDownloadPNG}   
+            onClick={onClose}
             style={{
-              background: "var(--color-primary, #7C3AED)",
+              background: "transparent",
+              border: "1px solid var(--color-gray)",
+              padding: "6px 14px",
+              borderRadius: 6,
+              cursor: "pointer",
+              color: "var(--color-secondary1)",
+              fontWeight: 500,
+            }}
+          >
+            {t("buttons.cancel")}
+          </button>
+          <button
+            onClick={handleDownloadPNG}
+            style={{
+              background: "var(--color-secondary1)",
               color: "#fff",
               border: "none",
               padding: "6px 14px",
               borderRadius: 6,
               cursor: "pointer",
+              fontWeight: 500,
             }}
           >
-            Download PNG
-          </button>
-
-          <button
-            onClick={onClose}
-            style={{
-              background: "transparent-black",
-              border: "1px solid #ccc",
-              padding: "6px 14px",
-              borderRadius: 6,
-              cursor: "pointer",
-            }}
-          >
-            Cancel
+            {t("buttons.download")}
           </button>
         </Row>
       </Card>
