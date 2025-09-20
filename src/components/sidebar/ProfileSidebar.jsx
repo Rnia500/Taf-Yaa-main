@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import FlexContainer from '../../layout/containers/FlexContainer';
 import ProfileHeader from './ProfileSidebarComponents/ProfileHeader';
@@ -10,8 +9,15 @@ import FamilyConnections from './ProfileSidebarComponents/FamilyConnections';
 import TimelineEvents from './ProfileSidebarComponents/TimelineEvents';
 import AudioStory from './ProfileSidebarComponents/audioStory';
 import PhotoMemorySection from './ProfileSidebarComponents/PhotoMemorySection';
-import RecordModal from './RecordModal/RecordModal'
+import RecordModal from './RecordModal/RecordModal';
+import { useTranslation } from 'react-i18next';
+
 import profileDataJson from '../../data/profileData.json';
+
+// import the modals
+import DownloadProfileModal from './ProfileSidebarComponents/DownloadProfileModal';
+import PDFDownloadModal from './ProfileSidebarComponents/PDFDownloadModal';
+import PNGDownloadModal from './ProfileSidebarComponents/PNGDownloadModal';
 
 export default function ProfileSidebar({ onClose, onDownload }) {
   const [profileData, setProfileData] = useState({});
@@ -25,10 +31,15 @@ export default function ProfileSidebar({ onClose, onDownload }) {
   const [photos, setPhotos] = useState([]);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
 
+  // modal state for downloads
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+  const [isPNGModalOpen, setIsPNGModalOpen] = useState(false);
+  const [selectedProfileName, setSelectedProfileName] = useState("");
+
   const handleRecordAudio = () => {
     setIsRecordModalOpen(true);
   };
-
 
   useEffect(() => {
     setProfileData(profileDataJson.profileData);
@@ -43,7 +54,7 @@ export default function ProfileSidebar({ onClose, onDownload }) {
   }, []);
 
   return (
-    <FlexContainer gap='12px' backgroundColor="var(--color-background)">
+    <FlexContainer gap='12px' backgroundColor="var(--color-background)" className="profile-sidebar">
       <ProfileHeader
         profileName={profileData.profileName}
         birthDate={profileData.birthDate}
@@ -51,7 +62,12 @@ export default function ProfileSidebar({ onClose, onDownload }) {
         statusIcons={profileData.statusIcons}
         profileImage={profileData.profileImage}
         onClose={onClose}
-        onDownload={onDownload}
+
+        // when clicking download icon
+        onDownload={() => {
+          setSelectedProfileName(profileData.profileName || "profile");
+          setIsDownloadModalOpen(true);
+        }}
         onUseAsRoot={() => {}}
       />
 
@@ -79,6 +95,32 @@ export default function ProfileSidebar({ onClose, onDownload }) {
       />
 
       <PhotoMemorySection photos={photos} onUpload={() => {}} />
+
+      {/* Download Modals */}
+      <DownloadProfileModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        onSelect={(format) => {
+          if (format === "pdf") {
+            setIsPDFModalOpen(true);
+          } else if (format === "png") {
+            setIsPNGModalOpen(true);
+          }
+          setIsDownloadModalOpen(false);
+        }}
+      />
+
+      <PDFDownloadModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        profileName={selectedProfileName}
+      />
+
+      <PNGDownloadModal
+        isOpen={isPNGModalOpen}
+        onClose={() => setIsPNGModalOpen(false)}
+        profileName={selectedProfileName}
+      />
     </FlexContainer>
   );
 }
