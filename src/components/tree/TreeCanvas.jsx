@@ -103,10 +103,37 @@ function TreeCanvasComponent({ treeId }) {
     useState(allPeople);
 
   // Listen for family data change events to reload data
-  useEffect(() => {
-    const handleDataUpdate = () => {
-      reload();
-    };
+        useEffect(() => {
+          const handleDataUpdate = (event) => {
+            console.log('TreeCanvas: Received data update event:', event.type, event.detail);
+            console.log('TreeCanvas: Event detail action:', event.detail?.action);
+            console.log('TreeCanvas: Event detail result:', event.detail?.result);
+            
+            // If this is a delete event, set undo info
+            if (event.detail?.action === 'delete' && event.detail?.result) {
+              const result = event.detail.result;
+              console.log('TreeCanvas: Processing delete event, result:', result);
+              if (result && result.undoExpiresAt) {
+                console.log('TreeCanvas: Setting undo info:', {
+                  personId: result.person?.id,
+                  mode: result.person?.deletionMode || 'soft',
+                  undoExpiresAt: result.undoExpiresAt,
+                  affectedCount: result.deletedIds?.length || 1,
+                  marriageCount: result.deletedMarriageIds?.length || 0
+                });
+                setUndoInfo({
+                  personId: result.person?.id,
+                  mode: result.person?.deletionMode || 'soft',
+                  undoExpiresAt: result.undoExpiresAt,
+                  affectedCount: result.deletedIds?.length || 1,
+                  marriageCount: result.deletedMarriageIds?.length || 0
+                });
+              }
+            }
+            
+            console.log('TreeCanvas: Calling reload()');
+            reload();
+          };
     window.addEventListener('familyTreeDataUpdated', handleDataUpdate);
     window.addEventListener('familyDataChanged', handleDataUpdate);
     return () => {
@@ -127,6 +154,9 @@ function TreeCanvasComponent({ treeId }) {
   const [partnerName, setPartnerName] = useState("");
   const [targetNodeId, setTargetNodeId] = useState(null);
 
+  // For undo countdown
+  const [undoInfo, setUndoInfo] = useState(null);
+
   // ---- Handlers ----
   const handleToggleCollapse = useCallback((personId) => {
     setPeopleWithCollapseState((current) =>
@@ -142,6 +172,15 @@ function TreeCanvasComponent({ treeId }) {
     },
     [openProfileSidebar]
   );
+
+  const handleUndoComplete = useCallback(() => {
+    console.log('TreeCanvas: Undo completed, clearing undo info');
+    setUndoInfo(null);
+    // Trigger data reload after undo
+    window.dispatchEvent(new CustomEvent('familyTreeDataUpdated', { 
+      detail: { action: 'undo' } 
+    }));
+  }, []);
 
   // ---- Layout ----
   const { nodes, edges: baseEdges } = useMemo(() => {
@@ -389,7 +428,13 @@ useEffect(() => {
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
       
-      {/* Global Undo Countdown - could be enhanced to track multiple deletions */}
+      {/* Global Undo Countdown */}
+      {undoInfo && (
+        <UndoCountdown 
+          deletionInfo={undoInfo} 
+          onUndoComplete={handleUndoComplete}
+        />
+      )}
     </div>
   );
 }

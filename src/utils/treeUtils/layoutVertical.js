@@ -37,6 +37,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
         const placeholderId = `placeholder-spouse-${marriage.id}`;
 
         if (!nodesMap.has(placeholderId)) {
+          console.log('DBG:layoutVertical: Creating placeholder for marriage:', marriage.id, 'replacing empty spouse');
           nodesMap.set(placeholderId, {
             id: placeholderId,
             type: 'person',
@@ -336,10 +337,15 @@ export function layoutVertical(nodesMap, marriages, initialEdges, rootId) {
   const filteredNodes = Array.from(updatedNodesMap.values()).filter(node => {
     if (!node.data?.isPlaceholder) return true;
     return processedMarriages.some(m => {
-      if (m.marriageType === "monogamous") return m.spouses.includes(node.id);
+      if (m.marriageType === "monogamous") {
+        // Check if placeholder is a spouse or child
+        return m.spouses.includes(node.id) || m.childrenIds?.includes(node.id);
+      }
       if (m.marriageType === "polygamous") {
+        // Check if placeholder is husband, wife, or child
         if (m.husbandId === node.id) return true;
         if (m.wives?.some(w => w.wifeId === node.id)) return true;
+        if (m.wives?.some(w => w.childrenIds?.includes(node.id))) return true;
       }
       return false;
     });

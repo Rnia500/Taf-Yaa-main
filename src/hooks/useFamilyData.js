@@ -21,6 +21,7 @@ export function useFamilyData(treeId) {
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
+    console.log(`DBG:useFamilyData.reload -> Starting reload for treeId: ${treeId}`);
     setLoading(true);
     try {
       // 1. Load the tree
@@ -28,6 +29,7 @@ export function useFamilyData(treeId) {
       setTree(t);
 
       if (!t) {
+        console.log(`DBG:useFamilyData.reload -> No tree found, clearing data`);
         setPeople([]);
         setMarriages([]);
         setEvents([]);
@@ -38,19 +40,33 @@ export function useFamilyData(treeId) {
 
       // 2. Load people
       let p = await personServiceLocal.getPeopleByTreeId(treeId);
+      console.log(`DBG:useFamilyData.reload -> Loaded ${p.length} people for tree ${treeId}:`, p.map(person => ({
+        id: person.id,
+        name: person.name,
+        isPlaceholder: person.isPlaceholder,
+        isDeleted: person.isDeleted,
+        deletionMode: person.deletionMode,
+        pendingDeletion: person.pendingDeletion
+      })));
 
       // 3. Load marriages
       const m = await marriageServiceLocal.getAllMarriages();
       const personIds = new Set(p.map(per => per.id));
       const mFiltered = m.filter(marr => {
         if (marr.marriageType === "monogamous") {
-          return marr.spouses?.some(id => personIds.has(id));
+          // Include marriage if any spouse is in personIds OR if any child is in personIds
+          const hasSpouseInPersonIds = marr.spouses?.some(id => personIds.has(id));
+          const hasChildInPersonIds = marr.childrenIds?.some(id => personIds.has(id));
+          return hasSpouseInPersonIds || hasChildInPersonIds;
         }
         if (marr.marriageType === "polygamous") {
-          return (
-            personIds.has(marr.husbandId) ||
-            (marr.wives || []).some(w => personIds.has(w.wifeId))
+          // Include marriage if husband is in personIds OR any wife is in personIds OR any child is in personIds
+          const hasHusbandInPersonIds = personIds.has(marr.husbandId);
+          const hasWifeInPersonIds = (marr.wives || []).some(w => personIds.has(w.wifeId));
+          const hasChildInPersonIds = (marr.wives || []).some(w => 
+            w.childrenIds?.some(id => personIds.has(id))
           );
+          return hasHusbandInPersonIds || hasWifeInPersonIds || hasChildInPersonIds;
         }
         return false;
       });
@@ -131,6 +147,19 @@ export function useFamilyData(treeId) {
     }
     reload();
   }, [treeId, reload]);
+
+  // Listen for purge events to reload data when soft deletions expire
+  useEffect(() => {
+    const handlePurgeEvent = (event) => {
+      if (event.detail?.action === 'purge_expired_soft_deletions') {
+        console.log('useFamilyData: Received purge event, reloading data');
+        reload();
+      }
+    };
+
+    window.addEventListener('familyTreeDataUpdated', handlePurgeEvent);
+    return () => window.removeEventListener('familyTreeDataUpdated', handlePurgeEvent);
+  }, [reload]);
 
   return {
     tree,

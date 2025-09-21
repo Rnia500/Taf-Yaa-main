@@ -84,6 +84,17 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
         language: language || null,
         privacyLevel: privacyLevel || 'membersOnly',
         allowGlobalMatching: !!allowGlobalMatching,
+        // If this was a placeholder and we're editing it with real data, convert it to a real person
+        isPlaceholder: false,
+        // Clear any soft delete flags if this was a soft-deleted placeholder being restored
+        ...(formData?.person?.deletionMode === 'soft' && {
+          isDeleted: false,
+          deletedAt: undefined,
+          deletionMode: undefined,
+          pendingDeletion: false,
+          undoExpiresAt: undefined,
+          deletionBatchId: undefined,
+        }),
       };
 
       // Upload profile photo if a File was provided
@@ -134,16 +145,44 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
       }
 
       await dataService.updatePerson(personId, updates);
+      
+      console.log('EditPersonController: Person updated successfully', {
+        personId,
+        wasPlaceholder: formData?.person?.isPlaceholder,
+        wasSoftDeleted: formData?.person?.deletionMode === 'soft',
+        updates: updates
+      });
 
-      addToast("Person updated successfully!", "success");
-      onSuccess && onSuccess(updates);
-      closeModal("editPerson");
-
+      // Show appropriate success message
+      const wasPlaceholder = formData?.person?.isPlaceholder;
+      const wasSoftDeleted = formData?.person?.deletionMode === 'soft';
+      
+      if (wasPlaceholder && wasSoftDeleted) {
+        addToast("Soft-deleted person restored and converted to real person!", "success");
+      } else if (wasPlaceholder) {
+        addToast("Placeholder converted to real person!", "success");
+      } else {
+        addToast("Person updated successfully!", "success");
+      }
+      
+      // Dispatch multiple events to ensure tree refreshes
       if (typeof window !== 'undefined' && window.dispatchEvent) {
         window.dispatchEvent(new CustomEvent('familyDataChanged', {
-          detail: { updatedPersonId: personId }
+          detail: { updatedPersonId: personId, action: 'personUpdated' }
         }));
+        window.dispatchEvent(new CustomEvent('familyTreeDataUpdated', {
+          detail: { updatedPersonId: personId, action: 'personUpdated' }
+        }));
+        // Force a small delay to ensure the events are processed
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('familyDataChanged', {
+            detail: { updatedPersonId: personId, action: 'personUpdated', force: true }
+          }));
+        }, 100);
       }
+      
+      onSuccess && onSuccess(updates);
+      closeModal("editPerson");
     } catch (err) {
       setError("Failed to update person.");
       addToast("Failed to update person.", "error");

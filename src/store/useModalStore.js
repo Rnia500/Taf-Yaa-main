@@ -41,10 +41,6 @@ const useModalStore = create((set) => ({
       person: null,
       onDeleteComplete: null,
     },
-    deletePerson: {
-      person: null,
-      onDeleteComplete: null,
-    }
   },
   
   // Open a specific modal with optional data

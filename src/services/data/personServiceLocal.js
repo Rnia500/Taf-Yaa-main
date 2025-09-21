@@ -60,6 +60,17 @@ function deletePerson(personId, mode = "soft", options = {}) {
   const batchId = generateId("deletion");
 
   if (mode === "soft") {
+    console.log(`DBG:personServiceLocal.deletePerson[soft] -> Starting soft delete for person ${personId}`);
+    console.log(`DBG:personServiceLocal.deletePerson[soft] -> Person before soft delete:`, {
+      id: person.id,
+      name: person.name,
+      isPlaceholder: person.isPlaceholder,
+      isDeleted: person.isDeleted,
+      deletionMode: person.deletionMode,
+      pendingDeletion: person.pendingDeletion,
+      treeId: person.treeId
+    });
+    
     // Convert to placeholder, keep relationships
     person.isPlaceholder = true;
     person.name = person.name || "Unknown";
@@ -68,6 +79,17 @@ function deletePerson(personId, mode = "soft", options = {}) {
     person.pendingDeletion = true;
     person.undoExpiresAt = undoExpiresAt;
     person.deletionBatchId = batchId;
+    
+    // Debug: Log the person state after soft delete
+    console.log(`DBG:personServiceLocal.deletePerson[soft] -> Person ${personId} after soft delete:`, {
+      id: person.id,
+      name: person.name,
+      isPlaceholder: person.isPlaceholder,
+      isDeleted: person.isDeleted,
+      deletionMode: person.deletionMode,
+      pendingDeletion: person.pendingDeletion,
+      treeId: person.treeId
+    });
     
     // Mark related events and stories as deleted (but keep them in DB for undo)
     Promise.all([
@@ -293,7 +315,7 @@ function undoDelete(personId) {
 }
 
 /**
- * Permanently remove expired deletions. For soft deletes, the placeholder remains but metadata is cleared.
+ * Permanently remove expired deletions. For soft deletes, convert to normal placeholder.
  * For cascade deletes, remove people and marriages marked with expired undo window, and cleanup references.
  */
 function purgeExpiredDeletions() {
@@ -319,13 +341,20 @@ function purgeExpiredDeletions() {
     if (m.deletionMode === "cascade") expiredCascadeMarriages.push(m);
   }
 
-  // Soft: keep placeholder, clear metadata
+  // Soft: convert to normal placeholder
   for (const p of expiredSoft) {
+    // Clear all soft delete metadata
     delete p.pendingDeletion;
     delete p.undoExpiresAt;
     delete p.deletionBatchId;
-    // keep isPlaceholder + deletedAt to indicate permanent anonymization
-    console.log(`DBG:purge -> finalized soft delete for ${p.id}`);
+    delete p.deletedAt;
+    delete p.deletionMode;
+    
+    // Convert to normal placeholder
+    p.isPlaceholder = true;
+    p.name = "Unknown Person"; // Generic name for expired soft deleted persons
+    
+    console.log(`DBG:purge -> converted soft deleted person ${p.id} to normal placeholder`);
   }
 
   // Cascade: build sets by batch to ensure consistent cleanup
@@ -405,13 +434,65 @@ function findPeopleByName(query) {
 function getPeopleByTreeId(treeId) {
   const db = getDB();
   if (!treeId) return Promise.resolve([]);
+  
+  // First, check and purge any expired soft deletions
+  purgeExpiredSoftDeletions();
+  
   // Filter out cascade-deleted people, but include soft-deleted placeholders
   const results = (db.people || []).filter(p => 
     !p.isDeleted &&  // Exclude cascade-deleted people
     p.treeId === treeId
     // Include soft-deleted people (they become placeholders)
   );
+  
+  // Debug: Log what people are being returned
+  console.log(`DBG:personServiceLocal.getPeopleByTreeId -> Tree ${treeId} people:`, results.map(p => ({
+    id: p.id,
+    name: p.name,
+    isPlaceholder: p.isPlaceholder,
+    isDeleted: p.isDeleted,
+    deletionMode: p.deletionMode,
+    pendingDeletion: p.pendingDeletion
+  })));
+  
   return Promise.resolve(results);
+}
+
+/**
+ * Check and purge expired soft deletions, converting them to normal placeholders
+ */
+function purgeExpiredSoftDeletions() {
+  const db = getDB();
+  const now = new Date();
+  let purgedCount = 0;
+
+  for (const p of db.people) {
+    if (!p || !p.pendingDeletion || !p.undoExpiresAt || p.deletionMode !== "soft") continue;
+    
+    const isExpired = new Date(p.undoExpiresAt) < now;
+    if (!isExpired) continue;
+
+    // Clear all soft delete metadata
+    delete p.pendingDeletion;
+    delete p.undoExpiresAt;
+    delete p.deletionBatchId;
+    delete p.deletedAt;
+    delete p.deletionMode;
+    
+    // Convert to normal placeholder
+    p.isPlaceholder = true;
+    p.name = "Unknown Person"; // Generic name for expired soft deleted persons
+    
+    purgedCount++;
+    console.log(`DBG:purgeExpiredSoftDeletions -> converted soft deleted person ${p.id} to normal placeholder`);
+  }
+
+  if (purgedCount > 0) {
+    saveDB();
+    console.log(`DBG:purgeExpiredSoftDeletions -> converted ${purgedCount} expired soft deletions to placeholders`);
+  }
+
+  return purgedCount;
 }
 
 // Export all the functions in a single service object.
@@ -423,6 +504,7 @@ export const personServiceLocal = {
   previewCascadeDelete,
   undoDelete,
   purgeExpiredDeletions,
+  purgeExpiredSoftDeletions,
   getAllPeople,
   findPeopleByName,
   getPeopleByTreeId,

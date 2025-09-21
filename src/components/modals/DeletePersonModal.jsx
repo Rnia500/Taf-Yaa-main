@@ -157,14 +157,6 @@ const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete }) => {
           </div>
         )}
       </Column>
-      
-      {/* Undo Countdown */}
-      {deletionInfo && (
-        <UndoCountdown 
-          deletionInfo={deletionInfo} 
-          onUndoComplete={handleUndoComplete}
-        />
-      )}
     </Modal>
   );
 };

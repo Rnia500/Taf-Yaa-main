@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PersonCardHorizontalSVG from "../layout/containers/PersonCardHorizontalSVG";
 import Card from "../layout/containers/Card";
 import ImageCard from "../layout/containers/ImageCard";
 import Text from "./Text";
-import { Mars, Venus, Plus } from "lucide-react";
+import { Mars, Venus, Plus, Clock } from "lucide-react";
 import Row from "../layout/containers/Row";
 import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBadge";
 import Spacer from "./Spacer";
 //variants are root, directline, spouce, dead
 
-function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', isDead = false, profileImage, isPlaceholder = false, isSoftDeleted = false, onAdd, onClick }) {
+function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', isDead = false, profileImage, isPlaceholder = false, isSoftDeleted = false, undoExpiresAt, onAdd, onClick }) {
+  const [timeLeft, setTimeLeft] = useState(null);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -19,6 +20,44 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
       month: "short",
       year: "numeric",
     });
+  };
+
+  // Countdown timer for soft deleted persons
+  useEffect(() => {
+    if (!isSoftDeleted || !undoExpiresAt) return;
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const expiry = new Date(undoExpiresAt);
+      const diff = expiry.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeLeft(null);
+        // Trigger a data reload to convert to normal placeholder
+        window.dispatchEvent(new CustomEvent('familyTreeDataUpdated', { 
+          detail: { action: 'purge_expired_soft_deletions' } 
+        }));
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setTimeLeft({ days, hours, minutes });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [isSoftDeleted, undoExpiresAt]);
+
+  const formatTime = () => {
+    if (!timeLeft) return "";
+    if (timeLeft.days > 0) return `${timeLeft.days}d ${timeLeft.hours}h`;
+    if (timeLeft.hours > 0) return `${timeLeft.hours}h ${timeLeft.minutes}m`;
+    return `${timeLeft.minutes}m`;
   };
 
 
@@ -78,14 +117,23 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
 
             <Row fitContent gap="0.10rem" padding="4px 0px 0px 0px" >
               {sex === "M" ? <Mars size={20} strokeWidth={3} color="var(--color-male)" /> : <Venus strokeWidth={3} size={25} color="var(--color-female)" />}
-              <Text as="p" ellipsis variant="body1" bold>{name}</Text>
+              <Text as="p" ellipsis variant="body1" bold>
+                {isSoftDeleted ? "Soft Deleted" : name}
+              </Text>
             </Row>
 
 
             <Row width="12rem" gap="0.15rem" padding="0px" fitContent style={{ justifyContent: "center" }}>
-              {isPlaceholder ? (
+              {isSoftDeleted ? (
+                <Row gap="0.25rem" align="center">
+                  <Clock size={12} color="var(--color-warning)" />
+                  <Text as="span" variant="caption1" style={{fontSize: "0.8em", color: "var(--color-warning)"}}>
+                    {timeLeft ? `Restore in: ${formatTime()}` : "Expired"}
+                  </Text>
+                </Row>
+              ) : isPlaceholder ? (
                 <Text as="span" variant="caption1" style={{fontSize: "0.8em", color: "var(--color-gray-dark)"}}>
-                  {isSoftDeleted ? "🗑️ Soft Deleted" : "👤 Placeholder"}
+                  👤 Placeholder
                 </Text>
               ) : deathDate ? (
                 <>

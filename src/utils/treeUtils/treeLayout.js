@@ -86,6 +86,24 @@ export function traceLineage(personId, people, marriages) {
 }
 
 export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
+  console.log(`DBG:filterFamilyByRoot -> Starting with rootId: ${rootId}`);
+  console.log(`DBG:filterFamilyByRoot -> Input people:`, allPeople.map(p => ({
+    id: p.id,
+    name: p.name,
+    isPlaceholder: p.isPlaceholder,
+    isDeleted: p.isDeleted,
+    deletionMode: p.deletionMode,
+    pendingDeletion: p.pendingDeletion
+  })));
+  console.log(`DBG:filterFamilyByRoot -> Input marriages:`, allMarriages.map(m => ({
+    id: m.id,
+    marriageType: m.marriageType,
+    spouses: m.spouses,
+    husbandId: m.husbandId,
+    wives: m.wives?.map(w => ({ wifeId: w.wifeId, childrenIds: w.childrenIds })),
+    childrenIds: m.childrenIds
+  })));
+  
   if (!rootId) {
     throw new Error("filterFamilyByRoot: rootId is required");
   }
@@ -124,16 +142,93 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
     }
   }
 
-  const visiblePeople = allPeople.filter(p => visiblePeopleIds.has(p.id));
+  // First, include all people that were found through traversal
+  let visiblePeople = allPeople.filter(p => visiblePeopleIds.has(p.id));
+  
+  // Additionally, include any soft deleted placeholders that are referenced in marriages
+  // but might not have been reached through traversal
+  const placeholderIds = new Set();
+  allMarriages.forEach(m => {
+    if (m.marriageType === "monogamous") {
+      m.spouses?.forEach(id => {
+        if (id && !visiblePeopleIds.has(id)) {
+          const person = allPeople.find(p => p.id === id);
+          if (person && person.isPlaceholder) {
+            placeholderIds.add(id);
+          }
+        }
+      });
+      m.childrenIds?.forEach(id => {
+        if (id && !visiblePeopleIds.has(id)) {
+          const person = allPeople.find(p => p.id === id);
+          if (person && person.isPlaceholder) {
+            placeholderIds.add(id);
+          }
+        }
+      });
+    } else if (m.marriageType === "polygamous") {
+      if (m.husbandId && !visiblePeopleIds.has(m.husbandId)) {
+        const person = allPeople.find(p => p.id === m.husbandId);
+        if (person && person.isPlaceholder) {
+          placeholderIds.add(m.husbandId);
+        }
+      }
+      m.wives?.forEach(w => {
+        if (w.wifeId && !visiblePeopleIds.has(w.wifeId)) {
+          const person = allPeople.find(p => p.id === w.wifeId);
+          if (person && person.isPlaceholder) {
+            placeholderIds.add(w.wifeId);
+          }
+        }
+        w.childrenIds?.forEach(id => {
+          if (id && !visiblePeopleIds.has(id)) {
+            const person = allPeople.find(p => p.id === id);
+            if (person && person.isPlaceholder) {
+              placeholderIds.add(id);
+            }
+          }
+        });
+      });
+    }
+  });
+  
+  // Add placeholder IDs to visible people IDs
+  placeholderIds.forEach(id => visiblePeopleIds.add(id));
+  
+  // Now filter people again to include placeholders
+  visiblePeople = allPeople.filter(p => visiblePeopleIds.has(p.id));
+  
   const visibleMarriages = allMarriages.filter(m => {
     if (m.marriageType === "monogamous") {
       if (m.spouses.some(id => !id)) return false;
-      return m.spouses.every(id => visiblePeopleIds.has(id));
+      // Include marriage if any spouse is visible (including placeholders)
+      return m.spouses.some(id => visiblePeopleIds.has(id));
     }
-    if (m.marriageType === "polygamous") return visiblePeopleIds.has(m.husbandId);
+    if (m.marriageType === "polygamous") {
+      // Include marriage if husband is visible OR any wife is visible (including placeholders)
+      return visiblePeopleIds.has(m.husbandId) || 
+             (m.wives || []).some(w => visiblePeopleIds.has(w.wifeId));
+    }
     return false;
   });
 
+  console.log(`DBG:filterFamilyByRoot -> Final visible people:`, visiblePeople.map(p => ({
+    id: p.id,
+    name: p.name,
+    isPlaceholder: p.isPlaceholder,
+    isDeleted: p.isDeleted,
+    deletionMode: p.deletionMode,
+    pendingDeletion: p.pendingDeletion
+  })));
+  console.log(`DBG:filterFamilyByRoot -> Final visible marriages:`, visibleMarriages.map(m => ({
+    id: m.id,
+    marriageType: m.marriageType,
+    spouses: m.spouses,
+    husbandId: m.husbandId,
+    wives: m.wives?.map(w => ({ wifeId: w.wifeId, childrenIds: w.childrenIds })),
+    childrenIds: m.childrenIds
+  })));
+  
   return { people: visiblePeople, marriages: visibleMarriages };
 }
 export function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile, variant = "directline") {
@@ -150,6 +245,19 @@ export function formatPersonData(person, marriages, handleToggleCollapse, handle
       )
     )
   );
+  
+  // Debug logging for all soft deleted persons
+  if (person.isPlaceholder && person.pendingDeletion && person.deletionMode === 'soft') {
+    console.log('DBG:formatPersonData for soft deleted person:', {
+      id: person.id,
+      name: person.name,
+      isPlaceholder: person.isPlaceholder,
+      deletionMode: person.deletionMode,
+      pendingDeletion: person.pendingDeletion,
+      isSoftDeleted: person.deletionMode === "soft" && person.pendingDeletion
+    });
+  }
+  
   return {
     id: person.id,
     name: person.name,
@@ -163,6 +271,7 @@ export function formatPersonData(person, marriages, handleToggleCollapse, handle
     hasChildren,
     isPlaceholder: person.isPlaceholder || false,
     isSoftDeleted: person.deletionMode === "soft" && person.pendingDeletion || false,
+    undoExpiresAt: person.undoExpiresAt || null,
     onToggleCollapse: () => handleToggleCollapse(person.id),
     onOpenProfile: () => handleOpenProfile(person.id),
     variant,
@@ -315,21 +424,32 @@ visibleMarriages.forEach((marriage) => {
 
   // Build person nodes map (without assigning variant!)
   const personNodeType = isVertical ? "person" : "personHorizontal";
+  console.log(`DBG:calculateLayout -> Creating nodes for ${visiblePeople.length} visible people`);
   visiblePeople.forEach((person) => {
     if (!collapsedDescendantIds.has(person.id)) {
+      const nodeData = formatPersonData(
+        person,
+        visibleMarriages,
+        handleToggleCollapse,
+        handleOpenProfile
+        // 🚫 variant removed — layout will assign later
+      );
+      console.log(`DBG:calculateLayout -> Creating node for person ${person.id}:`, {
+        id: person.id,
+        name: person.name,
+        isPlaceholder: person.isPlaceholder,
+        isSoftDeleted: nodeData.isSoftDeleted,
+        variant: nodeData.variant
+      });
       nodesMap.set(person.id, {
         id: person.id,
         type: personNodeType,
-        data: formatPersonData(
-          person,
-          visibleMarriages,
-          handleToggleCollapse,
-          handleOpenProfile
-          // 🚫 variant removed — layout will assign later
-        ),
+        data: nodeData,
         position: { x: 0, y: 0 },
         isPositioned: false,
       });
+    } else {
+      console.log(`DBG:calculateLayout -> Skipping collapsed person ${person.id}`);
     }
   });
 

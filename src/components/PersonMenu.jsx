@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
 import useModalStore from '../store/useModalStore';
 import dataService from '../services/dataService';
-import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight } from 'lucide-react';
+import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight, Undo2 } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
 function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineage, handleSetAsRoot, onAddSpouse, onAddChild, onAddParent, onEditPerson }) {
@@ -11,7 +11,8 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   const menuRef = useRef(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
   const submenuRef = useRef(null);
-  const [isSpouse, setIsSpouse] = useState(false)
+  const [isSpouse, setIsSpouse] = useState(false);
+  const [isSoftDeleted, setIsSoftDeleted] = useState(false);
 
 
   useEffect(() => {
@@ -65,15 +66,19 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
         if (cancelled) return;
         if (personModel) {
           setIsSpouse(Boolean(personModel.isSpouse));
+          setIsSoftDeleted(Boolean(personModel.isPlaceholder && personModel.pendingDeletion && personModel.deletionMode === 'soft'));
         } else if (targetPerson && typeof targetPerson.isSpouse !== 'undefined') {
           setIsSpouse(Boolean(targetPerson.isSpouse));
+          setIsSoftDeleted(Boolean(targetPerson.isPlaceholder && targetPerson.pendingDeletion && targetPerson.deletionMode === 'soft'));
         } else {
           setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
+          setIsSoftDeleted(Boolean(targetPerson && targetPerson.isPlaceholder && targetPerson.pendingDeletion && targetPerson.deletionMode === 'soft'));
         }
       })
       .catch(() => {
         if (cancelled) return;
         setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
+        setIsSoftDeleted(Boolean(targetPerson && targetPerson.isPlaceholder && targetPerson.pendingDeletion && targetPerson.deletionMode === 'soft'));
       });
 
     return () => {
@@ -85,9 +90,37 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
 
   const onDelete = () => {
     const person = targetPerson || { id: targetNodeId, name: targetPerson?.name };
-    openModal('deletePerson', { person });
+        const onDeleteComplete = (result) => {
+          // Trigger data reload after deletion
+          console.log('PersonMenu: Delete completed, triggering data reload:', result);
+          console.log('PersonMenu: Dispatching familyTreeDataUpdated event with detail:', { action: 'delete', personId: person.id, result });
+          window.dispatchEvent(new CustomEvent('familyTreeDataUpdated', { 
+            detail: { action: 'delete', personId: person.id, result } 
+          }));
+          console.log('PersonMenu: Event dispatched successfully');
+        };
+    openModal('deletePerson', { person, onDeleteComplete });
     actions.closeMenu();
     setShowSubmenu(false);
+  };
+
+  const onRestore = async () => {
+    if (!targetNodeId) return;
+    
+    try {
+      console.log('PersonMenu: Restoring person:', targetNodeId);
+      await dataService.undoDelete(targetNodeId);
+      
+      // Trigger data reload after restore
+      window.dispatchEvent(new CustomEvent('familyTreeDataUpdated', { 
+        detail: { action: 'restore', personId: targetNodeId } 
+      }));
+      
+      actions.closeMenu();
+      setShowSubmenu(false);
+    } catch (error) {
+      console.error('Failed to restore person:', error);
+    }
   };
 
   if (!isOpen) return null;
@@ -168,39 +201,50 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
         </div>
 
         <div className="person-menu-items">
-          <button className="person-menu-item" onClick={onCollapse}>
-            <ListCollapse size={15} />
-            <span className="person-menu-text">Collapse / Expand</span>
-          </button>
-          <button className="person-menu-item" onClick={onOpenProfile}>
-            <CircleUserRound size={15} />
-            <span className="person-menu-text">Open Profile</span>
-          </button>
-          <button className="person-menu-item" onClick={onTraceLineage}>
-            <MapPinHouse size={15} />
-            <span className="person-menu-text">Trace Lineage</span>
-          </button>
-          <button className="person-menu-item" onClick={onSetAsRoot}>
-            <GitCompareArrows size={15} />
-            <span className="person-menu-text">Set as Root</span>
-          </button>
-          <button className="person-menu-item" onClick={toggleSubmenu}>
-            <UserRoundPlus size={15} />
-            <span className="person-menu-text">Add Relative</span>
-            <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
-          </button>
-          <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
-            <UserRoundPen size={15} />
-            <span className="person-menu-text">Edit Person</span>
-          </button>
-          <button className="person-menu-item" onClick={onDelete}>
-            <User size={15} />
-            <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
-          </button>
+          {isSoftDeleted ? (
+            // Only show restore option for soft deleted persons
+            <button className="person-menu-item" onClick={onRestore}>
+              <Undo2 size={15} />
+              <span className="person-menu-text" style={{ color: '#28a745' }}>Restore Person</span>
+            </button>
+          ) : (
+            // Show all normal options for non-soft-deleted persons
+            <>
+              <button className="person-menu-item" onClick={onCollapse}>
+                <ListCollapse size={15} />
+                <span className="person-menu-text">Collapse / Expand</span>
+              </button>
+              <button className="person-menu-item" onClick={onOpenProfile}>
+                <CircleUserRound size={15} />
+                <span className="person-menu-text">Open Profile</span>
+              </button>
+              <button className="person-menu-item" onClick={onTraceLineage}>
+                <MapPinHouse size={15} />
+                <span className="person-menu-text">Trace Lineage</span>
+              </button>
+              <button className="person-menu-item" onClick={onSetAsRoot}>
+                <GitCompareArrows size={15} />
+                <span className="person-menu-text">Set as Root</span>
+              </button>
+              <button className="person-menu-item" onClick={toggleSubmenu}>
+                <UserRoundPlus size={15} />
+                <span className="person-menu-text">Add Relative</span>
+                <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
+              </button>
+              <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
+                <UserRoundPen size={15} />
+                <span className="person-menu-text">Edit Person</span>
+              </button>
+              <button className="person-menu-item" onClick={onDelete}>
+                <User size={15} />
+                <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {showSubmenu && (
+      {showSubmenu && !isSoftDeleted && (
         <div
           ref={submenuRef}
           className="person-menu person-submenu"
