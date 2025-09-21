@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import "../styles/NotificationsPage.css";
 
-export default function NotificationsPage() {
+const NotificationsPage = () => {
   const [selected, setSelected] = useState("Tree Merge Request");
 
   const notifications = [
@@ -114,3 +114,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+export default NotificationsPage;

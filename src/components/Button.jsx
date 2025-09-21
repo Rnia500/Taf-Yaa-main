@@ -9,7 +9,6 @@ const positionTransforms = {
   'right': 'translateY(-50%)',
   'top-center': 'translateX(-50%)',
   'bottom-center': 'translateX(-50%)',
-  // Add more as needed
 };
 
 const Button = ({

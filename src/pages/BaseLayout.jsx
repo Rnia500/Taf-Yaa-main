@@ -10,7 +10,10 @@ import EditorNavbar from '../components/navbar/EditorNavbar';
 import ViewerNavbar from '../components/navbar/EditorNavbar';
 import PDFExport from '../components/PdfExport';
 import useModalStore from '../store/useModalStore';
+import useSidebarStore from '../store/useSidebarStore';
 import { useTranslation } from 'react-i18next';
+import Toast from '../components/toasts/Toast';
+import FamilyTreePage from './FamilyTreePage';
 
 
 
@@ -35,7 +38,7 @@ export default function BaseLayout() {
     >
       <>
         <Toast />
-        {isNestedRoute ? <Outlet /> : <FamilyTreePage />}
+        <Outlet />
       </>
     </PageFrame>
   );

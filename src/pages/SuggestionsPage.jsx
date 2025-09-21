@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import "../styles/SuggestionsPage.css";
 import {
   Bell,
@@ -46,8 +46,10 @@ const INITIAL_SUGGESTIONS = [
   },
 ];
 
-export default function SuggestionsPage() {
+const SuggestionsPage = () => {
   const navigate = useNavigate();
+  const { treeId } = useParams();
+  const location = useLocation();
 
   const [suggestions, setSuggestions] = useState(INITIAL_SUGGESTIONS);
   const [acceptedToday, setAcceptedToday] = useState(3); // demo counter
@@ -85,55 +87,9 @@ export default function SuggestionsPage() {
 
   return (
     <div className="sugg-page">
-      {/* Top green app bar */}
-      <header className="sugg-appbar">
-        <div className="left">
-          <span className="logo-emoji">🌳</span>
-          <span className="brand">Family Tree</span>
-        </div>
-        <div className="right">
-          <Bell size={18} />
-          <span className="dot" />
-          <span className="admin-chip">Admin</span>
-        </div>
-      </header>
-
       <div className="sugg-layout">
-        {/* Sidebar */}
-        <aside className="sugg-sidebar">
-          <div className="sb-title">Menu</div>
-
-          <Link className="sb-item active" to="/suggestions">
-            <span className="sb-emoji">💡</span>
-            <span>Suggestions</span>
-            <span className="badge">{filtered.length}</span>
-          </Link>
-
-          <Link className="sb-item" to="/merge-requests">
-            <span className="sb-emoji">🔀</span>
-            <span>Merge Requests</span>
-            <span className="badge neutral">3</span>
-          </Link>
-
-          <Link className="sb-item" to="/merge-history">
-            <span className="sb-emoji">🕓</span>
-            <span>Merge History</span>
-            <span className="badge neutral">8</span>
-          </Link>
-
-          <Link className="sb-item" to="/tree">
-            <span className="sb-emoji">🌳</span>
-            <span>Family Tree</span>
-          </Link>
-        </aside>
-
         {/* Main content */}
         <main className="sugg-main">
-          {/* Back button */}
-          <button className="back-btn" onClick={() => navigate("/")}>
-            <ChevronLeft size={18} />
-            Back to Home
-          </button>
 
          {/* Header row */}
 <div className="sugg-header">
@@ -238,6 +194,7 @@ export default function SuggestionsPage() {
     </div>
   );
 }
+export default SuggestionsPage;
 
 // --- Small components ---
 

@@ -9,10 +9,9 @@ import AddTreeModal from '../components/AddTree/AddTreeModal'
 import useModalStore from '../store/useModalStore'
 
 
-
-
 export const CreateTreePage = () => {
   const { openModal } = useModalStore();
+
 
   const handleCreateTree = () => {
     openModal('treeModal', { createdBy: 'user' });
@@ -43,7 +42,6 @@ export const CreateTreePage = () => {
         createdBy="user"
         onSuccess={(result) => {
           console.log('Tree created successfully:', result);
-          // You can add navigation logic here if needed
         }}
       />
     </FlexContainer>

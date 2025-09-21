@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
@@ -21,20 +21,76 @@ import '../../styles/Navbar.css';
 import useModalStore from '../../store/useModalStore';
 import { NavLink } from "react-router-dom";
 import LanguageMenu from '../LanguageMenu';
+import dataService from '../../services/dataService';
 
 
 export default function AdminNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { treeId } = useParams();
+  const location = useLocation();
   const submenuRef = useRef(null);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { t } = useTranslation();
+
+
+  // Extract treeId from URL if not available from useParams
+  const getTreeId = () => {
+    if (treeId) {
+      // Store the current treeId in localStorage for persistence
+      localStorage.setItem('currentTreeId', treeId);
+      return treeId;
+    }
+    
+    // Try to extract treeId from current pathname
+    const pathMatch = location.pathname.match(/\/family-tree\/([^\/]+)/);
+    if (pathMatch) {
+      const extractedTreeId = pathMatch[1];
+      localStorage.setItem('currentTreeId', extractedTreeId);
+      return extractedTreeId;
+    }
+    
+    // Try to get from localStorage (persisted from previous navigation)
+    const storedTreeId = localStorage.getItem('currentTreeId');
+    if (storedTreeId) {
+      return storedTreeId;
+    }
+    
+    // Final fallback: use default
+    return 'tree001';
+  };
+
+  const currentTreeId = getTreeId();
+  
 
   const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeSubmenu = () => setSubmenuOpen(false);
+
+  // Helper function to determine if a nav item should be active
+  const isNavItemActive = (item) => {
+    const currentPath = location.pathname;
+    
+    if (item.label === 'Tree View') {
+      // Tree View should only be active when on the exact tree route, not nested routes
+      return currentPath === `/family-tree/${currentTreeId}` || currentPath === '/base';
+    }
+    
+    if (item.label === 'Notification') {
+      return currentPath === `/family-tree/${currentTreeId}/notifications`;
+    }
+    
+    if (item.label === 'Suggestions') {
+      return currentPath === `/family-tree/${currentTreeId}/suggestions`;
+    }
+    
+    if (item.label === 'Members') {
+      return currentPath === '/members';
+    }
+    
+    return false;
+  };
 
   // Submenu items with proper functionality
   const submenuItems = [
@@ -50,7 +106,7 @@ export default function AdminNavbar() {
     { 
       label: 'Notifications', 
       icon: Bell, 
-      href: '/notifications',
+      href: `/family-tree/${currentTreeId}/notifications`,
       action: () => {
         closeSubmenu();
         // Navigate to notifications
@@ -96,20 +152,20 @@ export default function AdminNavbar() {
   }, [submenuOpen]);
 
   const navItems = [
-    { label: 'Tree View', href: treeId ? `/family-tree/${treeId}` : '/base' },
+    { label: 'Tree View', href: `/family-tree/${currentTreeId}` },
     { label: 'Members', href: '/members' },
-    { label: 'Notification', href: '/notifications' },
-    { label: 'Suggestions', href: '/suggestions' },
+    { label: 'Notification', href: `/family-tree/${currentTreeId}/notifications` },
+    { label: 'Suggestions', href: `/family-tree/${currentTreeId}/suggestions` },
     { label: 'Export', action: () => openModal('pdfExportModal') },
   ];
 
   const MobileNavItems = [
-    { label: 'Tree View', href: treeId ? `/family-tree/${treeId}` : '/base' },
+    { label: 'Tree View', href: `/family-tree/${currentTreeId}` },
     { label: 'Members', href: '/members' },
-    { label: 'Notification', href: '/notifications' },
-    { label: 'Suggestions', href: '/suggestions' },
+    { label: 'Notification', href: `/family-tree/${currentTreeId}/notifications` },
+    { label: 'Suggestions', href: `/family-tree/${currentTreeId}/suggestions` },
     { label: 'Export', action: () => openModal('pdfExportModal') },
-    { label: 'Deleted Persons', href: treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons' },
+    { label: 'Deleted Persons', href: `/family-tree/${currentTreeId}/deleted-persons` },
     { label: 'Settings', href: '/settings' },
     { label: 'Language', href: '/language' },
   ];
@@ -141,7 +197,11 @@ export default function AdminNavbar() {
                     </Text>
                   </button>
                 ) : (
-                  <NavLink key={item.label} to={item.href} className='navItem'>
+                  <NavLink 
+                    key={item.label} 
+                    to={item.href} 
+                    className={`navItem ${isNavItemActive(item) ? 'active' : ''}`}
+                  >
                     <Text variant='body1' bold>
                       {item.label}
                     </Text>
@@ -151,7 +211,7 @@ export default function AdminNavbar() {
             </div>
 
             <div className="action-buttons">
-              <Link to={treeId ? `/family-tree/${treeId}/deleted-persons` : '/deleted-persons'}>
+              <Link to={`/family-tree/${currentTreeId}/deleted-persons`}>
                 <div className="action-btn">
                   <Trash2 size={20} color="var(--color-primary-text)" />
                 </div>
@@ -211,7 +271,7 @@ export default function AdminNavbar() {
                 <NavLink
                   key={item.label}
                   to={item.href}
-                  className="mobile-nav-item"
+                  className={`mobile-nav-item ${isNavItemActive(item) ? 'active' : ''}`}
                   onClick={closeMobileMenu}
                 >
                   {item.label}
