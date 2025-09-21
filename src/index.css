@@ -15,6 +15,32 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* RTL support */
+html[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Flip navbar items in RTL */
+html[dir="rtl"] .NavBar {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .desktop-nav {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .mobile-nav-content {
+  text-align: right;
+}
+
+/* Flip modals and cards */
+html[dir="rtl"] .modal,
+html[dir="rtl"] .card,
+html[dir="rtl"] .submenu {
+  text-align: right;
+}
+
 html, body {
   margin: 0;
   padding: 0;

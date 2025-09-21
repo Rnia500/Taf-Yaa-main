@@ -20,6 +20,7 @@ import Button from '../Button';
 import Spacer from '../Spacer';
 import { getPrivacyLabel, getCountryLabel } from '../../models/treeModels/PersonModel';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PhotoUploadModal from './PhotoUploadModal';
 
 // Download modals

@@ -4,12 +4,23 @@ import { Link, useParams } from 'react-router-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
-import { CircleUser, Menu, X, EarthIcon, Settings, Bell, Trash2, ArrowDownToLine, User, LogOut, Shield } from 'lucide-react';
+import { useTranslation } from "react-i18next";
+
+import {
+  CircleUser,
+  Menu,
+  X,
+  EarthIcon,
+ 
+  Settings,
+  Bell, Trash2,
+  ArrowDownToLine, User, LogOut, Shield
+} from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
 import useModalStore from '../../store/useModalStore';
 import { NavLink } from "react-router-dom";
-
+import LanguageMenu from '../LanguageMenu';
 
 
 export default function AdminNavbar() {
@@ -17,6 +28,8 @@ export default function AdminNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { treeId } = useParams();
   const submenuRef = useRef(null);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
@@ -102,7 +115,8 @@ export default function AdminNavbar() {
   ];
 
   return (
-    <nav className='NavBar'>
+    <nav className="NavBar" style={{ background: "var(--color-white)", boxShadow: "0 2px 4px rgba(0,0,0,.1)" }}>
+
       {/* Logo Section */}
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
         <div className="logo-section">
@@ -143,9 +157,16 @@ export default function AdminNavbar() {
                 </div>
               </Link>
 
-              <div className="action-btn" onClick={() => { alert("hello boy") }}>
+              <div className="action-btn" onClick={() => setLangMenuOpen((prev) => !prev)}>
                 <EarthIcon size={20} color="var(--color-primary-text)" />
               </div>
+
+              {langMenuOpen &&
+         ReactDOM.createPortal(
+        <LanguageMenu isOpen={langMenuOpen} onClose={() => setLangMenuOpen(false)} />,
+        document.body
+        )
+      }
 
               <div className="action-btn" onClick={() => openModal('pdfExportModal')}>
                 <ArrowDownToLine size={20} color="var(--color-primary-text)"  />
@@ -164,6 +185,7 @@ export default function AdminNavbar() {
         className="mobile-menu-button"
         onClick={toggleMobileMenu}
         aria-label="Toggle mobile menu"
+        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-primary-text)" }}
       >
         {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -223,6 +245,7 @@ export default function AdminNavbar() {
         </div>,
         document.body
       )}
+
     </nav>
   );
 }

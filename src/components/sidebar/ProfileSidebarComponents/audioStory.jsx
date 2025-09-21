@@ -8,8 +8,10 @@ import Column from '../../../layout/containers/Column';
 import Button from '../../Button';
 import WaveformPlayer from '../../WaveformPlayer';
 import AudioPlayer from '../../AudioPLayer';
+import { useTranslation } from 'react-i18next';
 
 function AudioStory({ stories = [], onRecord, onTranscribe, isSideBar = true, showRecordButton = true, selectedIndex = null, onSelect = () => {} }) {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(null);
   const [durations, setDurations] = useState({});
   const [times, setTimes] = useState({});
