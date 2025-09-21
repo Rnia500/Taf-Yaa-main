@@ -84,6 +84,7 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
         language: language || null,
         privacyLevel: privacyLevel || 'membersOnly',
         allowGlobalMatching: !!allowGlobalMatching,
+        isPlaceholder: false 
       };
 
       // Upload profile photo if a File was provided

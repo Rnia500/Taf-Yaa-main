@@ -339,13 +339,73 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.NavBar .action-buttons .action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--color-primary1), var(--color-secondary1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 10px;
 }
 
 .NavBar .action-buttons .action-btn:hover {
   background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(144, 21, 216, 0.2);
+  border-color: rgba(22, 163, 74, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.NavBar .action-buttons .action-btn:hover::before {
+  opacity: 0.1;
+}
+
+/* Active state for action buttons */
+.NavBar .action-buttons .action-btn.active {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+}
+
+.NavBar .action-buttons .action-btn.active::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--color-primary1), var(--color-secondary1));
+  border-radius: 12px;
+  z-index: -1;
+  animation: gradientBorder 2s ease-in-out infinite;
+}
+
+@keyframes gradientBorder {
+  0%, 100% {
+    background: linear-gradient(135deg, var(--color-primary1), var(--color-secondary1));
+  }
+  50% {
+    background: linear-gradient(135deg, var(--color-secondary1), var(--color-primary1));
+  }
+}
+
+.NavBar .action-buttons .action-btn.active::before {
+  opacity: 0.15;
+}
+
+.NavBar .action-buttons .action-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.3);
 }
 
 .NavBar .action-buttons .action-btn.danger {
@@ -358,6 +418,39 @@
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Ensure icons are above the gradient background */
+.NavBar .action-buttons .action-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* Mobile responsive adjustments */
+@media screen and (max-width: 768px) {
+  .NavBar .action-buttons .action-btn {
+    width: 18px;
+    height: 18px;
+    padding: 0.4rem;
+  }
+  
+  .NavBar .action-buttons .action-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .NavBar .action-buttons .action-btn {
+    width: 16px;
+    height: 16px;
+    padding: 0.35rem;
+  }
+  
+  .NavBar .action-buttons .action-btn svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 /* Nav items container for better responsive behavior */

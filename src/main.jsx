@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation } from "react-router-dom";
 import "./index.css";
 import "./styles/fonts.css";
+import "./i18n.js"; // Add this line to initialize i18n
 import App from "./App.jsx";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import ExportPage from "./pages/ExportPage.jsx";

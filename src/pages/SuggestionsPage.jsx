@@ -1,16 +1,28 @@
-import React, { useMemo, useState } from "react";
-import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+﻿import React, { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import "../styles/SuggestionsPage.css";
 import {
-  Bell,
   Filter,
   RefreshCw,
-  ChevronLeft,
   MapPin,
   Calendar,
   Info,
+  CheckCircle,
+  Star,
+  Clock,
 } from "lucide-react";
 
+// Import your components
+import Text from "../components/Text";
+import Button from "../components/Button";
+import Card from "../layout/containers/Card";
+import Row from "../layout/containers/Row";
+import Column from "../layout/containers/Column";
+import Grid from "../layout/containers/Grid";
+import SelectDropdown from "../components/SelectDropdown";
+import Slider from "../components/Slider";
+import Pill from "../components/pill"
+import Modal from "../layout/containers/Modal";
 
 // --- Demo data (UI-only) ---
 const INITIAL_SUGGESTIONS = [
@@ -18,9 +30,9 @@ const INITIAL_SUGGESTIONS = [
     id: "s1",
     name1: "John Smith",
     name2: "Robert Johnson",
-    relation: "Potential father–son based on birth records and DNA analysis",
+    relation: "Potential fatherson based on birth records and DNA analysis",
     dna: "47% shared",
-    birth: "1945 – 1970",
+    birth: "1945  1970",
     location: "New York",
     score: 95, // %
   },
@@ -30,7 +42,7 @@ const INITIAL_SUGGESTIONS = [
     name2: "Susan Wilson",
     relation: "Potential sisters based on shared parents and birth record",
     dna: "52% shared",
-    birth: "1952 – 1955",
+    birth: "1952  1955",
     location: "California",
     score: 87,
   },
@@ -40,7 +52,7 @@ const INITIAL_SUGGESTIONS = [
     name2: "James Miller",
     relation: "Potential cousins based on shared grandparents",
     dna: "12% shared",
-    birth: "1960 – 1962",
+    birth: "1960  1962",
     location: "Texas",
     score: 78,
   },
@@ -49,7 +61,6 @@ const INITIAL_SUGGESTIONS = [
 const SuggestionsPage = () => {
   const navigate = useNavigate();
   const { treeId } = useParams();
-  const location = useLocation();
 
   const [suggestions, setSuggestions] = useState(INITIAL_SUGGESTIONS);
   const [acceptedToday, setAcceptedToday] = useState(3); // demo counter
@@ -76,6 +87,7 @@ const SuggestionsPage = () => {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
     setAcceptedToday((n) => n + 1);
   }
+  
   function onReject(id) {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
   }
@@ -85,216 +97,284 @@ const SuggestionsPage = () => {
     setSuggestions((prev) => [...prev].sort(() => Math.random() - 0.5));
   }
 
+  const relationOptions = [
+    { value: "all", label: "All" },
+    { value: "father", label: "Father" },
+    { value: "sister", label: "Sister" },
+    { value: "cousin", label: "Cousin" }
+  ];
+
   return (
-    <div className="sugg-page">
-      <div className="sugg-layout">
-        {/* Main content */}
-        <main className="sugg-main">
+    <div className="suggestions-page">
+      <Column padding="20px 24px" gap="18px">
+        {/* Header Section */}
+        <Row justifyContent="space-between" alignItems="center">
+          <Column gap="4px">
+            <Text variant="heading1" as="h1">AI Match Suggestions</Text>
+            <Text variant="body2" color="secondary-text">
+              Review potential family connections identified by our AI
+            </Text>
+          </Column>
 
-         {/* Header row */}
-<div className="sugg-header">
-  <div>
-    <h1 className="sugg-title">AI Match Suggestions</h1>
-    <p className="sugg-subtitle">
-      Review potential family connections identified by our AI
-    </p>
-  </div>
+          <Row gap="10px">
+            <Button 
+              variant="outline" 
+              onClick={() => setFilterOpen((v) => !v)}
+              icon={<Filter size={16} />}
+            >
+              Filter
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={refresh}
+              icon={<RefreshCw size={16} />}
+            >
+              Refresh
+            </Button>
+          </Row>
+        </Row>
 
-  <div className="page-actions">
-    <button className="btn outline" onClick={() => setFilterOpen((v) => !v)}>
-      <Filter size={16} />
-      Filter
-    </button>
-    <button className="btn outline" onClick={refresh}>
-      <RefreshCw size={16} />
-      Refresh
-    </button>
-  </div>
-</div>
+        {/* Stats Cards */}
+        <Grid columns={4} gap="14px">
+          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+            <Row justifyContent="space-between" alignItems="flex-start">
+              <Column gap="2px">
+                <Text variant="caption" color="secondary-text">Pending Suggestions</Text>
+                <Text variant="heading3" bold>{filtered.length}</Text>
+              </Column>
+              <Clock size={18} color="var(--color-gray)" />
+            </Row>
+          </Card>
 
-          {/* Stat cards */}
-          <div className="stats-row">
-            <div className="stat-card">
-              <div className="label">Pending Suggestions</div>
-              <div className="value">{filtered.length}</div>
-              <ClockIcon />
-            </div>
+          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+            <Row justifyContent="space-between" alignItems="flex-start">
+              <Column gap="2px">
+                <Text variant="caption" color="secondary-text">High Confidence</Text>
+                <Text variant="heading3" bold>{highConfidenceCount}</Text>
+              </Column>
+              <Star size={18} color="var(--color-gray)" />
+            </Row>
+          </Card>
 
-            <div className="stat-card">
-              <div className="label">High Confidence</div>
-              <div className="value">{highConfidenceCount}</div>
-              <StarIcon />
-            </div>
+          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+            <Row justifyContent="space-between" alignItems="flex-start">
+              <Column gap="2px">
+                <Text variant="caption" color="secondary-text">This Week</Text>
+                <Text variant="heading3" bold>8</Text>
+              </Column>
+              <Calendar size={18} color="var(--color-gray)" />
+            </Row>
+          </Card>
 
-            <div className="stat-card">
-              <div className="label">This Week</div>
-              <div className="value">8</div>
-              <Calendar size={18} />
-            </div>
+          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+            <Row justifyContent="space-between" alignItems="flex-start">
+              <Column gap="2px">
+                <Text variant="caption" color="secondary-text">Approved Today</Text>
+                <Text variant="heading3" bold>{acceptedToday}</Text>
+              </Column>
+              <CheckCircle size={18} color="var(--color-gray)" />
+            </Row>
+          </Card>
+        </Grid>
 
-            <div className="stat-card">
-              <div className="label">Approved Today</div>
-              <div className="value">{acceptedToday}</div>
-              <CheckIcon />
-            </div>
-          </div>
-
-         
-          {/* Filter panel */}
-          {filterOpen && (
-            <div className="filter-panel">
-              <div className="filter-group">
-                <label>Min score</label>
-                <input
-                  type="range"
+        {/* Filter Panel */}
+        {filterOpen && (
+          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+            <Grid columns={3} gap="14px">
+              <Column gap="6px">
+                <Text variant="body2" bold>Min score</Text>
+                <Slider
                   min={0}
                   max={100}
                   value={minScore}
-                  onChange={(e) => setMinScore(Number(e.target.value))}
+                  onChange={setMinScore}
                 />
-                <div className="filter-value">{minScore}%</div>
-              </div>
+                <Text variant="caption" color="secondary-text">{minScore}%</Text>
+              </Column>
 
-              <div className="filter-group">
-                <label>Relation type</label>
-                <select value={relType} onChange={(e) => setRelType(e.target.value)}>
-                  <option value="all">All</option>
-                  <option value="father">Father</option>
-                  <option value="sister">Sister</option>
-                  <option value="cousin">Cousin</option>
-                </select>
-              </div>
+              <Column gap="6px">
+                <Text variant="body2" bold>Relation type</Text>
+                <SelectDropdown
+                  value={relType}
+                  onChange={(e) => setRelType(e.target.value)}
+                  options={relationOptions}
+                />
+              </Column>
 
-              <div className="filter-hint">
-                <Info size={14} />
-                Filters are UI-only for now. Backend wiring comes later.
-              </div>
-            </div>
+              <Row alignItems="center" gap="6px">
+                <Info size={14} color="var(--color-gray)" />
+                <Text variant="caption" color="secondary-text">
+                  Filters are UI-only for now. Backend wiring comes later.
+                </Text>
+              </Row>
+            </Grid>
+          </Card>
+        )}
+
+        {/* Suggestion Cards */}
+        <Column gap="14px">
+          {filtered.map((s) => (
+            <SuggestionCard
+              key={s.id}
+              suggestion={s}
+              onAccept={() => onAccept(s.id)}
+              onReject={() => onReject(s.id)}
+            />
+          ))}
+
+          {filtered.length === 0 && (
+            <Card 
+              padding="30px" 
+              backgroundColor="var(--color-white)" 
+              borderColor="var(--color-gray)"
+              style={{ borderStyle: "dashed", textAlign: "center" }}
+            >
+              <Text color="secondary-text">No suggestions match your current filters.</Text>
+            </Card>
           )}
-
-          {/* Suggestion list */}
-          <div className="cards-list">
-            {filtered.map((s) => (
-              <SuggestionCard
-                key={s.id}
-                s={s}
-                onAccept={() => onAccept(s.id)}
-                onReject={() => onReject(s.id)}
-              />
-            ))}
-
-            {filtered.length === 0 && (
-              <div className="empty">
-                No suggestions match your current filters.
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
+        </Column>
+      </Column>
     </div>
   );
-}
-export default SuggestionsPage;
+};
 
-// --- Small components ---
-
-function SuggestionCard({ s, onAccept, onReject }) {
-  const [open, setOpen] = useState(false);
-  const scoreClass =
-    s.score >= 90 ? "score success" : s.score >= 80 ? "score info" : "score warn";
+// Suggestion Card Component
+function SuggestionCard({ suggestion, onAccept, onReject }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const getScoreColor = (score) => {
+    if (score >= 90) return "success";
+    if (score >= 80) return "info";
+    return "warning";
+  };
 
   return (
-    <div className="sugg-card">
-      <div className="row top">
-        <div className="avatars">
-          <div className="avatar" />
-          <div className="avatar second" />
-        </div>
+    <>
+      <Card padding="14px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+        <Column gap="12px">
+          {/* Top Row - Names and Score */}
+          <Row justifyContent="space-between" alignItems="flex-start">
+            <Row gap="8px" alignItems="center">
+              <Card size="34px" rounded backgroundColor="var(--color-gray-light)" />
+              <Card size="34px" rounded backgroundColor="var(--color-gray-light)" style={{ marginLeft: "-10px" }} />
+              <Column gap="4px">
+                <Row gap="10px" alignItems="center" wrap>
+                  <Text variant="body1" bold>{suggestion.name1}</Text>
+                  <Text color="secondary-text"></Text>
+                  <Text variant="body1" bold>{suggestion.name2}</Text>
+                  <Text 
+                    variant="caption" 
+                    color={getScoreColor(suggestion.score)}
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "999px",
+                      backgroundColor: `var(--color-${getScoreColor(suggestion.score)}-light)`,
+                      fontWeight: "bold"
+                    }}
+                  >
+                    {suggestion.score}% Match
+                  </Text>
+                </Row>
+                <Text variant="body2" color="secondary-text">{suggestion.relation}</Text>
+              </Column>
+            </Row>
+          </Row>
 
-        <div className="names">
-          <div className="line">
-            <span className="name">{s.name1}</span>
-            <span className="sep">↔</span>
-            <span className="name">{s.name2}</span>
-            <span className={scoreClass}>{s.score}% Match</span>
-          </div>
-          <div className="relation">{s.relation}</div>
-        </div>
-      </div>
+          {/* Meta Information */}
+          <Row gap="18px" wrap>
+            <Text variant="body2" color="secondary-text"> DNA: {suggestion.dna}</Text>
+            <Text variant="body2" color="secondary-text"> Birth: {suggestion.birth}</Text>
+            <Row gap="6px" alignItems="center">
+              <MapPin size={14} color="var(--color-gray)" />
+              <Text variant="body2" color="secondary-text">Location: {suggestion.location}</Text>
+            </Row>
+          </Row>
 
-      <div className="row meta">
-        <div className="meta-item">🧬 DNA: {s.dna}</div>
-        <div className="meta-item">
-          🎂 Birth: {s.birth}
-        </div>
-        <div className="meta-item">
-          <MapPin size={14} />
-          Location: {s.location}
-        </div>
-      </div>
+          {/* Action Buttons */}
+          <Row justifyContent="flex-end" gap="10px">
+            <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
+              View Details
+            </Button>
+            <Button variant="primary" onClick={onAccept}>
+              Accept
+            </Button>
+            <Button variant="danger" onClick={onReject}>
+              Reject
+            </Button>
+          </Row>
+        </Column>
+      </Card>
 
-      <div className="row actions">
-        <button className="btn view" onClick={() => setOpen(true)}>
-          View Details
-        </button>
-        <button className="btn accept" onClick={onAccept}>
-          Accept
-        </button>
-        <button className="btn reject" onClick={onReject}>
-          Reject
-        </button>
-      </div>
+      {/* Details Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <Column gap="12px" padding="20px">
+          <Row justifyContent="space-between" alignItems="center">
+            <Text variant="heading3">Suggested Match</Text>
+            <Button variant="danger" onClick={() => setIsModalOpen(false)}>
+              
+            </Button>
+          </Row>
 
-      {open && (
-        <DetailsModal s={s} onClose={() => setOpen(false)} onAccept={onAccept} onReject={onReject} />
-      )}
-    </div>
-  );
-}
+          <Card padding="12px" backgroundColor="var(--color-gray-light)">
+            <Row gap="12px" alignItems="center">
+              <Card size="48px" rounded backgroundColor="var(--color-gray-light)" />
+              <Column gap="4px" style={{ flex: 1 }}>
+                <Row gap="10px" alignItems="center">
+                  <Text variant="body1" bold>{suggestion.name1}</Text>
+                  <Text color="secondary-text"></Text>
+                  <Text variant="body1" bold>{suggestion.name2}</Text>
+                </Row>
+                <Text variant="body2" color="secondary-text">{suggestion.relation}</Text>
+              </Column>
+              <Text 
+                variant="caption" 
+                color={getScoreColor(suggestion.score)}
+                style={{
+                  padding: "2px 8px",
+                  borderRadius: "999px",
+                  backgroundColor: `var(--color-${getScoreColor(suggestion.score)}-light)`,
+                  fontWeight: "bold"
+                }}
+              >
+                {suggestion.score}% Match
+              </Text>
+            </Row>
+          </Card>
 
-function DetailsModal({ s, onClose, onAccept, onReject }) {
-  return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-head">
-          <h3>Suggested Match</h3>
-          <button className="icon-btn" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body">
-          <div className="pair">
-            <div className="big-avatar" />
-            <div className="mid">
-              <div className="pair-names">
-                {s.name1} <span className="sep">↔</span> {s.name2}
-              </div>
-              <div className="pair-relation">{s.relation}</div>
-            </div>
-            <span className={s.score >= 90 ? "score success" : s.score >= 80 ? "score info" : "score warn"}>
-              {s.score}% Match
-            </span>
-          </div>
+          <Grid columns={3} gap="12px">
+            <Card padding="10px" backgroundColor="var(--color-gray-light)">
+              <Text variant="body2" bold>DNA</Text>
+              <Text variant="body2">{suggestion.dna}</Text>
+            </Card>
+            <Card padding="10px" backgroundColor="var(--color-gray-light)">
+              <Text variant="body2" bold>Birth</Text>
+              <Text variant="body2">{suggestion.birth}</Text>
+            </Card>
+            <Card padding="10px" backgroundColor="var(--color-gray-light)">
+              <Text variant="body2" bold>Location</Text>
+              <Text variant="body2">{suggestion.location}</Text>
+            </Card>
+          </Grid>
 
-          <div className="modal-grid">
-            <div className="grid-item"><strong>DNA</strong><div>{s.dna}</div></div>
-            <div className="grid-item"><strong>Birth</strong><div>{s.birth}</div></div>
-            <div className="grid-item"><strong>Location</strong><div>{s.location}</div></div>
-          </div>
-
-          <div className="modal-note">
+          <Text variant="caption" color="secondary-text">
             This is a UI-only preview. Final decision will be saved once backend is ready.
-          </div>
-        </div>
-        <div className="modal-actions">
-          <button className="btn view" onClick={onClose}>Close</button>
-          <button className="btn accept" onClick={onAccept}>Accept</button>
-          <button className="btn reject" onClick={onReject}>Reject</button>
-        </div>
-      </div>
-    </div>
+          </Text>
+
+          <Row justifyContent="flex-end" gap="10px">
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={onAccept}>
+              Accept
+            </Button>
+            <Button variant="danger" onClick={onReject}>
+              Reject
+            </Button>
+          </Row>
+        </Column>
+      </Modal>
+    </>
   );
 }
 
-// tiny icon helpers
-function CheckIcon() { return <span className="icon-check">✔</span>; }
-function StarIcon() { return <span className="icon-star">★</span>; }
-function ClockIcon() { return <span className="icon-clock">🕒</span>; }
+export default SuggestionsPage;

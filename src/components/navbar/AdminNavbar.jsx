@@ -5,13 +5,13 @@ import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
 import { useTranslation } from "react-i18next";
+import Submenu from '../Submenu';
 
 import {
   CircleUser,
   Menu,
   X,
   EarthIcon,
- 
   Settings,
   Bell, Trash2,
   ArrowDownToLine, User, LogOut, Shield
@@ -23,26 +23,24 @@ import { NavLink } from "react-router-dom";
 import LanguageMenu from '../LanguageMenu';
 import dataService from '../../services/dataService';
 
-
 export default function AdminNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [activeButton, setActiveButton] = useState(null);
   const { treeId } = useParams();
   const location = useLocation();
   const submenuRef = useRef(null);
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef(null);
   const { t } = useTranslation();
-
 
   // Extract treeId from URL if not available from useParams
   const getTreeId = () => {
     if (treeId) {
-      // Store the current treeId in localStorage for persistence
       localStorage.setItem('currentTreeId', treeId);
       return treeId;
     }
     
-    // Try to extract treeId from current pathname
     const pathMatch = location.pathname.match(/\/family-tree\/([^\/]+)/);
     if (pathMatch) {
       const extractedTreeId = pathMatch[1];
@@ -50,25 +48,39 @@ export default function AdminNavbar() {
       return extractedTreeId;
     }
     
-    // Try to get from localStorage (persisted from previous navigation)
     const storedTreeId = localStorage.getItem('currentTreeId');
     if (storedTreeId) {
       return storedTreeId;
     }
     
-    // Final fallback: use default
     return 'tree001';
   };
 
   const currentTreeId = getTreeId();
   
-
-  const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
+  const toggleSubmenu = () => {
+    setSubmenuOpen(prev => !prev);
+    setLangMenuOpen(false);
+    setActiveButton(prev => prev === 'profile' ? null : 'profile');
+  };
+  
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
-  const closeSubmenu = () => setSubmenuOpen(false);
+  const closeSubmenu = () => {
+    setSubmenuOpen(false);
+    setActiveButton(null);
+  };
 
-  // Removed isNavItemActive function to use NavLink's built-in active state handling
+  const toggleLanguageMenu = () => {
+    setLangMenuOpen(prev => !prev);
+    setSubmenuOpen(false);
+    setActiveButton(prev => prev === 'language' ? null : 'language');
+  };
+
+  const closeLanguageMenu = () => {
+    setLangMenuOpen(false);
+    setActiveButton(null);
+  };
 
   // Submenu items with proper functionality
   const submenuItems = [
@@ -78,7 +90,6 @@ export default function AdminNavbar() {
       href: '/profile',
       action: () => {
         closeSubmenu();
-        // Navigate to profile or open profile modal
       }
     },
     { 
@@ -87,7 +98,6 @@ export default function AdminNavbar() {
       href: `/family-tree/${currentTreeId}/notifications`,
       action: () => {
         closeSubmenu();
-        // Navigate to notifications
       }
     },
     { 
@@ -96,7 +106,6 @@ export default function AdminNavbar() {
       href: '/settings',
       action: () => {
         closeSubmenu();
-        // Navigate to settings
       }
     },
     { 
@@ -104,7 +113,6 @@ export default function AdminNavbar() {
       icon: LogOut, 
       action: () => {
         closeSubmenu();
-        // Handle logout logic
         alert('Logout functionality would go here');
       }
     }
@@ -112,44 +120,26 @@ export default function AdminNavbar() {
 
   const { openModal } = useModalStore();
 
-  // Close submenu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (submenuRef.current && !submenuRef.current.contains(event.target)) {
-        setSubmenuOpen(false);
-      }
-    };
-
-    if (submenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [submenuOpen]);
-
   const navItems = [
-    { label: 'Tree View', href: `/family-tree/${currentTreeId}` },
-    { label: 'Members', href: '/members' },
-    { label: 'Notification', href: `/family-tree/${currentTreeId}/notifications` },
-    { label: 'Suggestions', href: `/family-tree/${currentTreeId}/suggestions` },
+    { label: t('navbar.tree_view'), href: `/family-tree/${currentTreeId}` },
+    { label: t('navbar.members'), href: '/members' },
+    { label: t('navbar.notifications'), href: `/family-tree/${currentTreeId}/notifications` },
+    { label: t('navbar.suggestions'), href: `/family-tree/${currentTreeId}/suggestions` },
   ];
 
   const MobileNavItems = [
-    { label: 'Tree View', href: `/family-tree/${currentTreeId}` },
-    { label: 'Members', href: '/members' },
-    { label: 'Notification', href: `/family-tree/${currentTreeId}/notifications` },
-    { label: 'Suggestions', href: `/family-tree/${currentTreeId}/suggestions` },
-    { label: 'Export', action: () => openModal('pdfExportModal') },
+    { label: t('navbar.tree_view'), href: `/family-tree/${currentTreeId}` },
+    { label: t('navbar.members'), href: '/members' },
+    { label: t('navbar.notifications'), href: `/family-tree/${currentTreeId}/notifications` },
+    { label: t('navbar.suggestions'), href: `/family-tree/${currentTreeId}/suggestions` },
+    { label: t('navbar.export'), action: () => openModal('pdfExportModal') },
     { label: 'Deleted Persons', href: `/family-tree/${currentTreeId}/deleted-persons` },
-    { label: 'Settings', href: '/settings' },
-    { label: 'Language', href: '/language' },
+    { label: t('navbar.settings'), href: '/settings' },
+    { label: t('navbar.language'), href: '/language' },
   ];
 
   return (
-    <nav className="NavBar" >
-
+    <nav className="NavBar">
       {/* Logo Section */}
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
         <div className="logo-section">
@@ -162,29 +152,16 @@ export default function AdminNavbar() {
           <Row width='100%' fitContent={true} gap='0.5rem' padding='0px' margin='0px' className='navbar-row'>
             <div className="nav-items-container">
               {navItems.map((item) => (
-                item.action ? (
-                  <button
-                    key={item.label}
-                    onClick={item.action}
-                    className='navItem'
-                    style={{ background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    <Text variant='body1' bold>
-                      {item.label}
-                    </Text>
-                  </button>
-                ) : (
-                  <NavLink 
-                    key={item.label} 
-                    to={item.href} 
-                    end={item.label === 'Tree View'}
-                    className={({ isActive }) => `navItem ${isActive ? 'active' : ''}`}
-                  >
-                    <Text variant='body1' bold>
-                      {item.label}
-                    </Text>
-                  </NavLink>
-                )
+                <NavLink 
+                  key={item.label} 
+                  to={item.href} 
+                  end={item.label === t('navbar.tree_view')}
+                  className={({ isActive }) => `navItem ${isActive ? 'active' : ''}`}
+                >
+                  <Text variant='body1' bold>
+                    {item.label}
+                  </Text>
+                </NavLink>
               ))}
             </div>
 
@@ -195,22 +172,25 @@ export default function AdminNavbar() {
                 </div>
               </Link>
 
-              <div className="action-btn" onClick={() => setLangMenuOpen((prev) => !prev)}>
+              <div 
+                className={`action-btn ${activeButton === 'language' ? 'active' : ''}`}
+                onClick={toggleLanguageMenu}
+                ref={langMenuRef}
+              >
                 <EarthIcon size={20} color="var(--color-primary-text)" />
               </div>
 
-              {langMenuOpen &&
-         ReactDOM.createPortal(
-        <LanguageMenu isOpen={langMenuOpen} onClose={() => setLangMenuOpen(false)} />,
-        document.body
-        )
-      }
+              <LanguageMenu isOpen={langMenuOpen} onClose={closeLanguageMenu} />
 
               <div className="action-btn" onClick={() => openModal('pdfExportModal')}>
                 <ArrowDownToLine size={20} color="var(--color-primary-text)"  />
               </div>
 
-              <div className="action-btn" onClick={toggleSubmenu} ref={submenuRef}>
+              <div 
+                className={`action-btn ${activeButton === 'profile' ? 'active' : ''}`}
+                onClick={toggleSubmenu} 
+                ref={submenuRef}
+              >
                 <CircleUser size={20} color="var(--color-primary-text)" />
               </div>
             </div>
@@ -249,7 +229,7 @@ export default function AdminNavbar() {
                   <NavLink
                     key={item.label}
                     to={item.href}
-                    end={item.label === 'Tree View'}
+                    end={item.label === t('navbar.tree_view')}
                     className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
                     onClick={closeMobileMenu}
                   >
@@ -262,29 +242,39 @@ export default function AdminNavbar() {
         document.body
       )}
 
-      {/* Submenu Portal */}
-      {submenuOpen && ReactDOM.createPortal(
-        <div className="submenu">
-          {submenuItems.map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <div
-                key={item.label}
-                className="submenuItem"
-                onClick={item.action}
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
+      {/* Profile Submenu */}
+      <Submenu
+        isOpen={submenuOpen}
+        onClose={closeSubmenu}
+        className="profile-submenu"
+        position={{ top: '60px', right: '40px' }}
+      >
+        {submenuItems.map((item, index) => {
+          const IconComponent = item.icon;
+          return (
+            <Card
+              key={item.label}
+              onClick={item.action}
+              className="submenu-item-card"
+              padding="0.75rem"
+              margin="0"
+              backgroundColor="transparent"
+              borderColor="transparent"
+              borderRadius="8px"
+              width="100%"
+              height="auto"
+              fitContent={true}
+            >
+              <div className="submenu-item-content">
                 <IconComponent size={18} />
                 <Text variant="body2" style={{ fontWeight: 500 }}>
                   {item.label}
                 </Text>
               </div>
-            );
-          })}
-        </div>,
-        document.body
-      )}
-
+            </Card>
+          );
+        })}
+      </Submenu>
     </nav>
   );
 }

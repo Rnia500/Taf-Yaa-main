@@ -88,7 +88,7 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
             width="100%"
             height="83px"
             borderRadius="17px"
-            image={isPlaceholder ? null : profileImage}
+            image={profileImage}
           />
           {isSoftDeleted && (
             <div style={{
