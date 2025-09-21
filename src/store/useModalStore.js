@@ -14,6 +14,7 @@ const useModalStore = create((set) => ({
     confirmationModal: false,
     editPerson: false,  // Added editPerson modal
     deletePerson: false,
+    warningModal: false,
   },
   
   // Modal data
@@ -41,6 +42,15 @@ const useModalStore = create((set) => ({
       person: null,
       onDeleteComplete: null,
     },
+<<<<<<< HEAD
+=======
+    warningModal: {
+      title: '',
+      message: '',
+      onConfirm: null,
+      onCancel: null,
+    }
+>>>>>>> cbfa230e635598c0f5d2123d4498029f3118072d
   },
   
   // Open a specific modal with optional data
@@ -72,6 +82,7 @@ const useModalStore = create((set) => ({
       confirmationModal: false,
       editPerson: false,  // Added editPerson to closeAllModals
       deletePerson: false,
+      warningModal: false,
     }
   }),
 }));

@@ -7,7 +7,7 @@ import ReactFlow, {
   useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import "../../styles/treeCanvas.css";
+import "../../styles/TreeCanvas.css";
 
 import { useFamilyData } from "../../hooks/useFamilyData";
 import {
@@ -285,6 +285,9 @@ const handleResetView = useCallback(() => {
 
   // ---- Effects ----
   useEffect(() => {
+    console.log("DBG:TreeCanvas useEffect allPeople changed, count:", allPeople.length);
+    const placeholderCount = allPeople.filter(p => p.isPlaceholder).length;
+    console.log("DBG:TreeCanvas useEffect placeholder count:", placeholderCount);
     setPeopleWithCollapseState(
       allPeople.map((p) => ({ ...p, isCollapsed: p.isCollapsed ?? false }))
     );
@@ -360,6 +363,7 @@ useEffect(() => {
         setTargetNodeId(personId);
         openModal("editPerson", { personId });
       }}
+      onDeleteComplete={() => reload()}
       />
 
       {/* Modals */}
@@ -383,22 +387,6 @@ useEffect(() => {
         setTargetNodeId(null);
       }} />
 
-
-
-      {/* Reset button */}
-      <Button
-        positionType="absolute"
-        position="top-left"
-        margin="10px 0px 0px 200px"
-        variant="danger"
-        onClick={() => {
-          dataService.clearLocalDB();
-          // dataService.deletePerson()
-          window.location.reload();
-        }}
-      >
-        Reset Family Tree
-      </Button>
 
       {/* React Flow canvas */}
       <ReactFlow

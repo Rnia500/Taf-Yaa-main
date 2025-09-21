@@ -49,10 +49,25 @@ export function useFamilyData(treeId) {
         pendingDeletion: person.pendingDeletion
       })));
 
+      // Debug log for people including placeholders
+      console.log("DBG:useFamilyData.reload -> people loaded:", p.map(person => ({
+        id: person.id,
+        name: person.name,
+        isPlaceholder: person.isPlaceholder,
+        isDeleted: person.isDeleted,
+        deletionMode: person.deletionMode,
+        pendingDeletion: person.pendingDeletion,
+      })));
+
       // 3. Load marriages
       const m = await marriageServiceLocal.getAllMarriages();
       const personIds = new Set(p.map(per => per.id));
       const mFiltered = m.filter(marr => {
+        // Filter out deleted marriages
+        if (marr.isDeleted || marr.pendingDeletion) {
+          return false;
+        }
+        
         if (marr.marriageType === "monogamous") {
           // Include marriage if any spouse is in personIds OR if any child is in personIds
           const hasSpouseInPersonIds = marr.spouses?.some(id => personIds.has(id));

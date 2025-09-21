@@ -1,5 +1,6 @@
 // src/pages/BaseLayout.jsx
 import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import PageFrame from '../layout/containers/PageFrame';
 import ProfileSidebar from '../components/sidebar/ProfileSidebar';
 import Card from '../layout/containers/Card';
@@ -13,6 +14,10 @@ import Toast from '../components/toasts/Toast';
 export default function BaseLayout() {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
+  const location = useLocation();
+
+  // Check if we're on a nested route (any child route of family-tree)
+  const isNestedRoute = location.pathname.split('/').length > 3;
 
   return (
     <PageFrame
@@ -26,7 +31,7 @@ export default function BaseLayout() {
     >
       <>
         <Toast />
-        <FamilyTreePage /> 
+        {isNestedRoute ? <Outlet /> : <FamilyTreePage />}
       </>
     </PageFrame>
   );
