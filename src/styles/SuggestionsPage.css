@@ -36,12 +36,13 @@
 /* Layout grid - full width */
 .sugg-layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 1fr; /* Changed to single column to avoid nested sidebar conflict */
   height: calc(100vh - 48px); /* take full height minus top bar */
 }
 
 /* Sidebar */
 .sugg-sidebar {
+  display: none; /* Hide nested sidebar to avoid layout conflict with main sidebar */
   background: var(--color-white, #fff);
   border-right: 1px solid var(--color-gray, #ddd);
   padding: 16px;
@@ -220,7 +221,10 @@
 
 /* Responsive */
 @media (max-width: 1000px) {
-  .sugg-layout { grid-template-columns: 1fr; }
+  .sugg-layout { 
+    grid-template-columns: 1fr; 
+    width: 100vw; /* Ensure full width on small screens */
+  }
   .sugg-sidebar { position: static; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .modal { width: 92vw; }

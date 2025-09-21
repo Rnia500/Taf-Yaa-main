@@ -4,11 +4,11 @@
   justify-content: space-between;
   padding: 0rem;
   width: 100%;
-  background: var(--color-transparent);
+  background: transparent;
   overflow: visible !important;
   position: relative;
   z-index: 1000;
-  min-height: 70px;
+  min-height: 30px;
 }
 
 .navItem {

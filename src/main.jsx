@@ -45,6 +45,10 @@ const router = createBrowserRouter([
     element: <RedirectToTree />,
   },
   {
+    path: "/base",
+    element: <App />,
+  },
+  {
     path: "/family-tree/:treeId",
     element: <App />,
     children: [
@@ -73,6 +77,19 @@ const router = createBrowserRouter([
   {
     path: "/create-tree",
     element: <CreateTreePage />, 
+  },
+  {
+    path: "/members",
+    element: <App />,
+  },
+
+  {
+    path: "/settings",
+    element: <App />,
+  },
+  {
+    path: "/language",
+    element: <App />,
   },
   {
     path: "/notifications",

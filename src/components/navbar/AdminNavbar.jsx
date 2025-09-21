@@ -68,29 +68,7 @@ export default function AdminNavbar() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeSubmenu = () => setSubmenuOpen(false);
 
-  // Helper function to determine if a nav item should be active
-  const isNavItemActive = (item) => {
-    const currentPath = location.pathname;
-    
-    if (item.label === 'Tree View') {
-      // Tree View should only be active when on the exact tree route, not nested routes
-      return currentPath === `/family-tree/${currentTreeId}` || currentPath === '/base';
-    }
-    
-    if (item.label === 'Notification') {
-      return currentPath === `/family-tree/${currentTreeId}/notifications`;
-    }
-    
-    if (item.label === 'Suggestions') {
-      return currentPath === `/family-tree/${currentTreeId}/suggestions`;
-    }
-    
-    if (item.label === 'Members') {
-      return currentPath === '/members';
-    }
-    
-    return false;
-  };
+  // Removed isNavItemActive function to use NavLink's built-in active state handling
 
   // Submenu items with proper functionality
   const submenuItems = [
@@ -156,7 +134,6 @@ export default function AdminNavbar() {
     { label: 'Members', href: '/members' },
     { label: 'Notification', href: `/family-tree/${currentTreeId}/notifications` },
     { label: 'Suggestions', href: `/family-tree/${currentTreeId}/suggestions` },
-    { label: 'Export', action: () => openModal('pdfExportModal') },
   ];
 
   const MobileNavItems = [
@@ -171,7 +148,7 @@ export default function AdminNavbar() {
   ];
 
   return (
-    <nav className="NavBar" style={{ background: "var(--color-white)", boxShadow: "0 2px 4px rgba(0,0,0,.1)" }}>
+    <nav className="NavBar" >
 
       {/* Logo Section */}
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
@@ -200,7 +177,8 @@ export default function AdminNavbar() {
                   <NavLink 
                     key={item.label} 
                     to={item.href} 
-                    className={`navItem ${isNavItemActive(item) ? 'active' : ''}`}
+                    end={item.label === 'Tree View'}
+                    className={({ isActive }) => `navItem ${isActive ? 'active' : ''}`}
                   >
                     <Text variant='body1' bold>
                       {item.label}
@@ -254,30 +232,31 @@ export default function AdminNavbar() {
       {mobileMenuOpen && ReactDOM.createPortal(
         <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
           <div className="mobile-nav-content">
-            {MobileNavItems.map((item) => (
-              item.action ? (
-                <button
-                  key={item.label}
-                  onClick={() => {
-                    item.action();
-                    closeMobileMenu();
-                  }}
-                  className="mobile-nav-item"
-                  style={{ background: "none", border: "none", cursor: "pointer" }}
-                >
-                  {item.label}
-                </button>
-              ) : (
-                <NavLink
-                  key={item.label}
-                  to={item.href}
-                  className={`mobile-nav-item ${isNavItemActive(item) ? 'active' : ''}`}
-                  onClick={closeMobileMenu}
-                >
-                  {item.label}
-                </NavLink>
-              )
-            ))}
+              {MobileNavItems.map((item) => (
+                item.action ? (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      item.action();
+                      closeMobileMenu();
+                    }}
+                    className="mobile-nav-item"
+                    style={{ background: "none", border: "none", cursor: "pointer" }}
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <NavLink
+                    key={item.label}
+                    to={item.href}
+                    end={item.label === 'Tree View'}
+                    className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+                    onClick={closeMobileMenu}
+                  >
+                    {item.label}
+                  </NavLink>
+                )
+              ))}
           </div>
         </div>,
         document.body
