@@ -31,6 +31,15 @@ const router = createBrowserRouter([
         path: "export",
         element: <ExportPage />,
       },
+      {
+       path: "/notifications",
+       element: <NotificationsPage />,
+      },
+      {
+       path: "/suggestions",
+       element: <SuggestionsPage />,
+      },
+      
     ],
   },
   {
@@ -41,14 +50,7 @@ const router = createBrowserRouter([
     path: "/members",
     element: <App />,
   },
-  {
-    path: "/notifications",
-    element: <App />,
-  },
-  {
-    path: "/suggestions",
-    element: <App />,
-  },
+
   {
     path: "/settings",
     element: <App />,

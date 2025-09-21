@@ -380,15 +380,6 @@ export default function ProfileSidebar() {
         <Button fullWidth variant='danger'>Delete </Button>
       </Row>
 
-      {/* Temporarily hide AddEditEvent modal to avoid double modal issue */}
-      {/*
-      <AddEditEvent
-        isOpen={isAddEditEventModalOpen}
-        onClose={handleCloseAddEditEventModal}
-        events={timelineEvents}
-        onEventsChange={handleEventsChange}
-      />
-      */}
 
       {/* Download Modals */}
       <DownloadProfileModal
