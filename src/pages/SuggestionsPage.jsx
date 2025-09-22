@@ -87,7 +87,7 @@ const SuggestionsPage = () => {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
     setAcceptedToday((n) => n + 1);
   }
-  
+
   function onReject(id) {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
   }
@@ -108,24 +108,24 @@ const SuggestionsPage = () => {
     <div className="suggestions-page">
       <Column padding="20px 24px" gap="18px">
         {/* Header Section */}
-        <Row justifyContent="space-between" alignItems="center">
-          <Column gap="4px">
+        <Row justifyContent="space-between" fitContent alignItems="center">
+          <Column padding="0px" margin="0px" gap="4px">
             <Text variant="heading1" as="h1">AI Match Suggestions</Text>
             <Text variant="body2" color="secondary-text">
               Review potential family connections identified by our AI
             </Text>
           </Column>
 
-          <Row gap="10px">
-            <Button 
-              variant="outline" 
+          <Row padding="0px" margin="0px" fitContent gap="10px">
+            <Button
+              variant="primary"
               onClick={() => setFilterOpen((v) => !v)}
               icon={<Filter size={16} />}
             >
               Filter
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="primary"
               onClick={refresh}
               icon={<RefreshCw size={16} />}
             >
@@ -135,46 +135,16 @@ const SuggestionsPage = () => {
         </Row>
 
         {/* Stats Cards */}
-        <Grid columns={4} gap="14px">
-          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-            <Row justifyContent="space-between" alignItems="flex-start">
-              <Column gap="2px">
-                <Text variant="caption" color="secondary-text">Pending Suggestions</Text>
-                <Text variant="heading3" bold>{filtered.length}</Text>
-              </Column>
-              <Clock size={18} color="var(--color-gray)" />
-            </Row>
-          </Card>
+        <Grid  columns={4} gap="14px">
 
-          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-            <Row justifyContent="space-between" alignItems="flex-start">
-              <Column gap="2px">
-                <Text variant="caption" color="secondary-text">High Confidence</Text>
-                <Text variant="heading3" bold>{highConfidenceCount}</Text>
-              </Column>
-              <Star size={18} color="var(--color-gray)" />
-            </Row>
-          </Card>
+          <StatCards title="Pending Suggestions" value={filtered.length} icon={<Clock size={18} color="var(--color-gray)" />} />
+          
+          <StatCards title="High Confidence" value={highConfidenceCount} icon={ <Star size={18} color="var(--color-gray)" />} />
+          
+          <StatCards title="This Week" value={8} icon={ <Calendar size={18} color="var(--color-gray)" />} />
+          
+          <StatCards title="Approved Today" value={acceptedToday} icon={   <CheckCircle size={18} color="var(--color-gray)" />} />
 
-          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-            <Row justifyContent="space-between" alignItems="flex-start">
-              <Column gap="2px">
-                <Text variant="caption" color="secondary-text">This Week</Text>
-                <Text variant="heading3" bold>8</Text>
-              </Column>
-              <Calendar size={18} color="var(--color-gray)" />
-            </Row>
-          </Card>
-
-          <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-            <Row justifyContent="space-between" alignItems="flex-start">
-              <Column gap="2px">
-                <Text variant="caption" color="secondary-text">Approved Today</Text>
-                <Text variant="heading3" bold>{acceptedToday}</Text>
-              </Column>
-              <CheckCircle size={18} color="var(--color-gray)" />
-            </Row>
-          </Card>
         </Grid>
 
         {/* Filter Panel */}
@@ -223,9 +193,9 @@ const SuggestionsPage = () => {
           ))}
 
           {filtered.length === 0 && (
-            <Card 
-              padding="30px" 
-              backgroundColor="var(--color-white)" 
+            <Card
+              padding="30px"
+              backgroundColor="var(--color-white)"
               borderColor="var(--color-gray)"
               style={{ borderStyle: "dashed", textAlign: "center" }}
             >
@@ -241,7 +211,7 @@ const SuggestionsPage = () => {
 // Suggestion Card Component
 function SuggestionCard({ suggestion, onAccept, onReject }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const getScoreColor = (score) => {
     if (score >= 90) return "success";
     if (score >= 80) return "info";
@@ -262,8 +232,8 @@ function SuggestionCard({ suggestion, onAccept, onReject }) {
                   <Text variant="body1" bold>{suggestion.name1}</Text>
                   <Text color="secondary-text"></Text>
                   <Text variant="body1" bold>{suggestion.name2}</Text>
-                  <Text 
-                    variant="caption" 
+                  <Text
+                    variant="caption"
                     color={getScoreColor(suggestion.score)}
                     style={{
                       padding: "2px 8px",
@@ -311,7 +281,7 @@ function SuggestionCard({ suggestion, onAccept, onReject }) {
           <Row justifyContent="space-between" alignItems="center">
             <Text variant="heading3">Suggested Match</Text>
             <Button variant="danger" onClick={() => setIsModalOpen(false)}>
-              
+
             </Button>
           </Row>
 
@@ -326,8 +296,8 @@ function SuggestionCard({ suggestion, onAccept, onReject }) {
                 </Row>
                 <Text variant="body2" color="secondary-text">{suggestion.relation}</Text>
               </Column>
-              <Text 
-                variant="caption" 
+              <Text
+                variant="caption"
                 color={getScoreColor(suggestion.score)}
                 style={{
                   padding: "2px 8px",
@@ -378,3 +348,19 @@ function SuggestionCard({ suggestion, onAccept, onReject }) {
 }
 
 export default SuggestionsPage;
+
+
+const StatCards = ({title, icon, value }) => {
+
+  return (
+    <Card padding="0.5rem" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
+      <Row fitContent padding="0px" margin="0px" justifyContent="space-between" alignItems="flex-start">
+        <Column padding="0px" margin="0px" gap="2px">
+          <Text as="p" variant="caption" color="secondary-text">{title}</Text>
+          <Text variant="heading3" bold>{value}</Text>
+        </Column>
+        <Card backgroundColor="var(--color-transarent)" borderColor="var(--color-transparent)" fitContent margin="2px 0px 0px 0px" padding="0px">{icon}</Card>
+      </Row>
+    </Card>
+  )
+}
