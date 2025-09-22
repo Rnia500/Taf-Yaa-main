@@ -45,9 +45,6 @@ export default function PageFrame({
             ].join(' ')}
             style={{ width: !isMobile && sidebarOpen ? 350 : undefined }}
           >
-            {isMobile && (
-              <button className="pf-close" onClick={onSidebarClose} aria-label="Close sidebar">×</button>
-            )}
             {sidebar}
           </aside>
         )}

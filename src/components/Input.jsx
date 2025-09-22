@@ -16,14 +16,14 @@ export const TextInput = ({ label, value, onChange, placeholder, backgroundColor
   </div>
 );
 
-export const SearchInput = ({ value, onChange, placeholder, onSearch, backgroundColor = "var(--color-transparent)", color = "var(--color-primary-text)" }) => (
-  <div className="input-group search-input-group">
+export const SearchInput = ({ value, onChange, placeholder, onSearch, backgroundColor = "var(--color-transparent)", color = "var(--color-primary-text)", size = "md" }) => (
+  <div className={`input-group search-input-group ${size}`}>
     <input
       type="search"
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder || "Search..."}
-      className="input search"
+      className={`input search ${size}`}
       onKeyDown={e => {
         if (e.key === 'Enter' && onSearch) {
           onSearch(value);
@@ -33,7 +33,7 @@ export const SearchInput = ({ value, onChange, placeholder, onSearch, background
     />
     {value ? (
       <span
-        className="search-icon clear"
+        className={`search-icon clear ${size}`}
         onClick={() => onChange('')}
         role="button"
         tabIndex={0}
@@ -41,7 +41,7 @@ export const SearchInput = ({ value, onChange, placeholder, onSearch, background
         &#10006;
       </span>
     ) : (
-      <span className="search-icon">&#128269;</span>
+      <span className={`search-icon ${size}`}>&#128269;</span>
     )}
   </div>
 );

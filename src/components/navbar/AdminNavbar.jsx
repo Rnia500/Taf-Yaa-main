@@ -40,30 +40,30 @@ export default function AdminNavbar() {
       localStorage.setItem('currentTreeId', treeId);
       return treeId;
     }
-    
+
     const pathMatch = location.pathname.match(/\/family-tree\/([^\/]+)/);
     if (pathMatch) {
       const extractedTreeId = pathMatch[1];
       localStorage.setItem('currentTreeId', extractedTreeId);
       return extractedTreeId;
     }
-    
+
     const storedTreeId = localStorage.getItem('currentTreeId');
     if (storedTreeId) {
       return storedTreeId;
     }
-    
+
     return 'tree001';
   };
 
   const currentTreeId = getTreeId();
-  
+
   const toggleSubmenu = () => {
     setSubmenuOpen(prev => !prev);
     setLangMenuOpen(false);
     setActiveButton(prev => prev === 'profile' ? null : 'profile');
   };
-  
+
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeSubmenu = () => {
@@ -82,35 +82,44 @@ export default function AdminNavbar() {
     setActiveButton(null);
   };
 
+  // Handle clicking on the language button when menu is open (should close it)
+  const handleLanguageButtonClick = () => {
+    if (langMenuOpen) {
+      closeLanguageMenu();
+    } else {
+      toggleLanguageMenu();
+    }
+  };
+
   // Submenu items with proper functionality
   const submenuItems = [
-    { 
-      label: 'Profile', 
-      icon: User, 
+    {
+      label: 'Profile',
+      icon: User,
       href: '/profile',
       action: () => {
         closeSubmenu();
       }
     },
-    { 
-      label: 'Notifications', 
-      icon: Bell, 
+    {
+      label: 'Notifications',
+      icon: Bell,
       href: `/family-tree/${currentTreeId}/notifications`,
       action: () => {
         closeSubmenu();
       }
     },
-    { 
-      label: 'Settings', 
-      icon: Settings, 
+    {
+      label: 'Settings',
+      icon: Settings,
       href: '/settings',
       action: () => {
         closeSubmenu();
       }
     },
-    { 
-      label: 'Log Out', 
-      icon: LogOut, 
+    {
+      label: 'Log Out',
+      icon: LogOut,
       action: () => {
         closeSubmenu();
         alert('Logout functionality would go here');
@@ -152,9 +161,9 @@ export default function AdminNavbar() {
           <Row width='100%' fitContent={true} gap='0.5rem' padding='0px' margin='0px' className='navbar-row'>
             <div className="nav-items-container">
               {navItems.map((item) => (
-                <NavLink 
-                  key={item.label} 
-                  to={item.href} 
+                <NavLink
+                  key={item.label}
+                  to={item.href}
                   end={item.label === t('navbar.tree_view')}
                   className={({ isActive }) => `navItem ${isActive ? 'active' : ''}`}
                 >
@@ -172,23 +181,27 @@ export default function AdminNavbar() {
                 </div>
               </Link>
 
-              <div 
+              <div
                 className={`action-btn ${activeButton === 'language' ? 'active' : ''}`}
-                onClick={toggleLanguageMenu}
+                onClick={handleLanguageButtonClick}
                 ref={langMenuRef}
               >
                 <EarthIcon size={20} color="var(--color-primary-text)" />
               </div>
 
-              <LanguageMenu isOpen={langMenuOpen} onClose={closeLanguageMenu} />
+              <LanguageMenu
+                isOpen={langMenuOpen}
+                onClose={closeLanguageMenu}
+                triggerRef={langMenuRef}
+              />
 
               <div className="action-btn" onClick={() => openModal('pdfExportModal')}>
                 <ArrowDownToLine size={20} color="var(--color-primary-text)"  />
               </div>
 
-              <div 
+              <div
                 className={`action-btn ${activeButton === 'profile' ? 'active' : ''}`}
-                onClick={toggleSubmenu} 
+                onClick={toggleSubmenu}
                 ref={submenuRef}
               >
                 <CircleUser size={20} color="var(--color-primary-text)" />
@@ -263,7 +276,6 @@ export default function AdminNavbar() {
               borderRadius="8px"
               width="100%"
               height="auto"
-              fitContent={true}
             >
               <div className="submenu-item-content">
                 <IconComponent size={18} />

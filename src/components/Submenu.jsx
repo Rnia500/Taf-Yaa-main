@@ -1,41 +1,27 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import Text from './Text';
 import Card from '../layout/containers/Card';
+import { useClickOutside, useEscapeKey } from '../hooks/useClickOutside';
 import '../styles/Submenu.css';
 
-const Submenu = ({ 
-  isOpen, 
-  onClose, 
+const Submenu = ({
+  isOpen,
+  onClose,
   position = { top: '60px', right: '40px' },
   children,
   className = '',
   title = '',
-  showHeader = false
+  showHeader = false,
+  excludeRefs = []
 }) => {
-  const submenuRef = useRef(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isOpen && submenuRef.current && !submenuRef.current.contains(event.target)) {
-        onClose?.();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+  const submenuRef = useClickOutside(onClose, isOpen, 50, excludeRefs); // 50ms delay for portal rendering
+  useEscapeKey(onClose, isOpen);
 
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div 
+    <div
       className={`submenu-container ${className}`}
       style={{
         position: 'fixed',
@@ -48,18 +34,18 @@ const Submenu = ({
       ref={submenuRef}
     >
       <Card
-        className="submenu-card"
-        padding="0"
+        padding="0.25rem"
         margin="0"
         shadow={true}
         backgroundColor="var(--color-white)"
         borderRadius="12px"
         width="auto"
-        minWidth="200px"
+        style={{minWidth:"100px", maxWidth:"200px", maxHeight:"250px"}}
+
       >
         {showHeader && title && (
           <div className="submenu-header">
-            <Text variant="caption" bold uppercase className="submenu-title">
+            <Text variant="caption1" bold uppercase className="submenu-title">
               {title}
             </Text>
           </div>
@@ -73,4 +59,4 @@ const Submenu = ({
   );
 };
 
-export default Submenu; 
+export default Submenu;

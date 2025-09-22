@@ -20,12 +20,25 @@ label {
   border: 2px solid var(--color-gray-light);
   border-radius: 12px;
   transition: border-color 0.2s ease;
-  width: 100%;  
+  width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   background: var(--color-white);
   color: var(--color-text-primary);
   font-family: inherit;
+}
+
+/* Size variants */
+.input.sm, .textarea.sm {
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  border-radius: 6px;
+}
+
+.input.lg, .textarea.lg {
+  padding: 16px 20px;
+  font-size: 1.125rem;
+  border-radius: 16px;
 }
 
 .input:hover, .textarea:hover {
@@ -54,7 +67,15 @@ label {
 
 
 .input.search {
-  padding-right: 2em; 
+  padding-right: 2em;
+}
+
+.input.search.sm {
+  padding-right: 1.5em;
+}
+
+.input.search.lg {
+  padding-right: 2.5em;
 }
 
 
@@ -67,6 +88,16 @@ label {
   cursor: pointer;
   font-size: 1.1em;
 
+}
+
+.search-icon.sm {
+  right: 6px;
+  font-size: 0.9em;
+}
+
+.search-icon.lg {
+  right: 12px;
+  font-size: 1.3em;
 }
 
 input[type="search"]::-webkit-user-select {
@@ -99,7 +130,25 @@ input[type="search"]::-webkit-search-cancel-button {
     padding: 6px 10px;
   }
 
+  .input.sm {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+
+  .input.lg {
+    font-size: 1rem;
+    padding: 8px 12px;
+  }
+
   .search-icon {
     font-size: 1rem;
+  }
+
+  .search-icon.sm {
+    font-size: 0.8rem;
+  }
+
+  .search-icon.lg {
+    font-size: 1.1rem;
   }
 }

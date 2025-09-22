@@ -4,8 +4,10 @@ import { SearchInput } from "./Input.jsx";
 import Text from "./Text.jsx";
 import Card from "../layout/containers/Card.jsx";
 import Submenu from "./Submenu.jsx";
+import Row from "../layout/containers/Row.jsx";
+import Column from "../layout/containers/Column.jsx";
 
-export default function LanguageMenu({ isOpen, onClose }) {
+export default function LanguageMenu({ isOpen, onClose, triggerRef }) {
   const { i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -20,11 +22,14 @@ export default function LanguageMenu({ isOpen, onClose }) {
       document.documentElement.dir = "ltr";
     }
 
-    onClose?.();
+    // Use setTimeout to ensure the language change completes before closing
+    setTimeout(() => {
+      onClose?.();
+    }, 0);
   };
 
   // Filter languages based on search term
-  const filteredLanguages = languages.filter(lang => 
+  const filteredLanguages = languages.filter(lang =>
     lang.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lang.native.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lang.code.toLowerCase().includes(searchTerm.toLowerCase())
@@ -39,17 +44,19 @@ export default function LanguageMenu({ isOpen, onClose }) {
       className="language-menu"
       title="Language"
       showHeader={true}
+      excludeRefs={triggerRef ? [triggerRef] : []}
     >
-      <div className="language-menu-search">
+      <div>
         <SearchInput
           value={searchTerm}
           onChange={setSearchTerm}
           placeholder="Search languages..."
           backgroundColor="var(--color-white)"
           color="var(--color-primary-text)"
+          size="sm"
         />
       </div>
-      
+
       <div className="language-menu-list">
         {filteredLanguages.length > 0 ? (
           filteredLanguages.map((lang) => (
@@ -57,25 +64,24 @@ export default function LanguageMenu({ isOpen, onClose }) {
               key={lang.code}
               onClick={() => changeLanguage(lang.code)}
               className={`language-option ${currentLang.startsWith(lang.code) ? 'active' : ''}`}
-              padding="0.75rem"
+              padding="0.25rem"
               margin="0"
               backgroundColor={currentLang.startsWith(lang.code) ? "var(--color-primary-light)" : "transparent"}
-              borderColor={currentLang.startsWith(lang.code) ? "var(--color-primary)" : "transparent"}
+              borderColor={currentLang.startsWith(lang.code) ? "var(--color-primary-light)" : "transparent"}
               borderRadius="8px"
-              width="100%"
               height="auto"
-              fitContent={true}
+              width="100%"
             >
-              <div className="language-option-content">
-                <span className="language-flag">{lang.flag}</span>
-                <div className="language-text">
-                  <Text variant="body2" bold={currentLang.startsWith(lang.code)} className="language-label">
+              <Row fitContent width="100%" justifyContent="space-between" padding="0px" margin="0px">
+
+                <Row fitContent gap="0.25rem" padding="0px" margin="0px">
+                  <Text as="p" variant="caption1" bold={currentLang.startsWith(lang.code)}>
                     {lang.label}
                   </Text>
-                  <Text variant="caption" className="language-native">
+                  <Text as="p" variant="caption2" >
                     {lang.native}
                   </Text>
-                </div>
+                </Row>
                 {currentLang.startsWith(lang.code) && (
                   <div className="language-check">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
@@ -89,7 +95,7 @@ export default function LanguageMenu({ isOpen, onClose }) {
                     </svg>
                   </div>
                 )}
-              </div>
+              </Row>
             </Card>
           ))
         ) : (
@@ -105,77 +111,65 @@ export default function LanguageMenu({ isOpen, onClose }) {
 }
 
 const languages = [
-  { 
-    code: "en", 
-    label: "English", 
+  {
+    code: "en",
+    label: "English",
     native: "English",
-    flag: "🇬🇧" 
   },
-  { 
-    code: "fr", 
-    label: "French", 
+  {
+    code: "fr",
+    label: "French",
     native: "Français",
-    flag: "🇫🇷" 
   },
-  { 
-    code: "es", 
-    label: "Spanish", 
+  {
+    code: "es",
+    label: "Spanish",
     native: "Español",
-    flag: "🇪🇸" 
   },
-  { 
-    code: "ar", 
-    label: "Arabic", 
+  {
+    code: "ar",
+    label: "Arabic",
     native: "العربية",
-    flag: "🇸🇦" 
   },
   // Add more languages for testing
-  { 
-    code: "de", 
-    label: "German", 
+  {
+    code: "de",
+    label: "German",
     native: "Deutsch",
-    flag: "🇩🇪" 
   },
-  { 
-    code: "it", 
-    label: "Italian", 
+  {
+    code: "it",
+    label: "Italian",
     native: "Italiano",
-    flag: "🇮🇹" 
   },
-  { 
-    code: "pt", 
-    label: "Portuguese", 
+  {
+    code: "pt",
+    label: "Portuguese",
     native: "Português",
-    flag: "🇵🇹" 
   },
-  { 
-    code: "ru", 
-    label: "Russian", 
+  {
+    code: "ru",
+    label: "Russian",
     native: "Русский",
-    flag: "🇷🇺" 
   },
-  { 
-    code: "ja", 
-    label: "Japanese", 
+  {
+    code: "ja",
+    label: "Japanese",
     native: "日本語",
-    flag: "🇯🇵" 
   },
-  { 
-    code: "ko", 
-    label: "Korean", 
+  {
+    code: "ko",
+    label: "Korean",
     native: "한국어",
-    flag: "🇰🇷" 
   },
-  { 
-    code: "zh", 
-    label: "Chinese", 
+  {
+    code: "zh",
+    label: "Chinese",
     native: "中文",
-    flag: "🇨🇳" 
   },
-  { 
-    code: "hi", 
-    label: "Hindi", 
+  {
+    code: "hi",
+    label: "Hindi",
     native: "हिन्दी",
-    flag: "🇮🇳" 
   },
 ];

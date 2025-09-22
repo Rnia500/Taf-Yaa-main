@@ -5,11 +5,15 @@ import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
 import { CircleUser, Menu, X } from 'lucide-react';
 import Card from '../../layout/containers/Card';
+import { useClickOutside, useEscapeKey } from '../../hooks/useClickOutside';
 import '../../styles/Navbar.css';
 
 export default function DefaultNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const submenuRef = useClickOutside(() => setSubmenuOpen(false), submenuOpen, 50);
+  useEscapeKey(() => setSubmenuOpen(false), submenuOpen);
 
   const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
@@ -82,7 +86,7 @@ export default function DefaultNavbar() {
 
       {/* Submenu Portal */}
       {submenuOpen && ReactDOM.createPortal(
-        <div className="submenu">
+        <div className="submenu" ref={submenuRef}>
           <Card margin='0.25rem' height='30px' padding='0.5rem 1rem' className='submenuItem'>
             <Text as='a' href="/#">Profile</Text>
           </Card>
