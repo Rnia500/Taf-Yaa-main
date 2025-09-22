@@ -27,6 +27,7 @@
   --color-warning1: #FFB732;
   --color-warning2: #FFA500;
   --color-info: #5395FF;
+  --color-info-light: #b7d1fc;
   --color-male: #5395FF;
   --color-female: #FF00EE;
   --color-link: #2563eb;
@@ -42,7 +43,7 @@
   --color-error: #ef4444;
   --color-error-light: #fee2e2;
   --color-error-dark: #b91c1c;
-  --color-success-light: #dcfce7;
+  --color-success-light: #cdfadd;
   --color-success-dark: #15803d;
   --color-warning-light: #fef3c7;
   --color-warning-dark: #b45309;

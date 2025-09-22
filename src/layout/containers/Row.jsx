@@ -13,6 +13,8 @@ const Row = ({
   alignItems = 'center',
   style,
   fitContent = false,
+  fitContentJustifyContent = 'center',
+  fitContentAlignItems = 'center',
   // className = '',
 }) => {
   return (
@@ -35,14 +37,14 @@ const Row = ({
           child?.props?.width ||
           child?.props?.className?.includes('fixed');
 
-        // Center the child inside its flex cell
+        // Align the child inside its flex cell based on fitContent settings
         return (
           <div
             style={{
               flex: fitContent ? 'initial' : (hasFixedWidth ? 'initial' : 1),
               display: 'flex',
-              justifyContent: 'center', 
-              alignItems: 'center',     
+              justifyContent: fitContent ? fitContentJustifyContent : justifyContent, 
+              alignItems: fitContent ? fitContentAlignItems : 'center',     
               height: '100%',
             }}
           >

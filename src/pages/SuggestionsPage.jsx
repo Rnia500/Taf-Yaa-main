@@ -10,6 +10,7 @@ import {
   CheckCircle,
   Star,
   Clock,
+  MoveHorizontal,
 } from "lucide-react";
 
 // Import your components
@@ -54,7 +55,7 @@ const INITIAL_SUGGESTIONS = [
     dna: "12% shared",
     birth: "1960  1962",
     location: "Texas",
-    score: 78,
+    score: 25,
   },
 ];
 
@@ -67,6 +68,7 @@ const SuggestionsPage = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [minScore, setMinScore] = useState(0);
   const [relType, setRelType] = useState("all");
+  const [ordOpt, setOrdOpt] = useState("all");
 
   const filtered = useMemo(() => {
     let list = [...suggestions];
@@ -104,6 +106,12 @@ const SuggestionsPage = () => {
     { value: "cousin", label: "Cousin" }
   ];
 
+  const orderOptions = [
+    { value: "all", label: "All" },
+    { value: "latest", label: "Latest" },
+    { value: "oldest", label: "Oldest" },
+  ];
+
   return (
     <div className="suggestions-page">
       <Column padding="20px 24px" gap="18px">
@@ -135,23 +143,34 @@ const SuggestionsPage = () => {
         </Row>
 
         {/* Stats Cards */}
-        <Grid  columns={4} gap="14px">
+        <Grid columns={4} gap="14px">
 
           <StatCards title="Pending Suggestions" value={filtered.length} icon={<Clock size={18} color="var(--color-gray)" />} />
-          
-          <StatCards title="High Confidence" value={highConfidenceCount} icon={ <Star size={18} color="var(--color-gray)" />} />
-          
-          <StatCards title="This Week" value={8} icon={ <Calendar size={18} color="var(--color-gray)" />} />
-          
-          <StatCards title="Approved Today" value={acceptedToday} icon={   <CheckCircle size={18} color="var(--color-gray)" />} />
+
+          <StatCards title="High Confidence" value={highConfidenceCount} icon={<Star size={18} color="var(--color-gray)" />} />
+
+          <StatCards title="This Week" value={8} icon={<Calendar size={18} color="var(--color-gray)" />} />
+
+          <StatCards title="Approved Today" value={acceptedToday} icon={<CheckCircle size={18} color="var(--color-gray)" />} />
 
         </Grid>
 
         {/* Filter Panel */}
         {filterOpen && (
           <Card padding="12px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-            <Grid columns={3} gap="14px">
-              <Column gap="6px">
+            <Grid columns={3} gap="0.5rem">
+
+              <Column padding="0px" margin="0px" width="300px" gap="6px">
+                <Text variant="body2" bold>Order</Text>
+                <SelectDropdown
+                  value={ordOpt}
+                  onChange={(e) => setOrdOpt(e.target.value)}
+                  options={orderOptions}
+                  placeholder="Select a the Order"
+                />
+              </Column>
+
+              <Column padding="0px" margin="0px" fitContent gap="0.25rem">
                 <Text variant="body2" bold>Min score</Text>
                 <Slider
                   min={0}
@@ -159,30 +178,24 @@ const SuggestionsPage = () => {
                   value={minScore}
                   onChange={setMinScore}
                 />
-                <Text variant="caption" color="secondary-text">{minScore}%</Text>
               </Column>
 
-              <Column gap="6px">
+
+              <Column padding="0px" margin="0px" width="300px" gap="6px">
                 <Text variant="body2" bold>Relation type</Text>
                 <SelectDropdown
                   value={relType}
                   onChange={(e) => setRelType(e.target.value)}
                   options={relationOptions}
+                  placeholder="Select a relationship type"
                 />
               </Column>
-
-              <Row alignItems="center" gap="6px">
-                <Info size={14} color="var(--color-gray)" />
-                <Text variant="caption" color="secondary-text">
-                  Filters are UI-only for now. Backend wiring comes later.
-                </Text>
-              </Row>
             </Grid>
           </Card>
         )}
 
         {/* Suggestion Cards */}
-        <Column gap="14px">
+        <Column padding="0px" margin="0px" gap="14px">
           {filtered.map((s) => (
             <SuggestionCard
               key={s.id}
@@ -209,70 +222,64 @@ const SuggestionsPage = () => {
 };
 
 // Suggestion Card Component
-function SuggestionCard({ suggestion, onAccept, onReject }) {
+function SuggestionCard({ suggestion, onAccept, onReject}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const getScoreColor = (score) => {
-    if (score >= 90) return "success";
-    if (score >= 80) return "info";
-    return "warning";
+  const getScoreColor = (score, islabel = false) => {
+    if (score >= 90) return islabel ? "var(--color-primary1)" : "var(--color-success-light)";
+    if (score >= 70) return islabel ? "var(--color-info)" : "var(--color-info-light)";
+    return islabel ? "var(--color-warning)" : "var(--color-warning-light)";
   };
 
   return (
     <>
       <Card padding="14px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-        <Column gap="12px">
-          {/* Top Row - Names and Score */}
-          <Row justifyContent="space-between" alignItems="flex-start">
-            <Row gap="8px" alignItems="center">
+        {/* Top Row - Names and Score */}
+
+        <Row fitContent margin="0px" padding="0px" justifyContent="space-between" alignItems="flex-start">
+          <Row fitContent gap="8px" margin="0px" padding="0px" alignItems="flex-start" justifyContent="flex-start">
+            <Row margin="0px" padding="0px" gap="0px" fitContent>
               <Card size="34px" rounded backgroundColor="var(--color-gray-light)" />
-              <Card size="34px" rounded backgroundColor="var(--color-gray-light)" style={{ marginLeft: "-10px" }} />
-              <Column gap="4px">
-                <Row gap="10px" alignItems="center" wrap>
-                  <Text variant="body1" bold>{suggestion.name1}</Text>
-                  <Text color="secondary-text"></Text>
-                  <Text variant="body1" bold>{suggestion.name2}</Text>
-                  <Text
-                    variant="caption"
-                    color={getScoreColor(suggestion.score)}
-                    style={{
-                      padding: "2px 8px",
-                      borderRadius: "999px",
-                      backgroundColor: `var(--color-${getScoreColor(suggestion.score)}-light)`,
-                      fontWeight: "bold"
-                    }}
-                  >
-                    {suggestion.score}% Match
-                  </Text>
-                </Row>
-                <Text variant="body2" color="secondary-text">{suggestion.relation}</Text>
-              </Column>
+              <Card size="34px" rounded backgroundColor="var(--color-gray-light)" />
             </Row>
-          </Row>
+            <Column fitContent justifyContent="flex-start" margin="0px" padding="0px" gap="0px">
+              <Row margin="0px" padding="0px" fitContent gap="10px">
+                <Text as="p" variant="body1" bold>{suggestion.name1}</Text>
+                <MoveHorizontal size={20} />
+                <Text as="p" variant="body1" bold>{suggestion.name2}</Text>
 
-          {/* Meta Information */}
-          <Row gap="18px" wrap>
-            <Text variant="body2" color="secondary-text"> DNA: {suggestion.dna}</Text>
-            <Text variant="body2" color="secondary-text"> Birth: {suggestion.birth}</Text>
-            <Row gap="6px" alignItems="center">
-              <MapPin size={14} color="var(--color-gray)" />
-              <Text variant="body2" color="secondary-text">Location: {suggestion.location}</Text>
-            </Row>
-          </Row>
+                <Pill backgroundColor={getScoreColor(suggestion.score)} >
+                  <Text as="p" color={getScoreColor(suggestion.score,true)} variant="caption1" bold >{suggestion.score}% Match</Text>
+                </Pill>
 
-          {/* Action Buttons */}
-          <Row justifyContent="flex-end" gap="10px">
-            <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
-              View Details
-            </Button>
-            <Button variant="primary" onClick={onAccept}>
-              Accept
-            </Button>
-            <Button variant="danger" onClick={onReject}>
-              Reject
-            </Button>
+              </Row>
+              <Text as="p" variant="body2" color="secondary-text">{suggestion.relation}</Text>
+            </Column>
           </Row>
-        </Column>
+        </Row>
+
+        {/* Meta Information */}
+        <Row justifyContent="flex-start" fitContent gap="18px" padding="0px" margin="5px 0px 0px 0px">
+          <Text variant="body2" color="secondary-text">🧬 DNA: {suggestion.dna}</Text>
+          <Text variant="body2" color="secondary-text">🎂 Birth: {suggestion.birth}</Text>
+          <Row padding="0px" margin="0px" fitContent gap="6px" alignItems="center">
+            <MapPin size={14} color="var(--color-gray)" />
+            <Text variant="body2" color="secondary-text">Location: {suggestion.location}</Text>
+          </Row>
+        </Row>
+
+        {/* Action Buttons */}
+        <Row padding="0px" margin="0px" fitContent justifyContent="flex-end" gap="10px">
+          <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
+            View Details
+          </Button>
+          <Button variant="primary" onClick={onAccept}>
+            Accept
+          </Button>
+          <Button variant="danger" onClick={onReject}>
+            Reject
+          </Button>
+        </Row>
       </Card>
 
       {/* Details Modal */}
@@ -350,7 +357,7 @@ function SuggestionCard({ suggestion, onAccept, onReject }) {
 export default SuggestionsPage;
 
 
-const StatCards = ({title, icon, value }) => {
+const StatCards = ({ title, icon, value }) => {
 
   return (
     <Card padding="0.5rem" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
