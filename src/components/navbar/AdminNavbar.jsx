@@ -94,7 +94,7 @@ export default function AdminNavbar() {
   // Submenu items with proper functionality
   const submenuItems = [
     {
-      label: 'Profile',
+      label: t('navbar.profile'),
       icon: User,
       href: '/profile',
       action: () => {
@@ -102,15 +102,15 @@ export default function AdminNavbar() {
       }
     },
     {
-      label: 'Notifications',
+      label: t('navbar.notifications'),
       icon: Bell,
-      href: `/family-tree/${currentTreeId}/notifications`,
+      href: `/family-tree/${currentTreeId}/notificationcenter`,
       action: () => {
         closeSubmenu();
       }
     },
     {
-      label: 'Settings',
+      label: t('navbar.settings'),
       icon: Settings,
       href: '/settings',
       action: () => {
@@ -118,7 +118,7 @@ export default function AdminNavbar() {
       }
     },
     {
-      label: 'Log Out',
+      label: t('navbar.log_out'),
       icon: LogOut,
       action: () => {
         closeSubmenu();
@@ -132,17 +132,15 @@ export default function AdminNavbar() {
   const navItems = [
     { label: t('navbar.tree_view'), href: `/family-tree/${currentTreeId}` },
     { label: t('navbar.members'), href: '/members' },
-    { label: t('navbar.notifications'), href: `/family-tree/${currentTreeId}/notifications` },
-    { label: t('navbar.suggestions'), href: `/family-tree/${currentTreeId}/suggestions` },
+    { label: t('navbar.notification_center'), href: `/family-tree/${currentTreeId}/notificationcenter` },
   ];
 
   const MobileNavItems = [
     { label: t('navbar.tree_view'), href: `/family-tree/${currentTreeId}` },
     { label: t('navbar.members'), href: '/members' },
-    { label: t('navbar.notifications'), href: `/family-tree/${currentTreeId}/notifications` },
-    { label: t('navbar.suggestions'), href: `/family-tree/${currentTreeId}/suggestions` },
+    { label: t('navbar.notification_center'), href: `/family-tree/${currentTreeId}/notificationcenter` },
     { label: t('navbar.export'), action: () => openModal('pdfExportModal') },
-    { label: 'Deleted Persons', href: `/family-tree/${currentTreeId}/deleted-persons` },
+    { label: t('navbar.deleted_persons'), href: `/family-tree/${currentTreeId}/deleted-persons` },
     { label: t('navbar.settings'), href: '/settings' },
     { label: t('navbar.language'), href: '/language' },
   ];
@@ -153,7 +151,7 @@ export default function AdminNavbar() {
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
         <div className="logo-section">
           <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
-          <Text variant='heading2' className="brand-text">Taf'Yaa</Text>
+          <Text variant='heading2' className="brand-text">{t('navbar.brand_name')}</Text>
         </div>
 
         {/* Desktop Nav */}

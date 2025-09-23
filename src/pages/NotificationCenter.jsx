@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Outlet, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   Lightbulb,
@@ -21,70 +22,63 @@ const NotificationCenter = () => {
   const location = useLocation();
   const { treeId } = useParams();
   const [activeSection, setActiveSection] = useState("overview");
+  const { t } = useTranslation();
 
   // Navigation items configuration for the notification center sidebar
   const navigationItems = [
     {
       id: 'overview',
-      label: 'Overview',
+      label: t('navbar.overview'),
       icon: <Bell size={18} />,
       count: 5,
-      path: `/family-tree/${treeId}/notifications`,
+      path: `/family-tree/${treeId}/notificationcenter`,
       active: activeSection === 'overview'
     },
     {
       id: 'suggestions',
-      label: 'AI Suggestions',
+      label: t('navbar.ai_suggestions'),
       icon: <Lightbulb size={18} />,
       count: 3,
-      path: `/family-tree/${treeId}/notifications/suggestions`,
+      path: `/family-tree/${treeId}/notificationcenter/suggestions`,
       active: activeSection === 'suggestions'
     },
     {
       id: 'merge',
-      label: 'Merge Requests',
+      label: t('navbar.merge_requests'),
       icon: <GitMerge size={18} />,
       count: 2,
-      path: `/family-tree/${treeId}/notifications/merge`,
+      path: `/family-tree/${treeId}/notificationcenter/merge`,
       active: activeSection === 'merge'
     },
     {
       id: 'requests',
-      label: 'Pending Requests',
+      label: t('navbar.pending_requests'),
       icon: <Clock size={18} />,
       count: 8,
-      path: `/family-tree/${treeId}/notifications/requests`,
+      path: `/family-tree/${treeId}/notificationcenter/requests`,
       active: activeSection === 'requests'
     },
     {
       id: 'activity',
-      label: 'Family Activity',
+      label: t('navbar.family_activity'),
       icon: <History size={18} />,
       count: 12,
-      path: `/family-tree/${treeId}/notifications/activity`,
+      path: `/family-tree/${treeId}/notificationcenter/activity`,
       active: activeSection === 'activity'
     },
-    {
-      id: 'family-tree',
-      label: 'Family Tree',
-      icon: <TreePine size={18} />,
-      count: null,
-      path: `/family-tree/${treeId}`,
-      active: activeSection === 'family-tree'
-    }
   ];
 
   // Quick actions configuration
   const quickActions = [
     {
       id: 'view-profile',
-      label: 'View Profile',
+      label: t('navbar.view_profile'),
       icon: <User size={16} />,
       onClick: () => navigate(`/family-tree/${treeId}`)
     },
     {
       id: 'settings',
-      label: 'Settings',
+      label: t('navbar.settings'),
       icon: <Settings size={16} />,
       onClick: () => navigate('/settings')
     }
@@ -94,9 +88,8 @@ const NotificationCenter = () => {
     setActiveSection(sectionId);
     const section = navigationItems.find(item => item.id === sectionId);
     if (section && section.path) {
-      // Since we're already in the nested route structure, use relative navigation
       if (sectionId === 'overview') {
-        navigate(`/family-tree/${treeId}/notifications`);
+        navigate(`/family-tree/${treeId}/notificationcenter`);
       } else {
         navigate(section.path);
       }
@@ -106,15 +99,15 @@ const NotificationCenter = () => {
   // Update active section based on current location
   React.useEffect(() => {
     const currentPath = location.pathname;
-    if (currentPath === `/family-tree/${treeId}/notifications/suggestions`) {
+    if (currentPath === `/family-tree/${treeId}/notificationcenter/suggestions`) {
       setActiveSection('suggestions');
-    } else if (currentPath === `/family-tree/${treeId}/notifications/merge`) {
+    } else if (currentPath === `/family-tree/${treeId}/notificationcenter/merge`) {
       setActiveSection('merge');
-    } else if (currentPath === `/family-tree/${treeId}/notifications/requests`) {
+    } else if (currentPath === `/family-tree/${treeId}/notificationcenter/requests`) {
       setActiveSection('requests');
-    } else if (currentPath === `/family-tree/${treeId}/notifications/activity`) {
+    } else if (currentPath === `/family-tree/${treeId}/notificationcenter/activity`) {
       setActiveSection('activity');
-    } else if (currentPath === `/family-tree/${treeId}/notifications` || currentPath === `/family-tree/${treeId}/notifications/`) {
+    } else if (currentPath === `/family-tree/${treeId}/notificationcenter` || currentPath === `/family-tree/${treeId}/notificationcenter/`) {
       setActiveSection('overview');
     }
   }, [location.pathname, treeId]);
@@ -122,8 +115,8 @@ const NotificationCenter = () => {
   const renderOverview = () => (
     <div className="overview-section">
       <div className="overview-header">
-        <h3>Recent Activity</h3>
-        <button className="view-all-btn">View All</button>
+        <h3>{t('navbar.recent_activity')}</h3>
+        <button className="view-all-btn">{t('navbar.view_all')}</button>
       </div>
 
       <div className="activity-list">
@@ -132,11 +125,11 @@ const NotificationCenter = () => {
             <Lightbulb size={16} />
           </div>
           <div className="activity-content">
-            <p><strong>AI Suggestions Available</strong></p>
-            <p>3 new potential family connections found</p>
-            <span className="activity-time">2 hours ago</span>
+            <p><strong>{t('navbar.ai_suggestions')}</strong></p>
+            <p>{t('navbar.new_potential_connections')}</p>
+            <span className="activity-time">{t('navbar.hours_ago')}</span>
           </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notifications/suggestions`)}>
+          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/suggestions`)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -146,11 +139,11 @@ const NotificationCenter = () => {
             <GitMerge size={16} />
           </div>
           <div className="activity-content">
-            <p><strong>Merge Request</strong></p>
-            <p>Kwame Asante wants to merge family trees</p>
+            <p><strong>{t('navbar.merge_requests')}</strong></p>
+            <p>{t('navbar.merge_request_from')}</p>
             <span className="activity-time">5 hours ago</span>
           </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notifications/merge`)}>
+          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/merge`)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -160,11 +153,11 @@ const NotificationCenter = () => {
             <Clock size={16} />
           </div>
           <div className="activity-content">
-            <p><strong>Pending Requests</strong></p>
-            <p>8 requests awaiting your approval</p>
-            <span className="activity-time">1 day ago</span>
+            <p><strong>{t('navbar.pending_requests')}</strong></p>
+            <p>{t('navbar.requests_awaiting_approval')}</p>
+            <span className="activity-time">{t('navbar.day_ago')}</span>
           </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notifications/requests`)}>
+          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/requests`)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -174,11 +167,11 @@ const NotificationCenter = () => {
             <Users size={16} />
           </div>
           <div className="activity-content">
-            <p><strong>Family Activity</strong></p>
-            <p>Recent updates and changes in your family tree</p>
-            <span className="activity-time">2 days ago</span>
+            <p><strong>{t('navbar.family_activity')}</strong></p>
+            <p>{t('navbar.recent_updates_changes')}</p>
+            <span className="activity-time">{t('navbar.days_ago')}</span>
           </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notifications/activity`)}>
+          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/activity`)}>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -193,30 +186,30 @@ const NotificationCenter = () => {
       case 'merge':
         return (
           <div className="section-content">
-            <h3>Merge Requests</h3>
-            <p>Manage requests to merge your family tree with others.</p>
-            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notifications/merge`)}>
-              View Merge Requests
+            <h3>{t('navbar.merge_requests')}</h3>
+            <p>{t('navbar.manage_merge_requests')}</p>
+            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/merge`)}>
+              {t('navbar.view_merge_requests')}
             </button>
           </div>
         );
       case 'requests':
         return (
           <div className="section-content">
-            <h3>Pending Requests</h3>
-            <p>Review and approve pending requests from family members.</p>
-            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notifications/requests`)}>
-              View All Requests
+            <h3>{t('navbar.pending_requests')}</h3>
+            <p>{t('navbar.review_approve_requests')}</p>
+            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/requests`)}>
+              {t('navbar.view_all_requests')}
             </button>
           </div>
         );
       case 'activity':
         return (
           <div className="section-content">
-            <h3>Family Activity</h3>
-            <p>View recent changes and updates to your family tree.</p>
-            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notifications/activity`)}>
-              View Activity History
+            <h3>{t('navbar.family_activity')}</h3>
+            <p>{t('navbar.view_recent_changes')}</p>
+            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/activity`)}>
+              {t('navbar.view_activity_history')}
             </button>
           </div>
         );
@@ -227,27 +220,12 @@ const NotificationCenter = () => {
 
   return (
     <div className="notification-center">
-      <div className="notification-center-header">
-        <div className="header-content">
-          <Bell size={24} />
-          <div>
-            <h1>Notification Center</h1>
-            <p>Manage all your family tree activities and notifications</p>
-          </div>
-        </div>
-        <div className="header-actions">
-          <button className="mark-read-btn">Mark All Read</button>
-          <button className="close-btn" onClick={() => navigate(-1)}>
-            <X size={20} />
-          </button>
-        </div>
-      </div>
-
+      
       <div className="notification-center-body">
         <div className="sidebar-container">
           <NavigationSideBar
             navItems={navigationItems}
-            title="Activity Hub"
+            title={t('navbar.activity_hub')}
             quickActions={quickActions}
             showQuickActions={true}
           />

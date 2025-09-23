@@ -66,7 +66,7 @@ const router = createBrowserRouter([
         element: <ExportPage />,
       },
       {
-        path: "notifications",
+        path: "notificationcenter",
         element: <NotificationCenter />,
         children: [
           {
@@ -113,7 +113,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/notifications",
-    element: <RedirectToNestedRoute targetPath="/notifications" />,
+    element: <RedirectToNestedRoute targetPath="/notificationcenter" />,
   },
   {
     path: "/suggestions",

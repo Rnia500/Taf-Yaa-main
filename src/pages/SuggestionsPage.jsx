@@ -24,6 +24,7 @@ import Slider from "../components/Slider";
 
 
 import NavigationSideBar from "../components/NavigationSideBar/NavigationSideBar";
+import { useTranslation } from "react-i18next";
 
 // --- Demo data (UI-only) ---
 const INITIAL_SUGGESTIONS = [
@@ -69,6 +70,7 @@ const SuggestionsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { treeId } = useParams();
+  const { t } = useTranslation();
 
   const [suggestions, setSuggestions] = useState(INITIAL_SUGGESTIONS);
   const [acceptedToday, setAcceptedToday] = useState(3); // demo counter
@@ -124,13 +126,13 @@ const SuggestionsPage = () => {
   return (
     <div className="suggestions-page">
       {/* Main Content */}
-      <Column padding="0px 20px" margin="0px" gap="18px" style={{ flex: 1 }}>
+      <Column padding="0px" margin="0px" gap="18px" style={{ flex: 1 }}>
         {/* Header Section */}
         <Row padding="0px" margin="0px" justifyContent="space-between" fitContent alignItems="center">
           <Column padding="0px" margin="0px" gap="4px">
-            <Text variant="heading1" as="h1">AI Match Suggestions</Text>
+            <Text variant="heading1" as="h1">{t('navbar.ai_match_suggestions')}</Text>
             <Text variant="body2" color="secondary-text">
-              Review potential family connections identified by our AI
+              {t('navbar.review_potential_connections')}
             </Text>
           </Column>
 
@@ -140,14 +142,14 @@ const SuggestionsPage = () => {
               onClick={() => setFilterOpen((v) => !v)}
               icon={<Filter size={16} />}
             >
-              Filter
+              {t('navbar.filter')}
             </Button>
             <Button
               variant="primary"
               onClick={refresh}
               icon={<RefreshCw size={16} />}
             >
-              Refresh
+              {t('navbar.refresh')}
             </Button>
           </Row>
         </Row>
@@ -155,13 +157,13 @@ const SuggestionsPage = () => {
         {/* Stats Cards */}
         <Grid columns={4} gap="14px">
 
-          <StatCards title="Pending Suggestions" value={filtered.length} icon={<Clock size={18} color="var(--color-gray)" />} />
+          <StatCards title={t('navbar.pending_suggestions')} value={filtered.length} icon={<Clock size={18} color="var(--color-gray)" />} />
 
-          <StatCards title="High Confidence" value={highConfidenceCount} icon={<Star size={18} color="var(--color-gray)" />} />
+          <StatCards title={t('navbar.high_confidence')} value={highConfidenceCount} icon={<Star size={18} color="var(--color-gray)" />} />
 
-          <StatCards title="This Week" value={8} icon={<Calendar size={18} color="var(--color-gray)" />} />
+          <StatCards title={t('navbar.this_week')} value={8} icon={<Calendar size={18} color="var(--color-gray)" />} />
 
-          <StatCards title="Approved Today" value={acceptedToday} icon={<CheckCircle size={18} color="var(--color-gray)" />} />
+          <StatCards title={t('navbar.approved_today')} value={acceptedToday} icon={<CheckCircle size={18} color="var(--color-gray)" />} />
 
         </Grid>
 
@@ -171,17 +173,17 @@ const SuggestionsPage = () => {
             <Grid columns={3} gap="0.5rem">
 
               <Column padding="0px" margin="0px" width="300px" gap="6px">
-                <Text variant="body2" bold>Order</Text>
+                <Text variant="body2" bold>{t('navbar.order')}</Text>
                 <SelectDropdown
                   value={ordOpt}
                   onChange={(e) => setOrdOpt(e.target.value)}
                   options={orderOptions}
-                  placeholder="Select a the Order"
+                  placeholder={t('navbar.select_order')}
                 />
               </Column>
 
               <Column padding="0px" margin="0px" fitContent gap="0.25rem">
-                <Text variant="body2" bold>Min score</Text>
+                <Text variant="body2" bold>{t('navbar.min_score')}</Text>
                 <Slider
                   min={0}
                   max={100}
@@ -192,12 +194,12 @@ const SuggestionsPage = () => {
 
 
               <Column padding="0px" margin="0px" width="300px" gap="6px">
-                <Text variant="body2" bold>Relation type</Text>
+                <Text variant="body2" bold>{t('navbar.relation_type')}</Text>
                 <SelectDropdown
                   value={relType}
                   onChange={(e) => setRelType(e.target.value)}
                   options={relationOptions}
-                  placeholder="Select a relationship type"
+                  placeholder={t('navbar.select_relationship_type')}
                 />
               </Column>
             </Grid>
@@ -222,7 +224,7 @@ const SuggestionsPage = () => {
               borderColor="var(--color-gray)"
               style={{ borderStyle: "dashed", textAlign: "center" }}
             >
-              <Text color="secondary-text">No suggestions match your current filters.</Text>
+              <Text color="secondary-text">{t('navbar.no_suggestions_match')}</Text>
             </Card>
           )}
         </Column>

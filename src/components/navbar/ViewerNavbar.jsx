@@ -3,13 +3,15 @@ import ReactDOM from 'react-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
+import { useTranslation } from 'react-i18next';
 import { CircleUser, Menu, X, EarthIcon, ChevronDown, Settings } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
 
-export default function ModeratorNavbar() {
+export default function ViewerNavbar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const toggleSubmenu = () => setSubmenuOpen(prev => !prev);
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
@@ -36,7 +38,7 @@ export default function ModeratorNavbar() {
       {/* Logo Section */}
       <Row fitContent justifyContent='start' padding='0px' margin='0px'>
         <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
-        <Text variant='heading2'>Taf'Yaa</Text>
+        <Text variant='heading2'>{t('navbar.brand_name')}</Text>
       </Row>
 
       {/* Desktop Nav */}

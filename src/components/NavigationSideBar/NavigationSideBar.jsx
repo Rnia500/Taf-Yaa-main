@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './NavigationSideBar.css';
 import Card from '../../layout/containers/Card';
 import Column from '../../layout/containers/Column';
@@ -17,6 +18,7 @@ const NavigationSideBar = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const handleNavigation = (path) => {
     if (path) {
@@ -109,7 +111,7 @@ const NavigationSideBar = ({
       <Column  fitContent padding="20px 16px" gap="8px">
         {title && (
           <Text variant="heading3" as="h3" style={{ marginBottom: '16px' }}>
-            {title}
+            {t(title)}
           </Text>
         )}
 
@@ -120,7 +122,7 @@ const NavigationSideBar = ({
         {showQuickActions && quickActions.length > 0 && (
           <Column padding="0px" margin="16px 0px 0px 0px" gap="8px">
             <Text variant="body2" color="secondary-text" style={{ marginBottom: '8px' }}>
-              Quick Actions
+              {t('navbar.quick_actions')}
             </Text>
 
             {quickActions.map((action, index) => (
