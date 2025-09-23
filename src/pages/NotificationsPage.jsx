@@ -106,11 +106,6 @@ const NotificationsPage = () => {
           )}
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="notifications-footer">
-        © {new Date().getFullYear()} Taf'Yaa · All rights reserved
-      </footer>
     </div>
   );
 }

@@ -1,16 +1,15 @@
 ﻿import React, { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import SuggestionCard from "../components/SuggestionCard";
 import "../styles/SuggestionsPage.css";
 import {
   Filter,
   RefreshCw,
-  MapPin,
   Calendar,
-  Info,
   CheckCircle,
   Star,
   Clock,
-  MoveHorizontal,
+  Lightbulb,
 } from "lucide-react";
 
 // Import your components
@@ -22,8 +21,9 @@ import Column from "../layout/containers/Column";
 import Grid from "../layout/containers/Grid";
 import SelectDropdown from "../components/SelectDropdown";
 import Slider from "../components/Slider";
-import Pill from "../components/pill"
-import Modal from "../layout/containers/Modal";
+
+
+import NavigationSideBar from "../components/NavigationSideBar/NavigationSideBar";
 
 // --- Demo data (UI-only) ---
 const INITIAL_SUGGESTIONS = [
@@ -31,10 +31,12 @@ const INITIAL_SUGGESTIONS = [
     id: "s1",
     name1: "John Smith",
     name2: "Robert Johnson",
-    relation: "Potential fatherson based on birth records and DNA analysis",
-    dna: "47% shared",
+    relation: "Potential fatherson based on birth records and commonAncestor analysis",
+    commonAncestor: "Zef Hamid",
+    sender:"Guy Crimson",
     birth: "1945  1970",
     location: "New York",
+      date: "20 aug 2021",
     score: 95, // %
   },
   {
@@ -42,25 +44,30 @@ const INITIAL_SUGGESTIONS = [
     name1: "Mary Davis",
     name2: "Susan Wilson",
     relation: "Potential sisters based on shared parents and birth record",
-    dna: "52% shared",
+    commonAncestor: "Ganpy boom",
+    sender:"Milin Nava",
     birth: "1952  1955",
     location: "California",
     score: 87,
+    date: "19 feb 2020",
   },
   {
     id: "s3",
     name1: "William Brown",
     name2: "James Miller",
     relation: "Potential cousins based on shared grandparents",
-    dna: "12% shared",
+    commonAncestor: "nkamny weep",
+    sender:"Vlad Valentina",
     birth: "1960  1962",
     location: "Texas",
+    date: "12 jan 2020",
     score: 25,
   },
 ];
 
 const SuggestionsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { treeId } = useParams();
 
   const [suggestions, setSuggestions] = useState(INITIAL_SUGGESTIONS);
@@ -112,11 +119,14 @@ const SuggestionsPage = () => {
     { value: "oldest", label: "Oldest" },
   ];
 
+
+
   return (
     <div className="suggestions-page">
-      <Column padding="20px 24px" gap="18px">
+      {/* Main Content */}
+      <Column padding="0px 20px" margin="0px" gap="18px" style={{ flex: 1 }}>
         {/* Header Section */}
-        <Row justifyContent="space-between" fitContent alignItems="center">
+        <Row padding="0px" margin="0px" justifyContent="space-between" fitContent alignItems="center">
           <Column padding="0px" margin="0px" gap="4px">
             <Text variant="heading1" as="h1">AI Match Suggestions</Text>
             <Text variant="body2" color="secondary-text">
@@ -221,140 +231,7 @@ const SuggestionsPage = () => {
   );
 };
 
-// Suggestion Card Component
-function SuggestionCard({ suggestion, onAccept, onReject}) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const getScoreColor = (score, islabel = false) => {
-    if (score >= 90) return islabel ? "var(--color-primary1)" : "var(--color-success-light)";
-    if (score >= 70) return islabel ? "var(--color-info)" : "var(--color-info-light)";
-    return islabel ? "var(--color-warning)" : "var(--color-warning-light)";
-  };
-
-  return (
-    <>
-      <Card padding="14px" backgroundColor="var(--color-white)" borderColor="var(--color-gray)">
-        {/* Top Row - Names and Score */}
-
-        <Row fitContent margin="0px" padding="0px" justifyContent="space-between" alignItems="flex-start">
-          <Row fitContent gap="8px" margin="0px" padding="0px" alignItems="flex-start" justifyContent="flex-start">
-            <Row margin="0px" padding="0px" gap="0px" fitContent>
-              <Card size="34px" rounded backgroundColor="var(--color-gray-light)" />
-              <Card size="34px" rounded backgroundColor="var(--color-gray-light)" />
-            </Row>
-            <Column fitContent justifyContent="flex-start" margin="0px" padding="0px" gap="0px">
-              <Row margin="0px" padding="0px" fitContent gap="10px">
-                <Text as="p" variant="body1" bold>{suggestion.name1}</Text>
-                <MoveHorizontal size={20} />
-                <Text as="p" variant="body1" bold>{suggestion.name2}</Text>
-
-                <Pill backgroundColor={getScoreColor(suggestion.score)} >
-                  <Text as="p" color={getScoreColor(suggestion.score,true)} variant="caption1" bold >{suggestion.score}% Match</Text>
-                </Pill>
-
-              </Row>
-              <Text as="p" variant="body2" color="secondary-text">{suggestion.relation}</Text>
-            </Column>
-          </Row>
-        </Row>
-
-        {/* Meta Information */}
-        <Row justifyContent="flex-start" fitContent gap="18px" padding="0px" margin="5px 0px 0px 0px">
-          <Text variant="body2" color="secondary-text">🧬 DNA: {suggestion.dna}</Text>
-          <Text variant="body2" color="secondary-text">🎂 Birth: {suggestion.birth}</Text>
-          <Row padding="0px" margin="0px" fitContent gap="6px" alignItems="center">
-            <MapPin size={14} color="var(--color-gray)" />
-            <Text variant="body2" color="secondary-text">Location: {suggestion.location}</Text>
-          </Row>
-        </Row>
-
-        {/* Action Buttons */}
-        <Row padding="0px" margin="0px" fitContent justifyContent="flex-end" gap="10px">
-          <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
-            View Details
-          </Button>
-          <Button variant="primary" onClick={onAccept}>
-            Accept
-          </Button>
-          <Button variant="danger" onClick={onReject}>
-            Reject
-          </Button>
-        </Row>
-      </Card>
-
-      {/* Details Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Column gap="12px" padding="20px">
-          <Row justifyContent="space-between" alignItems="center">
-            <Text variant="heading3">Suggested Match</Text>
-            <Button variant="danger" onClick={() => setIsModalOpen(false)}>
-
-            </Button>
-          </Row>
-
-          <Card padding="12px" backgroundColor="var(--color-gray-light)">
-            <Row gap="12px" alignItems="center">
-              <Card size="48px" rounded backgroundColor="var(--color-gray-light)" />
-              <Column gap="4px" style={{ flex: 1 }}>
-                <Row gap="10px" alignItems="center">
-                  <Text variant="body1" bold>{suggestion.name1}</Text>
-                  <Text color="secondary-text"></Text>
-                  <Text variant="body1" bold>{suggestion.name2}</Text>
-                </Row>
-                <Text variant="body2" color="secondary-text">{suggestion.relation}</Text>
-              </Column>
-              <Text
-                variant="caption"
-                color={getScoreColor(suggestion.score)}
-                style={{
-                  padding: "2px 8px",
-                  borderRadius: "999px",
-                  backgroundColor: `var(--color-${getScoreColor(suggestion.score)}-light)`,
-                  fontWeight: "bold"
-                }}
-              >
-                {suggestion.score}% Match
-              </Text>
-            </Row>
-          </Card>
-
-          <Grid columns={3} gap="12px">
-            <Card padding="10px" backgroundColor="var(--color-gray-light)">
-              <Text variant="body2" bold>DNA</Text>
-              <Text variant="body2">{suggestion.dna}</Text>
-            </Card>
-            <Card padding="10px" backgroundColor="var(--color-gray-light)">
-              <Text variant="body2" bold>Birth</Text>
-              <Text variant="body2">{suggestion.birth}</Text>
-            </Card>
-            <Card padding="10px" backgroundColor="var(--color-gray-light)">
-              <Text variant="body2" bold>Location</Text>
-              <Text variant="body2">{suggestion.location}</Text>
-            </Card>
-          </Grid>
-
-          <Text variant="caption" color="secondary-text">
-            This is a UI-only preview. Final decision will be saved once backend is ready.
-          </Text>
-
-          <Row justifyContent="flex-end" gap="10px">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Close
-            </Button>
-            <Button variant="primary" onClick={onAccept}>
-              Accept
-            </Button>
-            <Button variant="danger" onClick={onReject}>
-              Reject
-            </Button>
-          </Row>
-        </Column>
-      </Modal>
-    </>
-  );
-}
-
-export default SuggestionsPage;
+export default SuggestionsPage
 
 
 const StatCards = ({ title, icon, value }) => {

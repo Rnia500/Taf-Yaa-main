@@ -453,21 +453,7 @@
   }
 }
 
-/* Nav items container for better responsive behavior */
-.nav-items-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-}
 
-.nav-items-container .navItem {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
 
 /* Navbar row improvements */
 .navbar-row {

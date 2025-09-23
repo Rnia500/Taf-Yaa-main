@@ -1,0 +1,70 @@
+/* NavigationSideBar Styles */
+.navigation-sidebar {
+  background: var(--color-white);
+  border-right: 1px solid var(--color-gray);
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+/* Navigation item styles */
+.navigation-sidebar .nav-item {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.navigation-sidebar .nav-item:hover {
+  background-color: var(--color-background);
+}
+
+.navigation-sidebar .nav-item.active {
+  background-color: var(--color-primary-light);
+  border-left: 3px solid var(--color-primary);
+}
+
+.navigation-sidebar .nav-item-icon {
+  color: var(--color-gray);
+  transition: color 0.2s ease;
+}
+
+.navigation-sidebar .nav-item.active .nav-item-icon {
+  color: var(--color-primary);
+}
+
+/* Quick actions section */
+.navigation-sidebar .quick-actions {
+  border-top: 1px solid var(--color-gray);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.navigation-sidebar .quick-actions-title {
+  color: var(--color-secondary-text);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+/* Custom component container */
+.navigation-sidebar .custom-nav-component {
+  margin-bottom: 8px;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .navigation-sidebar {
+    width: 100% !important;
+    height: auto;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-gray);
+  }
+}
+
+@media (max-width: 600px) {
+  .navigation-sidebar {
+    max-height: 150px;
+  }
+}

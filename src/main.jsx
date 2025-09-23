@@ -10,7 +10,7 @@ import RedirectToTree from "./pages/RedirectToTreePage";
 import ExportPage from "./pages/ExportPage.jsx";
 import { CreateTreePage } from "./pages/CreateTreePage.jsx";
 import DeletedPersonsPage from "./pages/DeletedPersonsPage.jsx";
-import NotificationsPage from "./pages/NotificationsPage.jsx";
+import NotificationCenter from "./pages/NotificationCenter.jsx";
 import SuggestionsPage from "./pages/SuggestionsPage.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 
@@ -67,12 +67,31 @@ const router = createBrowserRouter([
       },
       {
         path: "notifications",
-        element: <NotificationsPage />,
+        element: <NotificationCenter />,
+        children: [
+          {
+            index: true,
+            element: <div>Overview Content</div>,
+          },
+          {
+            path: "suggestions",
+            element: <SuggestionsPage />,
+          },
+          {
+            path: "merge",
+            element: <div>Merge Requests Content</div>,
+          },
+          {
+            path: "requests",
+            element: <div>Pending Requests Content</div>,
+          },
+          {
+            path: "activity",
+            element: <div>Family Activity Content</div>,
+          },
+        ],
       },
-      {
-        path: "suggestions",
-        element: <SuggestionsPage />,
-      },
+
     ],
   },
   {
@@ -97,9 +116,10 @@ const router = createBrowserRouter([
     element: <RedirectToNestedRoute targetPath="/notifications" />,
   },
   {
-    path: "/suggestions", 
+    path: "/suggestions",
     element: <RedirectToNestedRoute targetPath="/suggestions" />,
   },
+
 ]);
 
 createRoot(document.getElementById("root")).render(

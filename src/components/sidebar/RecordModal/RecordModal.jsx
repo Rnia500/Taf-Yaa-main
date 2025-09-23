@@ -1,15 +1,15 @@
 // components/Audio/RecordModal.jsx
 import React, { useState } from 'react';
-import Modal from '../../../layout/containers/Modal';
-import { TextInput, TextArea } from '../../Input';
-import RecordingControls from './RecordingControl';
-import RecordingTimer from './RecordingTimer';
-import RecordingPreview from './RecordingPreview';
-import useAudioRecorder from '../../../hooks/useAudioRecorder';
-import Text from '../../Text';
-import Card from '../../../layout/containers/Card';
+import Modal from '../../../layout/containers/Modal.jsx';
+import { TextInput, TextArea } from '../../Input.jsx';
+import RecordingControls from './RecordingControl.jsx';
+import RecordingTimer from './RecordingTimer.jsx';
+import RecordingPreview from './RecordingPreview.jsx';
+import useAudioRecorder from '../../../hooks/useAudioRecorder.js';
+import Text from '../../Text.jsx';
+import Card from '../../../layout/containers/Card.jsx';
 import Row from '../../../layout/containers/Row.jsx';
-import { createAudioStory } from '../../../controllers/tree/stories';
+import { createAudioStory } from '../../../controllers/tree/stories.js';
 import { validateAudioFile } from '../../../utils/featuresUtils/audioValidator.js';
 import Column from '../../../layout/containers/Column.jsx';
 

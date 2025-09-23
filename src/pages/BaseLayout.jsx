@@ -3,17 +3,10 @@ import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import PageFrame from '../layout/containers/PageFrame';
 import ProfileSidebar from '../components/sidebar/ProfileSidebar';
-import Card from '../layout/containers/Card';
 import AdminNavbar from '../components/navbar/AdminNavbar';
-import ModeratorNavbar from '../components/navbar/ModeratorNavbar';
-import EditorNavbar from '../components/navbar/EditorNavbar';
-import ViewerNavbar from '../components/navbar/EditorNavbar';
-import PDFExport from '../components/PdfExport';
-import useModalStore from '../store/useModalStore';
 import useSidebarStore from '../store/useSidebarStore';
 import { useTranslation } from 'react-i18next';
 import Toast from '../components/toasts/Toast';
-import FamilyTreePage from './FamilyTreePage';
 
 
 
