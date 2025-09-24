@@ -15,11 +15,10 @@ const Row = ({
   fitContent = false,
   fitContentJustifyContent = 'center',
   fitContentAlignItems = 'center',
-  // className = '',
 }) => {
   return (
     <div
-      className={`layout-row`}
+      className="layout-row"
       style={{
         gap,
         width,
@@ -35,17 +34,20 @@ const Row = ({
         const hasFixedWidth =
           child?.props?.style?.width ||
           child?.props?.width ||
-          child?.props?.className?.includes('fixed');
+          child?.props?.className?.includes?.('fixed');
 
-        // Align the child inside its flex cell based on fitContent settings
         return (
           <div
             style={{
-              flex: fitContent ? 'initial' : (hasFixedWidth ? 'initial' : 1),
+              flex: fitContent
+                ? '0 1 auto' // ✅ allow shrink even in fitContent
+                : (hasFixedWidth ? '0 0 auto' : '1 1 0'),
+              minWidth: 0, // ✅ allow ellipsis/shrinking
               display: 'flex',
               justifyContent: fitContent ? fitContentJustifyContent : justifyContent, 
               alignItems: fitContent ? fitContentAlignItems : 'center',     
               height: '100%',
+              boxSizing: 'border-box',
             }}
           >
             {child}

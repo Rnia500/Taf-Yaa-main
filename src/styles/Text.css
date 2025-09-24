@@ -103,9 +103,11 @@
 }
 
 .text-ellipsis {
+  min-width: 0; /* ✅ allows truncation in flex items */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  display: block;
 }
 
 .text-link {
@@ -118,10 +120,12 @@
 }
 
 .text-line-clamp {
+  min-width: 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal; /* ✅ allows wrapping */
 }
 
 .text-line-clamp-1 { -webkit-line-clamp: 1; }

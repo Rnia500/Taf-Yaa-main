@@ -11,8 +11,9 @@ import { personServiceLocal } from '../services/data/personServiceLocal';
 import { marriageServiceLocal } from '../services/data/marriageServiceLocal';
 import useToastStore from '../store/useToastStore';
 import useModalStore from '../store/useModalStore';
-import ConfirmationModal from '../components/modals/ConfirmationModal';
-import WarningModal from '../components/modals/WarningModal';
+import DataTable from '../components/DataTable';
+import SelectDropdown from '../components/SelectDropdown';
+import { SearchInput } from '../components/Input';
 
 const DeletedPersonsPage = () => {
   const { treeId } = useParams();
@@ -21,6 +22,10 @@ const DeletedPersonsPage = () => {
   const [actionLoading, setActionLoading] = useState({});
   const addToast = useToastStore(state => state.addToast);
   const { openModal, closeModal } = useModalStore();
+  const [sortOption, setSortOption] = useState('oldest');
+  const [modeFilter, setModeFilter] = useState('');
+  const [daysThreshold, setDaysThreshold] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadDeletedPersons();
@@ -33,9 +38,32 @@ const DeletedPersonsPage = () => {
         ? await personServiceLocal.getDeletedPersonsByTreeId(treeId)
         : await personServiceLocal.getDeletedPersons();
       
-      // Get additional data for each person
+      // Group by cascade batch; only show cascade roots for each batch
+      const cascadeBatches = new Map();
+      const filtered = [];
+      for (const p of persons) {
+        if (p.deletionMode === 'cascade') {
+          if (!cascadeBatches.has(p.deletionBatchId)) {
+            cascadeBatches.set(p.deletionBatchId, []);
+          }
+          cascadeBatches.get(p.deletionBatchId).push(p);
+        } else {
+          filtered.push(p); // soft deletions always included
+        }
+      }
+
+      // From each cascade batch, pick the root if available; else pick earliest deleted
+      for (const [batchId, people] of cascadeBatches.entries()) {
+        let root = people.find(x => x.isCascadeRoot);
+        if (!root) {
+          root = people.slice().sort((a,b) => new Date(a.deletedAt) - new Date(b.deletedAt))[0];
+        }
+        if (root) filtered.push(root);
+      }
+      
+      // Get additional data for each shown person
       const personsWithDetails = await Promise.all(
-        persons.map(async (person) => {
+        filtered.map(async (person) => {
           let affectedCount = 0;
           let marriageCount = 0;
 
@@ -134,6 +162,76 @@ const DeletedPersonsPage = () => {
     }
   };
 
+  const handleViewDetails = async (person) => {
+    try {
+      if (person.deletionMode !== 'cascade' || !person.deletionBatchId) {
+        openModal('infoModal', {
+          title: 'Details',
+          message: `${person.name} was soft-deleted. No cascade details available.`,
+          confirmText: 'Close',
+        });
+        return;
+      }
+
+      const allDeleted = treeId 
+        ? await personServiceLocal.getDeletedPersonsByTreeId(treeId)
+        : await personServiceLocal.getDeletedPersons();
+      const batchPersonsRaw = allDeleted.filter(p => p.deletionBatchId === person.deletionBatchId);
+
+      // Prepare person display items: name, gender, dob-dod
+      const people = batchPersonsRaw.map(p => ({
+        id: p.id,
+        name: p.name || 'Unknown',
+        gender: p.gender,
+        dob: p.dob || null,
+        dod: p.dod || null,
+      }));
+
+      // Build a map for quick lookup of person names by id (including deleted ones)
+      const personNameById = new Map(people.map(p => [p.id, p.name]));
+
+      const marriages = await marriageServiceLocal.getAllMarriages();
+      const batchMarriagesRaw = marriages.filter(m => m.deletionBatchId === person.deletionBatchId && m.pendingDeletion);
+
+      // Prepare marriages with spouse names
+      const marriagesPrepared = batchMarriagesRaw.map(m => {
+        let spouse1 = 'Unknown';
+        let spouse2 = 'Unknown';
+        if (m.marriageType === 'monogamous') {
+          const [s1, s2] = Array.isArray(m.spouses) ? m.spouses : [];
+          spouse1 = s1 ? (personNameById.get(s1) || 'Unknown') : 'Unknown';
+          spouse2 = s2 ? (personNameById.get(s2) || 'Unknown') : 'Unknown';
+        } else if (m.marriageType === 'polygamous') {
+          const husbandName = m.husbandId ? (personNameById.get(m.husbandId) || 'Unknown') : 'Unknown';
+          const wifeNames = Array.isArray(m.wives) ? m.wives.map(w => personNameById.get(w.wifeId) || 'Unknown') : [];
+          if (wifeNames.length > 0) {
+            spouse1 = husbandName;
+            spouse2 = wifeNames.join(', ');
+          } else {
+            spouse1 = husbandName;
+            spouse2 = 'Unknown';
+          }
+        }
+        return {
+          id: m.id,
+          marriageType: m.marriageType,
+          spouse1,
+          spouse2,
+        };
+      });
+
+      openModal('cascadeDetailsModal', {
+        title: `Cascade Details — ${person.name}`,
+        batchId: person.deletionBatchId,
+        people,
+        marriages: marriagesPrepared,
+      });
+    } catch (error) {
+      console.error('Failed to load details:', error);
+      addToast('Failed to load details', 'error');
+    }
+  };
+
   const getDeletionModeBadge = (mode) => {
     const styles = {
       soft: {
@@ -163,6 +261,38 @@ const DeletedPersonsPage = () => {
     );
   };
 
+  const sortedAndFiltered = React.useMemo(() => {
+    let rows = [...deletedPersons];
+
+    // Search by name
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      rows = rows.filter(r => String(r.name || '').toLowerCase().includes(q));
+    }
+
+    if (modeFilter) {
+      rows = rows.filter(r => r.deletionMode === modeFilter);
+    }
+    if (daysThreshold) {
+      const n = Number(daysThreshold);
+      if (!isNaN(n) && n > 0) {
+        rows = rows.filter(r => Number(r.daysRemaining) <= n);
+      }
+    }
+
+    if (sortOption === 'oldest') {
+      rows.sort((a,b) => new Date(a.deletedAt) - new Date(b.deletedAt));
+    } else if (sortOption === 'newest') {
+      rows.sort((a,b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+    } else if (sortOption === 'mostAffected') {
+      rows.sort((a,b) => (b.affectedCount||0) - (a.affectedCount||0));
+    } else if (sortOption === 'leastAffected') {
+      rows.sort((a,b) => (a.affectedCount||0) - (b.affectedCount||0));
+    }
+
+    return rows;
+  }, [deletedPersons, searchQuery, sortOption, modeFilter, daysThreshold]);
+
   if (loading) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -183,91 +313,150 @@ const DeletedPersonsPage = () => {
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Column gap="1.5rem">
-        <div>
-          <Text variant="h2" bold>Deleted Persons Management</Text>
-          <Text color="gray-dark">
-            Manage soft and cascade deleted persons. You can restore them or permanently purge them.
-          </Text>
-        </div>
+      <Column gap="1rem">
+        <Row justifyContent="space-between" alignItems="center">
+          <Column gap="4px">
+            <Text variant="heading1" as="h1" bold>Deleted Persons</Text>
+            <Text color="gray-dark">Manage soft and cascade deletions. Restore or permanently purge.</Text>
+          </Column>
+          <Row gap="10px">
+            <Button variant="primary" onClick={loadDeletedPersons}>Refresh</Button>
+          </Row>
+        </Row>
 
-        <Card padding="0" backgroundColor="var(--color-white)" shadow>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: 'var(--color-gray-ultralight)', borderBottom: '2px solid var(--color-gray-light)' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Person</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Deletion Mode</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Affected</th>
-                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Time Remaining</th>
-                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deletedPersons.map((person, index) => (
-                  <tr 
-                    key={person.id}
-                    style={{ 
-                      borderBottom: '1px solid var(--color-gray-light)',
-                      backgroundColor: index % 2 === 0 ? 'var(--color-white)' : 'var(--color-gray-ultralight)'
-                    }}
-                  >
-                    <td style={{ padding: '12px' }}>
-                      <div>
-                        <Text bold variant="h6">{person.name || 'Unknown'}</Text>
-                        <Text variant="caption" color="gray-dark">
-                          Deleted: {new Date(person.deletedAt).toLocaleDateString()}
-                        </Text>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      {getDeletionModeBadge(person.deletionMode)}
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <div>
-                        <Text variant="body">
-                          {person.affectedCount} people
-                        </Text>
-                        <Text variant="caption" color="gray-dark">
-                          {person.marriageCount} marriages
-                        </Text>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <DeletionCountdown
-                        timeRemaining={person.timeRemaining}
-                        isExpired={person.isExpired}
-                        variant="badge"
-                        showDetails={true}
-                      />
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <Row gap="0.5rem" justifyContent="center">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => handleRestore(person)}
-                          loading={actionLoading[person.id]}
-                          disabled={person.isExpired}
-                        >
-                          Restore
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handlePurge(person)}
-                          loading={actionLoading[person.id]}
-                        >
-                          Purge
-                        </Button>
-                      </Row>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/** Controls: Search + Sort + Filters */}
+        <Card padding='1rem' margin='0px' backgroundColor="var(--color-white)" borderColor="var(--color-gray-light)">
+          
+            <Row fitContent padding='0px' margin='0px' gap="10px" wrap>
+              <Column padding='0px' margin='0px' gap="6px">
+                <Text variant="body" color="gray-dark">Search</Text>
+                <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search..." />
+              </Column>
+
+              <SelectDropdown
+                label="Sort"
+                value={sortOption}
+                onChange={setSortOption}
+                options={[
+                  { value: 'oldest', label: 'Oldest → Newest' },
+                  { value: 'newest', label: 'Newest → Oldest' },
+                  { value: 'mostAffected', label: 'Most affected' },
+                  { value: 'leastAffected', label: 'Least affected' },
+                ]}
+              />
+
+              <SelectDropdown
+                label="Deletion Mode"
+                value={modeFilter}
+                onChange={setModeFilter}
+                options={[
+                  { value: '', label: 'All' },
+                  { value: 'soft', label: 'Soft' },
+                  { value: 'cascade', label: 'Cascade' },
+                ]}
+              />
+
+              <SelectDropdown
+                label="Days before purge"
+                value={daysThreshold}
+                onChange={setDaysThreshold}
+                options={[{ value: '', label: 'Any' }, ...Array.from({ length: 30 }, (_, i) => ({ value: String(i + 1), label: `${i + 1}` }))]}
+              />
+
+              {(modeFilter || daysThreshold || searchQuery) && (
+                <Button variant="secondary" onClick={() => { setModeFilter(''); setDaysThreshold(''); setSearchQuery(''); }}>Clear</Button>
+              )}
+            </Row>
+          
         </Card>
+
+        {/** DataTable replacing manual table */}
+        <DataTable
+          columns={[
+            {
+              key: 'name',
+              header: 'Person',
+              sortable: false,
+              render: (row) => (
+                <div>
+                  <Text bold variant="h6">{row.name || 'Unknown'}</Text>
+                  <Text variant="caption" color="gray-dark">Deleted: {new Date(row.deletedAt).toLocaleDateString()}</Text>
+                </div>
+              )
+            },
+            {
+              key: 'deletionMode',
+              header: 'Deletion Mode',
+              render: (row) => getDeletionModeBadge(row.deletionMode)
+            },
+            {
+              key: 'affectedCount',
+              header: 'Affected',
+              sortable: false,
+              render: (row) => (
+                <div>
+                  <Text variant="body">{row.affectedCount} people</Text>
+                  <Text variant="caption" color="gray-dark">{row.marriageCount} marriages</Text>
+                </div>
+              )
+            },
+            {
+              key: 'timeRemaining',
+              header: 'Time Remaining',
+              sortable: false,
+              render: (row) => (
+                <DeletionCountdown
+                  timeRemaining={row.timeRemaining}
+                  isExpired={row.isExpired}
+                  variant="badge"
+                  showDetails={true}
+                />
+              )
+            },
+            {
+              key: 'actions',
+              header: 'Actions',
+              searchable: false,
+              sortable: false,
+              render: (row) => (
+                <Row gap="0.5rem" justifyContent="center">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleRestore(row)}
+                    loading={actionLoading[row.id]}
+                    disabled={row.isExpired}
+                  >
+                    Restore
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handlePurge(row)}
+                    loading={actionLoading[row.id]}
+                  >
+                    Purge
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleViewDetails(row)}
+                  >
+                    View Details
+                  </Button>
+                </Row>
+              )
+            }
+          ]}
+          data={sortedAndFiltered}
+          enablePagination
+          initialPageSize={10}
+          enableSearch={false}
+          enableSort={false}
+          enableFilters={false}
+          showHeader={false}
+          showControlsToggle={false}
+        />
 
         <Card backgroundColor="var(--color-info-light)" borderColor="var(--color-info)">
           <div style={{ padding: '12px' }}>

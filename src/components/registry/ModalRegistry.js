@@ -8,6 +8,8 @@ import EditPersonModal from "../Edit Person/EditPersonModal";
 import {DeletePersonModal} from "../modals/DeletePersonModal";
 import WarningModal from "../modals/WarningModal";
 import PDFExport from "../PdfExport";
+import InfoModal from "../modals/InfoModal";
+import CascadeDetailsModal from "../modals/CascadeDetailsModal";
 
 export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
@@ -19,4 +21,6 @@ export const modalRegistry = {
   deletePerson: DeletePersonModal,
   warningModal: WarningModal,
   pdfExportModal: PDFExport,
+  infoModal: InfoModal,
+  cascadeDetailsModal: CascadeDetailsModal,
 };

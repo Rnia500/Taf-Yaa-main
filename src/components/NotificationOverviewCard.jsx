@@ -26,6 +26,27 @@ const NotificationOverviewCard = ({
   const icon = typeToIcon[type] || typeToIcon.activity;
   const timeLabel = useMemo(() => formatArrivalTime({ createdAt }), [createdAt]);
 
+    const truncatedDescription = useMemo(() => {
+    if (!description || typeof description !== 'string') return '';
+    const limit = 80; // non-space characters
+    let count = 0;
+    let endIndex = 0;
+    for (let i = 0; i < description.length; i++) {
+      const ch = description[i];
+      if (ch.trim() !== '') {
+        count++;
+      }
+      endIndex = i + 1;
+      if (count >= limit) {
+        break;
+      }
+    }
+    if (count <= limit && endIndex === description.length) {
+      return description;
+    }
+    return description.slice(0, endIndex).trimEnd() + '...';
+  }, [description]);
+
   return (
     <Card maxWidth={900} padding="0.5rem 1rem 0.5rem 0.5rem" backgroundColor="var(--color-background)" onClick={onClick}>
       <Row gap="1rem" padding="0" fitContent justifyContent="space-between">
@@ -38,10 +59,8 @@ const NotificationOverviewCard = ({
             <Row padding="0px" margin="0px" fitContent justifyContent="flex-start">
               <Text as="p" variant="body1" bold>{title}</Text>
               <Text as="p" variant="caption1">{timeLabel}</Text>
-            </Row>
-            <Card style={{ maxWidth: "100%", display: "block", minHeight:"0%" }} backgroundColor="var(--color-transparent)" padding="0px" margin="0px">
-              <Text ellipsis variant="body2" color="muted-text" >{description}</Text>
-            </Card>
+            </Row>            
+              <Text ellipsis variant="body2" >{truncatedDescription}</Text>
           </Column>
         </Row>
         {action}

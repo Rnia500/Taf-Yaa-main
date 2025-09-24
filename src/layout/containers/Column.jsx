@@ -31,15 +31,15 @@ const Column = ({
       }}
     >
       {React.Children.map(children, (child) => {
+        const flexValue = fitContent ? '0 1 auto' : '1 1 0'; // ✅ allow shrink
 
-        const flexValue = fitContent ? '0 0 auto' : '1';
-        
         return (
           <div
             style={{
               flex: flexValue,
               width: fitContent ? 'auto' : '100%',
-              boxSizing: 'border-box'
+              minWidth: 0, // ✅ prevent content from overflowing
+              boxSizing: 'border-box',
             }}
           >
             {child}
