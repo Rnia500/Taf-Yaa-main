@@ -13,6 +13,7 @@ import DeletedPersonsPage from "./pages/DeletedPersonsPage.jsx";
 import NotificationCenter from "./pages/NotificationCenter.jsx";
 import SuggestionsPage from "./pages/SuggestionsPage.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
+import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
 
 // Component to redirect to proper nested routes
 const RedirectToNestedRoute = ({ targetPath }) => {
@@ -71,7 +72,7 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <div>Overview Content</div>,
+            element: <NotificationOverviewPage />,
           },
           {
             path: "suggestions",

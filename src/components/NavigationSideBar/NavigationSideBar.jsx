@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import './NavigationSideBar.css';
+import '../../styles/NavigationSideBar.css';
 import Card from '../../layout/containers/Card';
 import Column from '../../layout/containers/Column';
 import Row from '../../layout/containers/Row';
@@ -50,12 +50,6 @@ const NavigationSideBar = ({
         padding="8px"
         width='15rem'
         backgroundColor={isActive ? "var(--color-primary-light)" : "var(--color-white)"}
-        borderColor={isActive ? "var(--color-primary)" : "var(--color-gray)"}
-        style={{
-          cursor: item.path || item.onClick ? 'pointer' : 'default',
-          borderWidth: isActive ? '2px' : '1px',
-          transition: 'all 0.2s ease'
-        }}
         onClick={() => {
           if (item.onClick) {
             handleCustomAction(item.onClick);

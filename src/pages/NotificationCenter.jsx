@@ -16,6 +16,11 @@ import {
 } from "lucide-react";
 import "../styles/NotificationCenter.css";
 import NavigationSideBar from "../components/NavigationSideBar/NavigationSideBar";
+import Row from "../layout/containers/Row";
+import Column from "../layout/containers/Column";
+import Card from "../layout/containers/Card";
+import Text from "../components/Text";
+import Button from "../components/Button";
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
@@ -112,112 +117,6 @@ const NotificationCenter = () => {
     }
   }, [location.pathname, treeId]);
 
-  const renderOverview = () => (
-    <div className="overview-section">
-      <div className="overview-header">
-        <h3>{t('navbar.recent_activity')}</h3>
-        <button className="view-all-btn">{t('navbar.view_all')}</button>
-      </div>
-
-      <div className="activity-list">
-        <div className="activity-item">
-          <div className="activity-icon suggestions">
-            <Lightbulb size={16} />
-          </div>
-          <div className="activity-content">
-            <p><strong>{t('navbar.ai_suggestions')}</strong></p>
-            <p>{t('navbar.new_potential_connections')}</p>
-            <span className="activity-time">{t('navbar.hours_ago')}</span>
-          </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/suggestions`)}>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        <div className="activity-item">
-          <div className="activity-icon merge">
-            <GitMerge size={16} />
-          </div>
-          <div className="activity-content">
-            <p><strong>{t('navbar.merge_requests')}</strong></p>
-            <p>{t('navbar.merge_request_from')}</p>
-            <span className="activity-time">5 hours ago</span>
-          </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/merge`)}>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        <div className="activity-item">
-          <div className="activity-icon requests">
-            <Clock size={16} />
-          </div>
-          <div className="activity-content">
-            <p><strong>{t('navbar.pending_requests')}</strong></p>
-            <p>{t('navbar.requests_awaiting_approval')}</p>
-            <span className="activity-time">{t('navbar.day_ago')}</span>
-          </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/requests`)}>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        <div className="activity-item">
-          <div className="activity-icon activity">
-            <Users size={16} />
-          </div>
-          <div className="activity-content">
-            <p><strong>{t('navbar.family_activity')}</strong></p>
-            <p>{t('navbar.recent_updates_changes')}</p>
-            <span className="activity-time">{t('navbar.days_ago')}</span>
-          </div>
-          <button className="activity-action" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/activity`)}>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSectionContent = () => {
-    switch (activeSection) {
-      case 'overview':
-        return renderOverview();
-      case 'merge':
-        return (
-          <div className="section-content">
-            <h3>{t('navbar.merge_requests')}</h3>
-            <p>{t('navbar.manage_merge_requests')}</p>
-            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/merge`)}>
-              {t('navbar.view_merge_requests')}
-            </button>
-          </div>
-        );
-      case 'requests':
-        return (
-          <div className="section-content">
-            <h3>{t('navbar.pending_requests')}</h3>
-            <p>{t('navbar.review_approve_requests')}</p>
-            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/requests`)}>
-              {t('navbar.view_all_requests')}
-            </button>
-          </div>
-        );
-      case 'activity':
-        return (
-          <div className="section-content">
-            <h3>{t('navbar.family_activity')}</h3>
-            <p>{t('navbar.view_recent_changes')}</p>
-            <button className="primary-btn" onClick={() => navigate(`/family-tree/${treeId}/notificationcenter/activity`)}>
-              {t('navbar.view_activity_history')}
-            </button>
-          </div>
-        );
-      default:
-        return renderOverview();
-    }
-  };
-
   return (
     <div className="notification-center">
       
@@ -232,7 +131,7 @@ const NotificationCenter = () => {
         </div>
 
         <div className="main-content">
-          {activeSection === 'overview' ? renderOverview() : <Outlet />}
+          <Outlet />
         </div>
       </div>
     </div>
