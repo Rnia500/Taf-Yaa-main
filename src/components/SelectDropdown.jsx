@@ -38,11 +38,11 @@ function SelectDropdown({ label, options = [], value, onChange, placeholder }) {
       ...base,
       borderRadius: "12px",
       marginTop: "4px",
-      zIndex: 100
+      zIndex: 10000
     }),
     menuPortal: (base) => ({
       ...base,
-      zIndex: 9999
+      zIndex: 99999
     }),
     option: (base, state) => ({
       ...base,

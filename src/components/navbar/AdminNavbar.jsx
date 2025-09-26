@@ -173,11 +173,12 @@ export default function AdminNavbar() {
             </div>
 
             <div className="action-buttons">
-              <Link to={`/family-tree/${currentTreeId}/deleted-persons`}>
-                <div className="action-btn">
-                  <Trash2 size={20} color="var(--color-primary-text)" />
-                </div>
-              </Link>
+              <NavLink
+                to={`/family-tree/${currentTreeId}/deleted-persons`}
+                className={({ isActive }) => `action-btn ${isActive ? 'active' : ''}`}
+              >
+                <Trash2 size={20} color="var(--color-primary-text)" />
+              </NavLink>
 
               <div
                 className={`action-btn ${activeButton === 'language' ? 'active' : ''}`}
@@ -260,7 +261,7 @@ export default function AdminNavbar() {
         className="profile-submenu"
         position={{ top: '60px', right: '40px' }}
       >
-        {submenuItems.map((item, index) => {
+        {submenuItems.map((item) => {
           const IconComponent = item.icon;
           return (
             <Card

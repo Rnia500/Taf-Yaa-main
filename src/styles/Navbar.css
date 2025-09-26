@@ -370,37 +370,14 @@
 /* Active state for action buttons */
 .NavBar .action-buttons .action-btn.active {
   background: rgba(255, 255, 255, 0.95);
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  border: 1px solid rgba(22, 163, 74, 0.2);
   position: relative;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
 }
 
-.NavBar .action-buttons .action-btn.active::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(135deg, var(--color-primary1), var(--color-secondary1));
-  border-radius: 12px;
-  z-index: -1;
-  animation: gradientBorder 2s ease-in-out infinite;
-}
-
-@keyframes gradientBorder {
-  0%, 100% {
-    background: linear-gradient(135deg, var(--color-primary1), var(--color-secondary1));
-  }
-  50% {
-    background: linear-gradient(135deg, var(--color-secondary1), var(--color-primary1));
-  }
-}
-
 .NavBar .action-buttons .action-btn.active::before {
-  opacity: 0.15;
+  opacity: 0.1;
 }
 
 .NavBar .action-buttons .action-btn.active:hover {

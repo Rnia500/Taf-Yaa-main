@@ -195,6 +195,13 @@ function deletePerson(personId, mode = "soft", options = {}) {
       person.isCascadeRoot = true;
     }
 
+    // Ensure only the initiating person is the cascade root in this batch
+    for (const p of db.people) {
+      if (p.deletionBatchId === batchId && p.id !== personId) {
+        delete p.isCascadeRoot;
+      }
+    }
+
     // Mark marriages
     for (const m of db.marriages) {
       if (marriagesToDelete.has(m.id)) {
