@@ -6,6 +6,7 @@ import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createMarriage, addChildToMarriage } from "./marriages";
 import { createAudioStory } from "./stories";
+import { Description } from "@headlessui/react";
 
 export async function addChild(treeId, options) {
   const { marriageId, parentId, childData, motherId, createdBy = "system" } = options;
@@ -51,8 +52,8 @@ export async function addChild(treeId, options) {
     await dataService.addPerson(newChild);
 
     // 2. Events
-    if (newChild.dob) await addBirth(treeId, newChild.id, { date: newChild.dob, title: "Birth" });
-    if (newChild.dod) await addDeath(treeId, newChild.id, { date: newChild.dod, title: "Death" });
+    if (newChild.dob) await addBirth(treeId, newChild.id, { date: newChild.dob, title: "Birth", location: childData.placeOfBirth });
+    if (newChild.dod) await addDeath(treeId, newChild.id, { date: newChild.dod, title: "Death", location: childData.placeOfDeath });
 
     if (Array.isArray(childData.events)) {
       for (const ev of childData.events) {

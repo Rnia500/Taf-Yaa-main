@@ -5,13 +5,16 @@ import Card from '../../../layout/containers/Card';
 import '../../../styles/TimeLine.css';
 import ClampText from '../../ClampText';
 import Text from '../../Text';
+import { formatEventText } from '../../../models/treeModels/EventModel';
 
-function TimelineEvent({ title, date, isLast, description, onAddDescription }) {
+function TimelineEvent({ title, date, isLast, description, event, onAddDescription, peopleNameMap, onEditEvent }) {
   const [isDescriptionVisible, setDescriptionVisible] = useState(false);
 
   const toggleDescriptionVisibility = () => {
     setDescriptionVisible(!isDescriptionVisible);
   };
+
+  const formattedDescription = formatEventText(event, peopleNameMap);
 
   return (
     <div className="timeline-event">
@@ -21,22 +24,18 @@ function TimelineEvent({ title, date, isLast, description, onAddDescription }) {
         <div className="timeline-title">{title}</div>
         <div className="timeline-date">{date}</div>
 
-
-        {description ? (
-
+        <Button size='sm' onClick={toggleDescriptionVisibility} variant='info'>
+          {isDescriptionVisible ? 'Hide description' : 'View event description'}
+        </Button>
+        {isDescriptionVisible && (
           <>
-            <Button size='sm' onClick={toggleDescriptionVisibility} variant='info'>
-              {isDescriptionVisible ? 'Hide description' : 'View description'}
+            <Card>
+              <Text paragraph variant='caption1'>{formattedDescription}</Text>
+            </Card>
+            <Button size='sm' variant='secondary' onClick={() => onEditEvent(event)}>
+              Edit Event
             </Button>
-            {isDescriptionVisible && (
-              <Card>
-                {/* <ClampText lines={3}>{description}</ClampText> */}
-                <Text paragraph variant='caption1'>{description}</Text>
-              </Card>
-            )}
           </>
-        ) : (
-          <Button size='sm' variant='secondary' onClick={onAddDescription}>Add a description</Button>
         )}
       </div>
     </div>
@@ -46,7 +45,7 @@ function TimelineEvent({ title, date, isLast, description, onAddDescription }) {
 /**
  * Represents the entire timeline block with a list of events.
  */
-export default function TimelineEvents({ events = [], onAddEvent, onAddDescription }) {
+export default function TimelineEvents({ events = [], onAddEvent, onAddDescription, peopleNameMap, onEditEvent }) {
   return (
     <Card backgroundColor="transparent" alignItems="flex-start">
       <div className="timeline-block">
@@ -61,8 +60,11 @@ export default function TimelineEvents({ events = [], onAddEvent, onAddDescripti
               title={event.title}
               date={event.date}
               description={event.description}
+              event={event}
               isLast={index === events.length - 1}
               onAddDescription={onAddDescription}
+              peopleNameMap={peopleNameMap}
+              onEditEvent={onEditEvent}
             />
           ))}
         </div>

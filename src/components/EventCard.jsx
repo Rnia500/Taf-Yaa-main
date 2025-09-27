@@ -9,7 +9,7 @@ import Text from './Text';
 import { EVENT_TYPE_LABELS } from '../models/treeModels/EventModel';
 import { X } from 'lucide-react';
 
-const EventCard = ({ events = [], onEventsChange, showEventList = true }) => {
+const EventCard = ({ events = [], onEventsChange, showEventList = true, editingEvent = null, isAddingDescription = false }) => {
   const initialFormState = {
     type: '',
     customType: '',
@@ -19,10 +19,17 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true }) => {
     location: ''
   };
 
-  const [eventData, setEventData] = useState(initialFormState);
+  const [eventData, setEventData] = useState(editingEvent ? {
+    type: editingEvent.type,
+    customType: editingEvent.customType || '',
+    title: editingEvent.title || '',
+    description: editingEvent.description || '',
+    date: editingEvent.date || '',
+    location: editingEvent.location || ''
+  } : initialFormState);
 
   // FIX 1: Use a stable ID for editing, not a fragile index.
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState(editingEvent ? editingEvent.id : null);
 
   const handleInputChange = (field, value) => {
     setEventData(prev => ({ ...prev, [field]: value }));
@@ -35,6 +42,33 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true }) => {
 
   const handleAddOrUpdateEvent = () => {
     if (!eventData.type) return;
+
+    // Validation: Ensure birth event is always the earliest
+    if (!isAddingDescription) {
+      const birthEvent = events.find(e => e.type === 'birth');
+      const isBirthEvent = eventData.type === 'birth';
+      const proposedDate = eventData.date;
+
+      if (proposedDate) {
+        const proposedDateTime = new Date(proposedDate).getTime();
+
+        if (isBirthEvent) {
+          // If updating/adding birth, ensure no other event has earlier date
+          const hasEarlierEvent = events.some(e => e.type !== 'birth' && e.date && new Date(e.date).getTime() < proposedDateTime);
+          if (hasEarlierEvent) {
+            alert('Birth event must have the earliest date. Please adjust other event dates or the birth date.');
+            return;
+          }
+        } else if (birthEvent && birthEvent.date) {
+          // If non-birth event, ensure its date is not earlier than birth
+          const birthDateTime = new Date(birthEvent.date).getTime();
+          if (proposedDateTime < birthDateTime) {
+            alert('Event date cannot be earlier than the birth date.');
+            return;
+          }
+        }
+      }
+    }
 
     // --- EDIT LOGIC ---
     if (editingId !== null) {
@@ -128,7 +162,7 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true }) => {
       <div style={{display: 'flex', gap:'0.5rem',  margin: '0.5rem 0rem', width: '100%'}}>
         <div  style={{ width: '100%' }}>
           <label className="form-label">Date</label>
-          <DateInput style={{ width: '100%' }} value={eventData.date} onChange={(e) => handleInputChange('date', e.target.value)} placeholder="Select event date" />
+          <DateInput style={{ width: '100%' }} value={eventData.date} onChange={(e) => handleInputChange('date', e.target.value)} placeholder="Select event date" disabled={isAddingDescription} />
         </div>
         <div  style={{ width: '100%' }}>
           <label className="form-label">Location</label>

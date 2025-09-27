@@ -53,8 +53,7 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
     return new Promise((resolve) => {
       openModal("confirmationModal", {
         title: "Convert to Polygamous Marriage?",
-        message:
-          "This is currently in a monogamous marriage. Do you want to convert it to a polygamous one to add this new spouse?",
+        message: "This is currently in a monogamous marriage. Do you want to convert it to a polygamous one to add this new spouse?",
         confirmText: "Yes, Convert",
         cancelText: "No, Cancel",
         onConfirm: () => {
@@ -65,10 +64,15 @@ const AddSpouseController = ({ treeId, existingSpouseId, onSuccess, onCancel }) 
           closeModal("confirmationModal");
           resolve(false);
         },
+        onClose: () => {
+          closeModal("confirmationModal");
+          resolve(false);
+        },
       });
     });
   };
 
+  
 
   const handleSubmit = async (formData) => {
     if (isSubmitting || hasSubmitted.current) return;

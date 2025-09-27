@@ -59,12 +59,25 @@ function getAllEvents() {
 function getEventsByPersonId(personId) {
   const db = getDB();
   // Filter out deleted events and only return events involving this person
-  const evts = (db.events || []).filter(e => 
+  let evts = (db.events || []).filter(e => 
     !e.isDeleted && 
     Array.isArray(e.personIds) && 
     e.personIds.includes(personId)
   );
-  return Promise.resolve(evts);
+
+  // Sort: Birth first, then chronological by date
+  const birthEvent = evts.find(e => e.type === 'birth');
+  const otherEvents = evts.filter(e => e.type !== 'birth');
+
+  // Sort other events by date (earliest first), null dates last
+  otherEvents.sort((a, b) => {
+    const dateA = a.date ? new Date(a.date).getTime() : Infinity;
+    const dateB = b.date ? new Date(b.date).getTime() : Infinity;
+    return dateA - dateB;
+  });
+
+  const sortedEvents = birthEvent ? [birthEvent, ...otherEvents] : otherEvents;
+  return Promise.resolve(sortedEvents);
 }
 
 function findEventsByTitle(query) {

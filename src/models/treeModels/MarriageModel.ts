@@ -112,11 +112,15 @@ export class MarriageModel {
     this.marriage.updatedAt = new Date().toISOString();
   }
 
-  addWife(wifeId: string): void {
+  addWife(wifeId: string, options: Partial<PolygamousWife> = {}): void {
     if (this.marriage.marriageType === "polygamous") {
       this.marriage.wives.push({
         wifeId,
         order: this.marriage.wives.length + 1,
+        startDate: options.startDate || null,
+        location: options.location || null,
+        notes: options.notes || null,
+        childrenIds: options.childrenIds || [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -137,5 +141,13 @@ export class MarriageModel {
       wife.updatedAt = new Date().toISOString();
     }
     this.marriage.updatedAt = new Date().toISOString();
+  }
+
+  getNextWifeOrder(): number {
+    if (this.marriage.marriageType === "polygamous") {
+      const maxOrder = this.marriage.wives.reduce((max, wife) => Math.max(max, wife.order || 0), 0);
+      return maxOrder + 1;
+    }
+    return 1;
   }
 }

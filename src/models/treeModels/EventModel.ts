@@ -1,4 +1,4 @@
-﻿// src/models/eventModel.ts
+// src/models/eventModel.ts
 import { generateId } from "../../utils/personUtils/idGenerator"; 
 
 export interface Event {
@@ -110,4 +110,50 @@ export const suggestPromotableCustomEvents = (
   return Object.entries(counts)
     .filter(([_, count]) => count >= minCount)
     .map(([customType]) => customType);
+};
+
+export const formatEventText = (
+  event: Event,
+  peopleMap: Record<string, string>
+): string => {
+  const names = event.personIds.map((id) => peopleMap[id] || "Unknown").join(" and ");
+  const date = event.date ? `on ${event.date}` : "";
+  const location = event.location ? `at ${event.location}` : "";
+
+  let header = "";
+
+  switch (event.type) {
+    case "birth":
+      header = `${names} was born ${date} ${location}`;
+      break;
+
+    case "death":
+      header = `${names} passed away ${date} ${location}`;
+      break;
+
+    case "marriage":
+      header = `${names} were married ${date} ${location}`;
+      break;
+
+    case "divorce":
+      header = `${names} were divorced ${date} ${location}`;
+      break;
+
+    case "graduation":
+      header = `${names} graduated ${date} ${location}`;
+      break;
+
+    case "custom":
+      header = `${names} ${event.customType || "had an event"} ${date} ${location}`;
+      break;
+
+    default:
+      header = `${names} had an event ${date} ${location}`;
+      break;
+  }
+
+  // Description block (optional, multiline friendly)
+  const description = event.description ? `\n\n${event.description}` : "";
+
+  return `${header.trim()}.\n${description}`;
 };

@@ -38,10 +38,13 @@ export default function ProfileSidebar() {
   const [timelineEvents, setTimelineEvents] = useState([]);
   const [audioStories, setAudioStories] = useState([]);
   const [photos, setPhotos] = useState([]);
+  const [peopleNameMap, setPeopleNameMap] = useState({});
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isAddEditEventModalOpen, setIsAddEditEventModalOpen] = useState(false);
   const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
   const [currentTreeId, setCurrentTreeId] = useState("t1");
+  const [currentEditingEvent, setCurrentEditingEvent] = useState(null);
+  const [isAddingDescriptionMode, setIsAddingDescriptionMode] = useState(false);
   const { activeProfileId, closeSidebar } = useSidebarStore();
   const { openModal } = useModalStore();
   const { treeId } = useParams();
@@ -95,6 +98,12 @@ export default function ProfileSidebar() {
 
   const handleEventsChange = (newEventsArray) => {
     setTimelineEvents(newEventsArray);
+  };
+
+  const handleEditEvent = (event) => {
+    setCurrentEditingEvent(event);
+    setIsAddingDescriptionMode(false);
+    setIsAddEditEventModalOpen(true);
   };
 
 
@@ -182,6 +191,8 @@ export default function ProfileSidebar() {
       ]);
       if (!mounted) return;
       const peopleMap = new Map((allPeople || []).map(p => [p.id, p]));
+      const peopleNameMapLocal = Object.fromEntries(allPeople.map(p => [p.id, p.name]));
+      setPeopleNameMap(peopleNameMapLocal);
       // Analyze all marriages to derive spouses, children, parents and siblings
       (allMarriages || []).forEach(m => {
         // MONOGAMOUS: spouses in m.spouses, children in m.childrenIds
@@ -347,7 +358,13 @@ export default function ProfileSidebar() {
       <FamilyConnections connections={familyConnections} />
       <Spacer size='md' />
 
-      <TimelineEvents events={timelineEvents} onAddEvent={handleAddEvent} onAddDescription={handleAddDescription} />
+      <TimelineEvents 
+        events={timelineEvents} 
+        onAddEvent={handleAddEvent} 
+        onAddDescription={handleAddDescription}
+        peopleNameMap={peopleNameMap}
+        onEditEvent={handleEditEvent}
+      />
       <Spacer size='md' />
 
       <AudioStory 
@@ -400,6 +417,15 @@ export default function ProfileSidebar() {
         onClose={() => setIsPNGModalOpen(false)}
         profileName={selectedProfileName}
         profileRef={profileSidebarRef}
+      />
+
+      <AddEditEvent
+        isOpen={isAddEditEventModalOpen}
+        onClose={handleCloseAddEditEventModal}
+        events={timelineEvents}
+        onEventsChange={handleEventsChange}
+        editingEvent={currentEditingEvent}
+        isAddingDescription={isAddingDescriptionMode}
       />
     </FlexContainer>
   );

@@ -53,11 +53,11 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       await dataService.addPerson(newParent);
 
       if (newParent.dob) {
-        await addBirth(treeId, newParent.id, { date: newParent.dob, title: "Birth" });
+        await addBirth(treeId, newParent.id, { date: newParent.dob, title: "Birth", location: newParent.placeOfBirth });
       }
       
       if (newParent.dod) {
-        await addDeath(treeId, newParent.id, { date: newParent.dod, title: "Death" });
+        await addDeath(treeId, newParent.id, { date: newParent.dod, title: "Death", location: newParent.placeOfDeath });
       }
 
       if (Array.isArray(parentData.events)) {

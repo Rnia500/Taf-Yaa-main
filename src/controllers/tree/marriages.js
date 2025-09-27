@@ -16,24 +16,11 @@ export async function createMarriage(treeId, type, createdBy, options = {}) {
 
   const saved = await dataService.addMarriage(model.marriage);
 
-  // If we created a complete monogamous marriage, create the associated event.
-  try {
-    if (saved.marriageType === "monogamous" && saved.spouses?.[0] && saved.spouses?.[1]) {
-      await createMarriageEvent(saved.treeId, saved.spouses[0], saved.spouses[1], {
-        date: saved.startDate || null,
-        location: saved.location || null,
-        title: "Marriage",
-      });
-    }
-  } catch (err) {
-    console.error("Failed to create marriage event after createMarriage:", err);
-  }
-
   return saved;
 }
 
 
-export async function addSpouseToMarriage(marriageId, personId) {
+export async function addSpouseToMarriage(marriageId, personId, options = {}) {
   const marriage = await dataService.getMarriage(marriageId);
   if (!marriage) throw new Error(`Marriage ${marriageId} not found`);
 
@@ -47,9 +34,10 @@ export async function addSpouseToMarriage(marriageId, personId) {
   try {
     if (updated.marriageType === "monogamous" && updated.spouses?.[0] && updated.spouses?.[1]) {
       await createMarriageEvent(updated.treeId, updated.spouses[0], updated.spouses[1], {
-        date: updated.startDate || null,
-        location: updated.location || null,
+        date: updated.startDate || options.startDate || null,
+        location: updated.location || options.location || null,
         title: "Marriage",
+        description: updated.notes || options.notes || null,
       });
     }
   } catch (err) {
@@ -60,7 +48,7 @@ export async function addSpouseToMarriage(marriageId, personId) {
 }
 
 
-export async function addWifeToMarriage(marriageId, wifeId) {
+export async function addWifeToMarriage(marriageId, wifeId, options = {}) {
   const marriage = await dataService.getMarriage(marriageId);
   if (!marriage) throw new Error(`Marriage ${marriageId} not found`);
   if (marriage.marriageType !== 'polygamous') throw new Error('Cannot add a wife to a non-polygamous marriage.');
@@ -68,14 +56,19 @@ export async function addWifeToMarriage(marriageId, wifeId) {
   const model = new MarriageModel(marriage.treeId, marriage.marriageType, marriage.createdBy);
   model.marriage = marriage; // Hydrate
 
-  model.addWife(wifeId);
+  model.addWife(wifeId, options);
   const updated = await dataService.updateMarriage(marriageId, model.marriage);
 
   // For polygamous marriages, always create an event for the new husband-wife pair.
   try {
     if (updated.husbandId && wifeId) {
+      const wife = await dataService.getPerson(wifeId);
+      const title = `Marriage#${updated.wives.length} with ${wife.name}`;
       await createMarriageEvent(updated.treeId, updated.husbandId, wifeId, {
-        title: `Marriage (wife #${updated.wives.length})`,
+        title,
+        date: options.startDate || null,
+        location: options.location || null,
+        description: options.notes || null,
       });
     }
   } catch (err) {
@@ -106,7 +99,11 @@ export async function handleSpouseAddition(existingSpouse, newSpouse, formData, 
 
   // --- Scenario 1: Husband is already in a polygamous marriage -> APPEND ---
   if (existingPolygamousForHusband) {
-    const marriage = await addWifeToMarriage(existingPolygamousForHusband.id, newSpouse.id);
+    const marriage = await addWifeToMarriage(existingPolygamousForHusband.id, newSpouse.id, {
+      startDate: formData.marriageDate,
+      location: formData.marriageLocation,
+      notes: formData.marriageNotes,
+    });
     return { marriage, marriageAction: "updated" };
   }
 
@@ -142,8 +139,9 @@ export async function handleSpouseAddition(existingSpouse, newSpouse, formData, 
 
     // To achieve 100% parity with the original function, create marriage events for BOTH wives during conversion.
     try {
-      await createMarriageEvent(treeId, husbandId, existingWifeId, { date: existingMonogamous.startDate });
-      await createMarriageEvent(treeId, husbandId, newSpouse.id, { date: formData.marriageDate });
+      const existingWife = await dataService.getPerson(existingWifeId);
+      await createMarriageEvent(treeId, husbandId, existingWifeId, { date: existingMonogamous.startDate, location: formData.marriageLocation, title: `Marriage#1 with ${existingWife.name}`, description: formData.marriageNotes });
+      await createMarriageEvent(treeId, husbandId, newSpouse.id, { date: formData.marriageDate, location: formData.marriageLocation, title: `Marriage#2 with ${newSpouse.name}`, description: formData.marriageNotes });
     } catch (err) {
       console.error("Failed to create events during marriage conversion:", err);
     }
@@ -153,23 +151,37 @@ export async function handleSpouseAddition(existingSpouse, newSpouse, formData, 
 
   // --- Scenario 3: No existing marriage -> CREATE NEW ---
   if (formData.marriageType === 'monogamous') {
-    const marriage = await createMarriage(treeId, "monogamous", createdBy, { 
+    const marriage = await createMarriage(treeId, "monogamous", createdBy, {
         spouses: [existingSpouse.id, newSpouse.id],
         startDate: formData.marriageDate,
         location: formData.marriageLocation,
         notes: formData.marriageNotes
     });
+
+    // Create marriage event
+    const spouseName = existingSpouse.gender === 'male' ? newSpouse.name : existingSpouse.name;
+    await createMarriageEvent(treeId, existingSpouse.id, newSpouse.id, {
+      date: formData.marriageDate,
+      location: formData.marriageLocation,
+      title: `Marriage with ${spouseName}`,
+      description: formData.marriageNotes,
+    });
+
     return { marriage, marriageAction: "created" };
   } else { // New Polygamous
     if (existingSpouse.gender !== "male") throw new Error("Only husbands can have multiple wives.");
-    
+
     // Create an empty polygamous marriage record first.
     const newMarriage = await createMarriage(treeId, "polygamous", createdBy);
     // Then, immediately update it with the husband's ID.
-    await dataService.updateMarriage(newMarriage.id, { husbandId: existingSpouse.id }); 
+    await dataService.updateMarriage(newMarriage.id, { husbandId: existingSpouse.id });
     // Finally, add the first wife, which will also trigger the creation of the marriage event.
-    const marriage = await addWifeToMarriage(newMarriage.id, newSpouse.id);
-    
+    const marriage = await addWifeToMarriage(newMarriage.id, newSpouse.id, {
+      startDate: formData.marriageDate,
+      location: formData.marriageLocation,
+      notes: formData.marriageNotes,
+    });
+
     return { marriage, marriageAction: "created" };
   }
 }

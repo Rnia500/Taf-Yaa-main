@@ -65,8 +65,8 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
 
             // --- 4. CREATE ASSOCIATED RECORDS ---
             // This logic remains the same.
-            if (newSpouse.dob) await addBirth(treeId, newSpouse.id, { date: newSpouse.dob, title: "Birth" });
-            if (newSpouse.dod) await addDeath(treeId, newSpouse.id, { date: newSpouse.dod, title: "Death" });
+            if (newSpouse.dob) await addBirth(treeId, newSpouse.id, { date: newSpouse.dob, title: "Birth", location:newSpouse.placeOfBirth });
+            if (newSpouse.dod) await addDeath(treeId, newSpouse.id, { date: newSpouse.dod, title: "Death", location: newSpouse.placeOfDeath});
 
             if (Array.isArray(newSpouseData.events)) {
                 for (const ev of newSpouseData.events) {
