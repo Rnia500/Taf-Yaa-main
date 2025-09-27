@@ -2,7 +2,7 @@
 :root {
   --sidebar-width: 350px;
   --topbar-height: 52px;
-  --DefaultNavColor: #F3EDE0
+  --DefaultNavColor: #F3EDE0; /* Fixed missing semicolon */
   --z-topbar: 1000;
   --z-sidebar: 999;
   --z-overlay: 998;
