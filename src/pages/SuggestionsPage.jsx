@@ -1,7 +1,8 @@
-﻿import React, { useMemo, useState } from "react";
+﻿﻿import React, { useMemo, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import SuggestionCard from "../components/SuggestionCard";
 import "../styles/SuggestionsPage.css";
+import { TreeProvider } from "../context/TreeContext.jsx";
 import {
   Filter,
   RefreshCw,
@@ -124,7 +125,8 @@ const SuggestionsPage = () => {
 
 
   return (
-    <div className="suggestions-page">
+    <TreeProvider treeId={treeId}>
+      <div className="suggestions-page">
       {/* Main Content */}
       <Column padding="0px" margin="0px" gap="18px" style={{ flex: 1 }}>
         {/* Header Section */}
@@ -230,6 +232,7 @@ const SuggestionsPage = () => {
         </Column>
       </Column>
     </div>
+    </TreeProvider>
   );
 };
 

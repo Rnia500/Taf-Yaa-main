@@ -14,7 +14,7 @@ import {
   EarthIcon,
   Settings,
   Bell, Trash2,
-  ArrowDownToLine, User, LogOut, Shield
+  ArrowDownToLine, User, LogOut, Shield, TreePine
 } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
@@ -113,6 +113,14 @@ export default function AdminNavbar() {
       label: t('navbar.settings'),
       icon: Settings,
       href: '/settings',
+      action: () => {
+        closeSubmenu();
+      }
+    },
+    {
+      label: 'My Trees',
+      icon: TreePine,
+      href: '/my-trees',
       action: () => {
         closeSubmenu();
       }

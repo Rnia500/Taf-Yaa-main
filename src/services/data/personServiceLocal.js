@@ -655,6 +655,33 @@ function purgePerson(personId) {
   return Promise.resolve({ purgedId: personId });
 }
 
+// Additional function used by controllers
+function findPersonByFields(fields) {
+  const db = getDB();
+  if (!fields || !fields.treeId) {
+    return Promise.resolve(null);
+  }
+
+  const people = (db.people || []).filter(p => 
+    !p.isDeleted && 
+    p.treeId === fields.treeId
+  );
+
+  // Add additional field filters if provided
+  let filteredPeople = people;
+  if (fields.name) {
+    filteredPeople = filteredPeople.filter(p => p.name === fields.name);
+  }
+  if (fields.gender) {
+    filteredPeople = filteredPeople.filter(p => p.gender === fields.gender);
+  }
+  if (fields.dob) {
+    filteredPeople = filteredPeople.filter(p => p.dob === fields.dob);
+  }
+
+  return Promise.resolve(filteredPeople.length > 0 ? filteredPeople[0] : null);
+}
+
 // Export all the functions in a single service object.
 export const personServiceLocal = {
   addPerson,
@@ -670,4 +697,5 @@ export const personServiceLocal = {
   getDeletedPersons,
   getDeletedPersonsByTreeId,
   purgePerson,
+  findPersonByFields, // Added missing function
 };

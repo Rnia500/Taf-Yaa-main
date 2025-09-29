@@ -17,8 +17,17 @@ const PhotoUploadModal = ({ isOpen, onClose, personId }) => {
     setIsUploading(true);
     setError(null);
     try {
-      const uploaded = await dataService.uploadFile(file, 'image');
+      // Get person to find treeId and userId context
       const person = await dataService.getPerson(personId);
+      const treeId = person?.treeId || 'general'; // fallback for general uploads
+      const userId = 'current-user'; // TODO: Get from auth context
+      
+      const uploaded = await dataService.uploadFile(file, 'image', { 
+        treeId, 
+        memberId: personId, 
+        userId 
+      });
+      
       const currentPhotos = Array.isArray(person?.photos) ? person.photos.slice() : [];
       currentPhotos.push({ url: uploaded.url, alt: person?.name || 'Photo' });
       await dataService.updatePerson(personId, { photos: currentPhotos });

@@ -16,11 +16,32 @@ export async function addTree(formData, options = {}) {
     if (!formData.rootPersonName) throw new Error("Root person name is required");
     if (!formData.rootPersonGender) throw new Error("Root person gender is required");
 
-    // --- 2. FILE UPLOADS ---
+    // --- 2. CREATE TREE OBJECT ---
+    const treeId = generateId("tree");
+
+    // --- 3. FILE UPLOADS ---
+    let uploadedFamilyPhotoUrl = null;
+    if (formData.familyPhoto) {
+      try {
+        const uploaded = await dataService.uploadFile(formData.familyPhoto, "image", {
+          treeId: treeId,
+          memberId: null,
+          userId: createdBy
+        });
+        uploadedFamilyPhotoUrl = uploaded.url;
+      } catch (err) {
+        console.error("Family photo upload failed", err);
+      }
+    }
+
     let uploadedPhotoUrl = null;
     if (formData.rootPersonPhoto) {
       try {
-        const uploaded = await dataService.uploadFile(formData.rootPersonPhoto, "image");
+        const uploaded = await dataService.uploadFile(formData.rootPersonPhoto, "image", {
+          treeId: treeId,
+          memberId: null, // Root person not created yet
+          userId: createdBy
+        });
         uploadedPhotoUrl = uploaded.url;
       } catch (err) {
         console.error("Root person photo upload failed", err);
@@ -30,26 +51,28 @@ export async function addTree(formData, options = {}) {
     let uploadedAudioUrl = null;
     if (formData.rootPersonAudioFile) {
       try {
-        const uploaded = await dataService.uploadFile(formData.rootPersonAudioFile, "audio");
+        const uploaded = await dataService.uploadFile(formData.rootPersonAudioFile, "audio", {
+          treeId: treeId,
+          memberId: null, // Root person not created yet
+          userId: createdBy
+        });
         uploadedAudioUrl = uploaded.url;
       } catch (err) {
         console.error("Root person audio upload failed", err);
       }
     }
-
-    // --- 3. CREATE TREE OBJECT ---
-    const treeId = generateId("tree");
     const tree = createTree({
       id: treeId,
       familyName: formData.familyName,
       createdBy,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      currentRootId: null, 
+      currentRootId: null,
       familyDescription: formData.familyDescription,
       orgineTribe: formData.orgineTribe,
       origineHomeLand: formData.origineHomeLand,
       origineTongue: formData.origineTongue,
+      familyPhoto: uploadedFamilyPhotoUrl,
       roles: { [createdBy]: "admin" },
       settings: {
         privacy: {
@@ -89,6 +112,14 @@ export async function addTree(formData, options = {}) {
     });
 
     await dataService.addTree(tree);
+
+    // Add the creator as a member of the tree
+    await dataService.addMember(treeId, {
+      userId: createdBy,
+      role: 'admin',
+      name: 'Placeholder User', // This should come from user data
+      email: 'placeholder@example.com'
+    });
 
     // --- 4. CREATE ROOT PERSON ---
     const rootPersonId = generateId("person");

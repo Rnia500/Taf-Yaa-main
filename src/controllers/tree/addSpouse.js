@@ -23,7 +23,11 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         let uploadedPhotoUrl = null;
         if (newSpouseData.profilePhoto) {
             try {
-                const uploaded = await dataService.uploadFile(newSpouseData.profilePhoto, "image");
+                const uploaded = await dataService.uploadFile(newSpouseData.profilePhoto, "image", {
+                    treeId: treeId,
+                    memberId: null, // Spouse not created yet
+                    userId: createdBy
+                });
                 uploadedPhotoUrl = uploaded.url;
             } catch (err) {
                 console.error("Photo upload failed", err);

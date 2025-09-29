@@ -38,7 +38,11 @@ export async function createAudioStory(params) {
 
   if (audioFile) {
     try {
-      const uploaded = await dataService.uploadFile(audioFile, "audio");
+      const uploaded = await dataService.uploadFile(audioFile, "audio", {
+        treeId: treeId,
+        memberId: personId,
+        userId: addedBy
+      });
       audioUrl = uploaded.url;
       console.log("DBG: audio uploaded", audioUrl);
     } catch (err) {

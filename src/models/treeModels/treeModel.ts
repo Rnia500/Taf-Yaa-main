@@ -8,11 +8,12 @@ export interface Tree {
   orgineTribe: string,
   origineTongue: string,
   origineHomeLand: string,
-  createdBy: string;             
-  createdAt: string;             
-  updatedAt: string;             
-  currentRootId?: string | null; 
-  
+  familyPhoto?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  currentRootId?: string | null;
+
   roles: Record<string, "admin" | "moderator" | "editor" | "viewer">;
 
   
@@ -73,6 +74,7 @@ export function createTree(input: Partial<Tree>): Tree {
     orgineTribe: input.orgineTribe || "No tribe given",
     origineHomeLand: input.origineHomeLand || "No homeland given",
     origineTongue: input.origineTongue || "No mother tongue given",
+    familyPhoto: input.familyPhoto || null,
     roles: input.roles || { [input.createdBy!]: "admin" },
 
     settings: {

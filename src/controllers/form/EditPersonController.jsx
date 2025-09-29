@@ -90,7 +90,11 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
       // Upload profile photo if a File was provided
       if (profilePhoto instanceof File) {
         try {
-          const uploaded = await dataService.uploadFile(profilePhoto, 'image');
+          const uploaded = await dataService.uploadFile(profilePhoto, 'image', {
+            treeId: person.treeId,
+            memberId: personId,
+            userId: 'current-user' // TODO: Get from auth context
+          });
           updates.photoUrl = uploaded.url;
         } catch (e) {
           console.warn('Profile photo upload failed, keeping existing photoUrl', e);
@@ -103,7 +107,11 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
         for (const p of photos) {
           if (p?.file instanceof File) {
             try {
-              const uploaded = await dataService.uploadFile(p.file, 'image');
+              const uploaded = await dataService.uploadFile(p.file, 'image', {
+                treeId: person.treeId,
+                memberId: personId,
+                userId: 'current-user' // TODO: Get from auth context
+              });
               normalized.push({ url: uploaded.url, alt: p.alt || updatedData.fullName || 'Photo' });
             } catch (e) {
               console.warn('Photo upload failed for one item', e);

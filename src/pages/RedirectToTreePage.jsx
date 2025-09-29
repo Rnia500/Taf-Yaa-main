@@ -1,15 +1,27 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import dataService from "../services/dataService"; 
+import { useAuth } from "../context/AuthContext";
+
 export default function RedirectToTree() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const fetchAndRedirect = async () => {
       try {
-        const latestTree = await dataService.getUserLatestTree();
-        const treeId = latestTree?.id || "tree001"; 
-        navigate(`/family-tree/${treeId}`, { replace: true });
+        if (!currentUser) {
+          // If no user, go to login
+          navigate("/login", { replace: true });
+          return;
+        }
+        
+        const latestTree = await dataService.getUserLatestTree(currentUser.uid);
+        if (latestTree) {
+          navigate(`/family-tree/${latestTree.id}`, { replace: true });
+        } else {
+          navigate("/my-trees", { replace: true });
+        }
       } catch (err) {
         console.error("RedirectToTree failed:", err);
         navigate("/create-tree", { replace: true });
@@ -17,7 +29,7 @@ export default function RedirectToTree() {
     };
 
     fetchAndRedirect();
-  }, [navigate]);
+  }, [navigate, currentUser]);
 
   return <div>Loading your family tree...</div>;
 }

@@ -1,7 +1,6 @@
 // src/controllers/tree/addChild.js
 
 import { createPerson } from "../../models/treeModels/PersonModel";
-import * as storageService from "../../services/storageService";
 import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createMarriage, addChildToMarriage } from "./marriages";
@@ -19,7 +18,11 @@ export async function addChild(treeId, options) {
     let uploadedPhotoUrl = null;
     if (childData.profilePhoto) {
       try {
-        const uploaded = await dataService.uploadFile(childData.profilePhoto, "image");
+        const uploaded = await dataService.uploadFile(childData.profilePhoto, "image", {
+          treeId: treeId,
+          memberId: null, // Child not created yet
+          userId: createdBy
+        });
         uploadedPhotoUrl = uploaded.url;
       } catch (err) {
         console.error("Photo upload failed", err);

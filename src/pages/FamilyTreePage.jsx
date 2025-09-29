@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TreeCanvasWrapper from "../components/tree/TreeCanvas";
 import dataService from "../services/dataService";
+import { TreeProvider } from "../context/TreeContext.jsx";
 
 export default function FamilyTreePage() {
   const { treeId } = useParams();
@@ -56,9 +57,11 @@ if (notFound || !tree) {
 }
 
 return (
-  <div style={{ height: "calc(100vh - var(--topbar-height))", width: "100%" }}>
-    <TreeCanvasWrapper treeId={tree.id} />
-  </div>
+  <TreeProvider treeId={treeId}>
+    <div style={{ height: "calc(100vh - var(--topbar-height))", width: "100%" }}>
+      <TreeCanvasWrapper treeId={tree.id} />
+    </div>
+  </TreeProvider>
 );
 
 }

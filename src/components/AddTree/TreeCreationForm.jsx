@@ -23,6 +23,7 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
     origineTribe: '',
     origineTongue: '',
     origineHomeLand: '',
+    familyPhoto: null,
     marriageTypeAllowed: '',
 
     // Root Person Information
@@ -126,6 +127,14 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
             onChange={(e) => handleInputChange('familyDescription', e.target.value)}
             placeholder="Describe your family history..."
             rows={3}
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label className="form-label">Family Photo</label>
+          <FileUpload
+            onChange={(file) => handleInputChange('familyPhoto', file)}
+            accept="image/*"
           />
         </div>
 

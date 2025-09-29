@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation } from "react-router-dom";
 import "./index.css";
 import "./styles/fonts.css";
-import "./i18n.js"; // Add this line to initialize i18n
+import "./i18n.js"; 
 import App from "./App.jsx";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import ExportPage from "./pages/ExportPage.jsx";
@@ -14,6 +14,9 @@ import NotificationCenter from "./pages/NotificationCenter.jsx";
 import SuggestionsPage from "./pages/SuggestionsPage.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
+import MyTreesPage from "./pages/MyTreesPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
 
 // Component to redirect to proper nested routes
 const RedirectToNestedRoute = ({ targetPath }) => {
@@ -30,9 +33,10 @@ const RedirectToNestedRoute = ({ targetPath }) => {
       treeId = localStorage.getItem('currentTreeId');
     }
     
-    // Final fallback
+    // Final fallback to my-trees if no treeId
     if (!treeId) {
-      treeId = 'tree001';
+      navigate('/my-trees', { replace: true });
+      return;
     }
     
     navigate(`/family-tree/${treeId}${targetPath}`, { replace: true });
@@ -120,11 +124,21 @@ const router = createBrowserRouter([
     path: "/suggestions",
     element: <RedirectToNestedRoute targetPath="/suggestions" />,
   },
+  {
+    path: "/my-trees",
+    element: <MyTreesPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
 
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>
 );

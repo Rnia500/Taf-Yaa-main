@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import FileUpload from './FileUpload';
 import Card from '../layout/containers/Card';
 import Text from './Text';
@@ -11,8 +11,20 @@ import '../styles/AudioUploadCard.css';
 
 import dataService from '../services/dataService';
 import { validateAudioFile } from '../utils/featuresUtils/audioValidator.js';
+import { TreeContext } from '../context/TreeContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 function AudioUploadCard({ onAudioUpload, storyTitle }) {
+  // Handle case where AudioUploadCard is used outside TreeProvider (like in tree creation modal)
+  const context = useContext(TreeContext);
+  let treeId;
+  if (context) {
+    treeId = context.treeId;
+  } else {
+    treeId = 'creating';
+  }
+  const { currentUser } = useAuth();
+
   const [audioFile, setAudioFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('idle'); // idle, uploading, success, error
   const [isPlaying, setIsPlaying] = useState(false);
@@ -47,7 +59,11 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
     }
 
     try {
-      const result = await dataService.uploadFile(file, 'audio');
+      const result = await dataService.uploadFile(file, 'audio', {
+        treeId,
+        memberId: null,
+        userId: currentUser?.uid
+      });
       // result: { id, url, type }
       setUploadStatus('success');
       setAudioPreview(result.url); // overwrite preview with persisted url (may be same as data URL)

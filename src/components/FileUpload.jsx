@@ -1,8 +1,21 @@
 import React, { useState, useRef } from 'react';
 import dataService from '../services/dataService.js';
+import { useTree } from '../context/TreeContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import '../styles/FileUpload.css';
 
 function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = 'default' }) {
+  // Handle case where FileUpload is used outside TreeProvider (like in tree creation modal)
+  let treeId;
+  try {
+    treeId = useTree()?.treeId;
+  } catch (error) {
+    // Not within TreeProvider, set treeId to null or a temporary value
+    treeId = 'creating';
+  }
+  
+  const { currentUser } = useAuth();
+
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState('');
   const [filePreview, setFilePreview] = useState(null);
@@ -38,7 +51,7 @@ function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = '
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     setIsDragging(false);
 
@@ -53,7 +66,11 @@ function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = '
           const dataUrl = ev.target.result;
           setFilePreview(dataUrl);
       try {
-            const result = await dataService.uploadFile(file, 'image');
+            const result = await dataService.uploadFile(file, 'image', {
+              treeId,
+              memberId: null,
+              userId: currentUser?.uid
+            });
             onChange(result.url);
           } catch (err) {
             console.error('FileUpload -> uploadImage failed (drop)', err);

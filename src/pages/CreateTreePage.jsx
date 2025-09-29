@@ -7,14 +7,15 @@ import Row from '../layout/containers/Row'
 import Button from '../components/Button'
 import AddTreeModal from '../components/AddTree/AddTreeModal'
 import useModalStore from '../store/useModalStore'
+import { useAuth } from '../context/AuthContext'
 
 
 export const CreateTreePage = () => {
   const { openModal } = useModalStore();
-
+  const { currentUser } = useAuth();
 
   const handleCreateTree = () => {
-    openModal('treeModal', { createdBy: 'user' });
+    openModal('treeModal', { createdBy: currentUser?.uid || 'placeholder-user-id' });
   };
 
   return (
@@ -39,7 +40,7 @@ export const CreateTreePage = () => {
       </FlexContainer>
 
       <AddTreeModal
-        createdBy="user"
+        createdBy={currentUser?.uid || 'placeholder-user-id'}
         onSuccess={(result) => {
           console.log('Tree created successfully:', result);
         }}

@@ -12,9 +12,9 @@ import { treeServiceFirebase } from './data/treeServiceFirebase.js';
 import { treeSettingsService } from './data/treeSettingLocal.js';
 import { clearDB as clearLocalDB } from './data/localDB.js';
 
-import {storageService} from './storageService.js'; 
+import { mediaService } from './mediaService.js'; 
 
-const BACKEND = "local"; // or "firebase"
+const BACKEND = "firebase"; // or "local"
 
 const services = {
   local: {
@@ -34,10 +34,20 @@ const services = {
   },
 };
 
+// Cloud storage wrapper for backward compatibility
+const cloudStorageService = {
+  async uploadFile(file, type, context = {}) {
+    const { treeId, memberId, userId } = context;
+    if (!treeId || !userId) {
+      throw new Error('treeId and userId are required for cloud storage');
+    }
+    return mediaService.uploadMedia(file, treeId, memberId, userId);
+  }
+};
 
 const dataService = {
   ...services[BACKEND],
-  ...storageService,      
+  ...cloudStorageService,      
   clearLocalDB: clearLocalDB,
 };
 
