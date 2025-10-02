@@ -32,11 +32,11 @@ export interface MonogamousMarriage {
   updatedAt: string;
   // Deletion metadata for cascade delete with undo
   isDeleted?: boolean;
-  deletedAt?: string;
-  deletionMode?: "cascade";
+  deletedAt?: string | null;
+  deletionMode?: "cascade" | null;
   pendingDeletion?: boolean;
-  undoExpiresAt?: string;
-  deletionBatchId?: string;
+  undoExpiresAt?: string | null;
+  deletionBatchId?: string | null;
 }
 
 export interface PolygamousMarriage {
@@ -50,11 +50,11 @@ export interface PolygamousMarriage {
   updatedAt: string;
   // Deletion metadata for cascade delete with undo
   isDeleted?: boolean;
-  deletedAt?: string;
-  deletionMode?: "cascade";
+  deletedAt?: string | null;
+  deletionMode?: "cascade" | null;
   pendingDeletion?: boolean;
-  undoExpiresAt?: string;
-  deletionBatchId?: string;
+  undoExpiresAt?: string | null;
+  deletionBatchId?: string | null;
 }
 
 export type Marriage = MonogamousMarriage | PolygamousMarriage;
@@ -76,11 +76,11 @@ export class MarriageModel {
             updatedAt: new Date().toISOString(),
             // Deletion metadata defaults
             isDeleted: false,
-            deletedAt: undefined,
-            deletionMode: undefined,
+            deletedAt: null,
+            deletionMode: null,
             pendingDeletion: false,
-            undoExpiresAt: undefined,
-            deletionBatchId: undefined,
+            undoExpiresAt: null,
+            deletionBatchId: null,
           }
         : {
             id: generateId("marriage"),
@@ -93,11 +93,11 @@ export class MarriageModel {
             updatedAt: new Date().toISOString(),
             // Deletion metadata defaults
             isDeleted: false,
-            deletedAt: undefined,
-            deletionMode: undefined,
+            deletedAt: null,
+            deletionMode: null,
             pendingDeletion: false,
-            undoExpiresAt: undefined,
-            deletionBatchId: undefined,
+            undoExpiresAt: null,
+            deletionBatchId: null,
           };
   }
 

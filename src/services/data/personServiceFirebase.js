@@ -113,56 +113,65 @@ async function deletePerson(personId, mode = "soft", options = {}) {
       };
 
       await updatePerson(personId, updateData);
-      
       // Mark related events and stories as deleted (implement when event/story services are ready)
       console.log(`DBG:personServiceFirebase.deletePerson[soft] -> marked related events and stories`);
-      
+
       console.log(`DBG:personServiceFirebase.deletePerson[soft] -> ${personId} now placeholder, batch=${batchId}`);
       return { person: { ...person, ...updateData }, removedMarriageIds: [], batchId, undoExpiresAt };
     }
 
     if (mode === "cascade") {
-      // Implement full cascade deletion logic
+      // Helper function to collect descendants and handle direct line spouse deletion
       const toDelete = new Set();
       const marriagesToDelete = new Set();
 
-      // Helper function to collect descendants
+      // Helper function to collect descendants and handle direct line spouse deletion
       const collectDescendants = async (id) => {
         if (toDelete.has(id)) return;
         toDelete.add(id);
 
         // Get marriages where this person is a spouse
         const marriages = await marriageServiceFirebase.getMarriagesByPersonId(id);
-        
+
         for (const marriage of marriages) {
           if (marriage.marriageType === "monogamous") {
-            // Add all spouses to deletion set
-            if (Array.isArray(marriage.spouses)) {
+            // Check if person is direct line spouse
+            if (marriage.spouses.includes(id)) {
+              // Direct line spouse deletion: delete entire marriage and descendants
+              marriagesToDelete.add(marriage.id);
               marriage.spouses.forEach(spouseId => toDelete.add(spouseId));
-            }
-            // Add all children to deletion set
-            if (Array.isArray(marriage.childrenIds)) {
-              for (const childId of marriage.childrenIds) {
-                await collectDescendants(childId);
+              if (Array.isArray(marriage.childrenIds)) {
+                for (const childId of marriage.childrenIds) {
+                  await collectDescendants(childId);
+                }
               }
             }
-            marriagesToDelete.add(marriage.id);
           } else if (marriage.marriageType === "polygamous") {
-            // Add husband to deletion set
-            if (marriage.husbandId) {
+            if (marriage.husbandId === id) {
+              // Direct line spouse deletion: delete entire marriage and descendants
+              marriagesToDelete.add(marriage.id);
               toDelete.add(marriage.husbandId);
-            }
-            // Add all wives to deletion set
-            if (Array.isArray(marriage.wives)) {
-              marriage.wives.forEach(wife => {
-                toDelete.add(wife.wifeId);
-                // Add children of each wife
-                if (Array.isArray(wife.childrenIds)) {
-                  wife.childrenIds.forEach(childId => collectDescendants(childId));
+              if (Array.isArray(marriage.wives)) {
+                marriage.wives.forEach(w => {
+                  toDelete.add(w.wifeId);
+                  if (Array.isArray(w.childrenIds)) {
+                    w.childrenIds.forEach(childId => collectDescendants(childId));
+                  }
+                });
+              }
+            } else {
+              // Check if person is a wife
+              const wifeData = marriage.wives.find(w => w.wifeId === id);
+              if (wifeData) {
+                // Wife deletion: delete wife and descendants, but keep marriage
+                toDelete.add(wifeData.wifeId);
+                if (Array.isArray(wifeData.childrenIds)) {
+                  for (const childId of wifeData.childrenIds) {
+                    await collectDescendants(childId);
+                  }
                 }
-              });
+              }
             }
-            marriagesToDelete.add(marriage.id);
           }
         }
 
@@ -542,19 +551,30 @@ async function getPeopleByTreeId(treeId) {
     }
 
     const peopleRef = collection(db, 'people');
-    const q = query(
+    // Query for active people
+    const activeQuery = query(
       peopleRef,
       where('treeId', '==', treeId),
       where('active', '==', true)
     );
-    
-    const querySnapshot = await getDocs(q);
+    // Query for soft deleted placeholders
+    const placeholderQuery = query(
+      peopleRef,
+      where('treeId', '==', treeId),
+      where('isPlaceholder', '==', true),
+      where('pendingDeletion', '==', true)
+    );
+    const [activeSnapshot, placeholderSnapshot] = await Promise.all([
+      getDocs(activeQuery),
+      getDocs(placeholderQuery)
+    ]);
     const results = [];
-    
-    querySnapshot.forEach((doc) => {
+    activeSnapshot.forEach((doc) => {
       results.push({ id: doc.id, ...doc.data() });
     });
-    
+    placeholderSnapshot.forEach((doc) => {
+      results.push({ id: doc.id, ...doc.data() });
+    });
     return results;
   } catch (error) {
     throw new Error(`Failed to get people by tree ID: ${error.message}`);

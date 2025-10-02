@@ -1,23 +1,35 @@
 export const mediaService = {
-  // Upload media using Netlify function
+  async uploadFileToCloudinary(file) {
+    // Step 1: Ask Netlify for signature
+    const sigRes = await fetch("/.netlify/functions/upload-media", { method: "POST" });
+    if (!sigRes.ok) {
+      throw new Error('Failed to get upload signature');
+    }
+    const { timestamp, signature, cloudName, apiKey, folder } = await sigRes.json();
+
+    // Step 2: Send file directly to Cloudinary
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", apiKey);
+    formData.append("timestamp", timestamp);
+    formData.append("signature", signature);
+    formData.append("folder", folder);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    return data;
+  },
+
   async uploadMedia(file, treeId, memberId, userId) {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('treeId', treeId);
-      formData.append('memberId', memberId || '');
-
-      // Upload to Cloudinary via Netlify function
-      const uploadResponse = await fetch('/.netlify/functions/upload-media', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const uploadResult = await uploadResponse.json();
+      // Upload file directly to Cloudinary using signature
+      const uploadResult = await this.uploadFileToCloudinary(file);
 
       // Store reference in Firestore via Netlify function
       const storeResponse = await fetch('/.netlify/functions/manage-media', {
@@ -26,7 +38,14 @@ export const mediaService = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...uploadResult.data,
+          public_id: uploadResult.public_id,
+          secure_url: uploadResult.secure_url,
+          resource_type: uploadResult.resource_type,
+          format: uploadResult.format,
+          bytes: uploadResult.bytes,
+          width: uploadResult.width,
+          height: uploadResult.height,
+          duration: uploadResult.duration,
           treeId,
           memberId,
           uploadedBy: userId,

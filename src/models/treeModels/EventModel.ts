@@ -1,25 +1,24 @@
 // src/models/eventModel.ts
-import { generateId } from "../../utils/personUtils/idGenerator"; 
-
+import { generateId } from "../../utils/personUtils/idGenerator";
 export interface Event {
   id: string;
   treeId: string;
   personIds: string[]; // multiple people can share one event (e.g. marriage)
   type: EventType;
-  customType?: string;
-  title?: string;
-  description?: string;
-  date?: string; // ISO 8601
-  location?: string;
+  customType?: string | null;
+  title?: string | null;
+  description?: string | null;
+  date?: string | null; // ISO 8601
+  location?: string | null;
   createdAt: string;
   updatedAt: string;
   // Deletion metadata for soft/cascade delete with undo
   isDeleted?: boolean;
-  deletedAt?: string;
-  deletionMode?: "soft" | "cascade";
+  deletedAt?: string | null;
+  deletionMode?: "soft" | "cascade" | null;
   pendingDeletion?: boolean;
-  undoExpiresAt?: string;
-  deletionBatchId?: string;
+  undoExpiresAt?: string | null;
+  deletionBatchId?: string | null;
 }
 
 export type EventType =
@@ -47,13 +46,20 @@ export const createEvent = (data: {
     treeId: data.treeId,
     personIds: data.personIds,
     type: data.type,
-    customType: data.customType,
-    title: data.title,
-    description: data.description,
-    date: data.date,
-    location: data.location,
+    customType: data.customType || null,
+    title: data.title || null,
+    description: data.description || null,
+    date: data.date || null,
+    location: data.location || null,
     createdAt: now,
     updatedAt: now,
+    // Deletion metadata defaults
+    isDeleted: false,
+    deletedAt: null,
+    deletionMode: null,
+    pendingDeletion: false,
+    undoExpiresAt: null,
+    deletionBatchId: null,
   };
 };
 

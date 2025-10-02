@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
@@ -33,6 +33,7 @@ export default function AdminNavbar() {
   const submenuRef = useRef(null);
   const langMenuRef = useRef(null);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   // Extract treeId from URL if not available from useParams
   const getTreeId = () => {
@@ -123,6 +124,7 @@ export default function AdminNavbar() {
       href: '/my-trees',
       action: () => {
         closeSubmenu();
+        navigate('/my-trees');
       }
     },
     {

@@ -6,18 +6,18 @@ export interface Story {
   personId: string;
   title: string;
   type: "audio" | "text";
-  language?: string;
+  language?: string | null;
   audioUrl?: string | null;
   addedBy: string;
   timestamp: string;  // ISO string
   tags?: string[];
   // Deletion metadata for soft/cascade delete with undo
   isDeleted?: boolean;
-  deletedAt?: string;
-  deletionMode?: "soft" | "cascade";
+  deletedAt?: string | null;
+  deletionMode?: "soft" | "cascade" | null;
   pendingDeletion?: boolean;
-  undoExpiresAt?: string;
-  deletionBatchId?: string;
+  undoExpiresAt?: string | null;
+  deletionBatchId?: string | null;
 }
 
 // --- Helpers ---
@@ -40,8 +40,22 @@ export const hasAudio = (story: Story): boolean =>
 export const createStory = (params: Omit<Story, "storyId" | "timestamp">): Story => {
   return {
     storyId: generateId("story"),
+    treeId: params.treeId,
+    personId: params.personId,
+    title: params.title,
+    type: params.type,
+    language: params.language || null,
+    audioUrl: params.audioUrl || null,
+    addedBy: params.addedBy,
     timestamp: new Date().toISOString(),
-    ...params,
+    tags: params.tags || [],
+    // Deletion metadata defaults
+    isDeleted: false,
+    deletedAt: null,
+    deletionMode: null,
+    pendingDeletion: false,
+    undoExpiresAt: null,
+    deletionBatchId: null,
   };
 };
 

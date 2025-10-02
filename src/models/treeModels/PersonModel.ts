@@ -25,11 +25,11 @@ export interface Person {
   isPlaceholder?: boolean;      
   // Deletion metadata for soft/cascade delete with undo
   isDeleted?: boolean;
-  deletedAt?: string;
-  deletionMode?: "soft" | "cascade";
+  deletedAt?: string | null;
+  deletionMode?: "soft" | "cascade" | null;
   pendingDeletion?: boolean;
-  undoExpiresAt?: string;
-  deletionBatchId?: string;
+  undoExpiresAt?: string | null;
+  deletionBatchId?: string | null;
   createdAt: string;            
   updatedAt: string;            
 }
@@ -115,11 +115,11 @@ export function createPerson(input: Partial<Person>): Person {
     isPlaceholder: input.isPlaceholder || false,
     // Deletion metadata defaults
     isDeleted: input.isDeleted || false,
-    deletedAt: input.deletedAt || undefined,
-    deletionMode: input.deletionMode || undefined,
+    deletedAt: input.deletedAt || null,
+    deletionMode: input.deletionMode || null,
     pendingDeletion: input.pendingDeletion || false,
-    undoExpiresAt: input.undoExpiresAt || undefined,
-    deletionBatchId: input.deletionBatchId || undefined,
+    undoExpiresAt: input.undoExpiresAt || null,
+    deletionBatchId: input.deletionBatchId || null,
     createdAt: input.createdAt || new Date().toISOString(),
     updatedAt: input.updatedAt || new Date().toISOString(),
   };

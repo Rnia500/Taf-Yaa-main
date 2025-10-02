@@ -7,7 +7,7 @@ import Spacer from '../Spacer'
 import Row from '../../layout/containers/Row'
 import Column from '../../layout/containers/Column'
 import { TextInput } from '../../components/Input';
-import { personServiceLocal } from '../../services/data/personServiceLocal';
+import dataService from '../../services/dataService';
 import useToastStore from '../../store/useToastStore';
 import useModalStore from '../../store/useModalStore';
 import UndoCountdown from '../UndoCountdown';
@@ -28,7 +28,7 @@ export const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete })
     const loadPreview = async () => {
       if (mode === 'cascade') {
         try {
-          const previewData = await personServiceLocal.previewCascadeDelete(person.id);
+          const previewData = await dataService.previewCascadeDelete(person.id);
           setPreview(previewData);
         } catch (error) {
           console.error('Failed to load preview:', error);
@@ -46,7 +46,7 @@ export const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete })
     if (!person) return;
     setIsLoading(true);
     try {
-      const result = await personServiceLocal.deletePerson(person.id, mode, { undoWindowDays: 30 });
+      const result = await dataService.deletePerson(person.id, mode, { undoWindowDays: 30 });
       
       // Set deletion info for undo countdown
       setDeletionInfo({

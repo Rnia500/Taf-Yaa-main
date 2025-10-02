@@ -2,11 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 // Import your services
-import { personServiceLocal } from "../services/data/personServiceLocal";
-import { marriageServiceLocal } from "../services/data/marriageServiceLocal";
-import { treeServiceLocal } from "../services/data/treeServiceLocal";
-import { eventServiceLocal } from "../services/data/eventServiceLocal";
-import { storyServiceLocal } from "../services/data/storyServiceLocal";
+import  dataService  from "../services/dataService";
 
 /**
  * useFamilyData
@@ -24,7 +20,7 @@ export function useFamilyData(treeId) {
     setLoading(true);
     try {
       // 1. Load the tree
-      const t = await treeServiceLocal.getTree(treeId);
+      const t = await dataService.getTree(treeId);
       setTree(t);
 
       if (!t) {
@@ -37,10 +33,13 @@ export function useFamilyData(treeId) {
       }
 
       // 2. Load people
-      let p = await personServiceLocal.getPeopleByTreeId(treeId);
+      let p = await dataService.getPeopleByTreeId(treeId);
+
+      // Filter out only cascade deleted persons
+      p = p.filter(person => !(person.isDeleted && person.deletionMode === "cascade"));
 
       // Debug log for people including placeholders
-      console.log("DBG:useFamilyData.reload -> people loaded:", p.map(person => ({
+      console.log("DBG:useFamilyData.reload -> people loaded (filtered cascade deleted):", p.map(person => ({
         id: person.id,
         name: person.name,
         isPlaceholder: person.isPlaceholder,
@@ -50,7 +49,7 @@ export function useFamilyData(treeId) {
       })));
 
       // 3. Load marriages
-      const m = await marriageServiceLocal.getAllMarriages();
+      const m = await dataService.getAllMarriages();
       const personIds = new Set(p.map(per => per.id));
       const mFiltered = m.filter(marr => {
         // Filter out deleted marriages
@@ -109,14 +108,14 @@ export function useFamilyData(treeId) {
       setMarriages(mFiltered);
 
       // 4. Load events
-      const evts = await eventServiceLocal.getAllEvents();
+      const evts = await dataService.getAllEvents();
       const evtsFiltered = evts.filter(e =>
         e.personIds?.some(pid => personIds.has(pid))
       );
       setEvents(evtsFiltered);
 
       // 5. Load stories
-      const sts = await storyServiceLocal.getAllStories();
+      const sts = await dataService.getAllStories();
       const stsFiltered = sts.filter(
         s =>
           personIds.has(s.personId) ||

@@ -117,8 +117,7 @@ export async function addTree(formData, options = {}) {
     await dataService.addMember(treeId, {
       userId: createdBy,
       role: 'admin',
-      name: 'Placeholder User', // This should come from user data
-      email: 'placeholder@example.com'
+      // Removed placeholder user name and email
     });
 
     // --- 4. CREATE ROOT PERSON ---
@@ -139,6 +138,11 @@ export async function addTree(formData, options = {}) {
       isSpouse: false,
       allowGlobalMatching: true,
       privacyLevel: "membersOnly",
+      deletedAt: null,
+      deletionMode: null,
+      pendingDeletion: false,
+      undoExpiresAt: null,
+      deletionBatchId: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });

@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import usePersonMenuStore from '../store/usePersonMenuStore';
 import useModalStore from '../store/useModalStore';
 import dataService from '../services/dataService';
-import { personServiceLocal } from '../services/data/personServiceLocal';
 import useToastStore from '../store/useToastStore';
 import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight, Undo2 } from 'lucide-react';
 import '../styles/PersonMenu.css';
@@ -103,7 +102,7 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     if (!targetNodeId) return;
     
     try {
-      await personServiceLocal.undoDelete(targetNodeId);
+      await dataService.undoDelete(targetNodeId);
       addToast('Person restored successfully!', 'success');
       if (onDeleteComplete) onDeleteComplete({ action: 'restore' });
       actions.closeMenu();
