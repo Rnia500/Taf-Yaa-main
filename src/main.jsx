@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation } from "react-router-dom";
 import "./index.css";
 import "./styles/fonts.css";
-import "./i18n.js"; 
+import "./i18n.js";
 import App from "./App.jsx";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import ExportPage from "./pages/ExportPage.jsx";
@@ -16,7 +16,24 @@ import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
 import MyTreesPage from "./pages/MyTreesPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
-import { AuthProvider } from "./context/AuthContext.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
+import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
+
+// Component to handle landing page routing
+const LandingRouteWrapper = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (currentUser) {
+    // Redirect logged in users to their tree context
+    return <RedirectToTree />;
+  }
+
+  return children;
+};
 
 // Component to redirect to proper nested routes
 const RedirectToNestedRoute = ({ targetPath }) => {
@@ -48,11 +65,11 @@ const RedirectToNestedRoute = ({ targetPath }) => {
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <RedirectToTree />,
-  },
-  {
-    path: "/base",
-    element: <App />,
+    element: (
+      <LandingRouteWrapper>
+        <LandingPage />
+      </LandingRouteWrapper>
+    ),
   },
   {
     path: "/family-tree/:treeId",

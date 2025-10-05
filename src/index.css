@@ -1,4 +1,8 @@
+
 @import './styles/Colors.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   font-family: 'Inter', 'Poppins', 'sans-serif';

@@ -1,7 +1,7 @@
 ﻿﻿import React, { useMemo, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import SuggestionCard from "../components/SuggestionCard";
-import "../styles/SuggestionsPage.css";
+import "../styles/SuggestionsPages.css";
 import { TreeProvider } from "../context/TreeContext.jsx";
 import {
   Filter,

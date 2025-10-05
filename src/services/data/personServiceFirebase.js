@@ -59,7 +59,7 @@ async function getPerson(id) {
     const personRef = doc(db, 'people', id);
     const personSnap = await getDoc(personRef);
     
-    if (personSnap..exists()) {
+    if (personSnap.exists()) {
       return { id: personSnap.id, ...personSnap.data() };
     } else {
       return null;

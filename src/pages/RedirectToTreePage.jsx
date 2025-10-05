@@ -11,8 +11,8 @@ export default function RedirectToTree() {
     const fetchAndRedirect = async () => {
       try {
         if (!currentUser) {
-          // If no user, go to login
-          navigate("/login", { replace: true });
+          // If no user, go to landing page
+          navigate("/", { replace: true });
           return;
         }
         

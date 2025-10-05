@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/Button.css';
-import { useState } from 'react';
 
-// Map position prop to its transform value
 const positionTransforms = {
-  'center': 'translate(-50%, -50%)',
-  'left': 'translateY(-50%)',
-  'right': 'translateY(-50%)',
+  center: 'translate(-50%, -50%)',
+  left: 'translateY(-50%)',
+  right: 'translateY(-50%)',
   'top-center': 'translateX(-50%)',
   'bottom-center': 'translateX(-50%)',
 };
@@ -14,6 +12,7 @@ const positionTransforms = {
 const Button = ({
   children,
   onClick,
+  className = '', // 👈 default to empty string
   variant = 'primary',
   size = 'md',
   borderRadius = '8px',
@@ -24,39 +23,49 @@ const Button = ({
   margin = '0px',
   type = 'button',
   width,
-  positionType = 'static', 
-  position = '',           
+  positionType = 'static',
+  position = '',
   style = {},
+  hoverScale = false,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
-  const classList = ['btn'];
   const [isPressed, setIsPressed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Get the transform for position, if any
+  const classList = [
+    'btn',
+    variant ? `btn-${variant}` : '',
+    size ? `btn-${size}` : '',
+    fullWidth ? 'btn-full' : '',
+    loading ? 'btn-loading' : '',
+    disabled && !loading ? 'btn-disabled' : '',
+    position ? `btn-pos-${position}` : '',
+    className, // 👈 finally append user-provided classes (e.g. Tailwind)
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   const positionTransform = positionTransforms[position] || '';
-  // Get the scale transform
   const scaleTransform = onClick && isPressed ? 'scale(0.9)' : 'scale(1)';
-  // Combine them (order: position first, then scale)
-  const combinedTransform = [positionTransform, scaleTransform].filter(Boolean).join(' ');
-
-  if (variant) classList.push(`btn-${variant}`);
-  if (size) classList.push(`btn-${size}`);
-  if (fullWidth) classList.push('btn-full');
-  if (loading) classList.push('btn-loading');
-  if (borderRadius) classList.push(`btn-radius-${borderRadius}`);
-  if (disabled && !loading) classList.push('btn-disabled');
-  if (position) classList.push(`btn-pos-${position}`);
+  const combinedTransform = [positionTransform, scaleTransform]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <button
-      onMouseDown={onClick ? () => setIsPressed(true) : undefined }
-      onMouseUp={onClick ? () => setIsPressed(false) : undefined }
+      onMouseDown={onClick ? () => setIsPressed(true) : undefined}
+      onMouseUp={onClick ? () => setIsPressed(false) : undefined}
       type={type}
-      className={classList.join(' ')}
+      className={classList}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       disabled={disabled || loading}
       style={{
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         transform: combinedTransform,
+        borderRadius,
         margin,
         ...(width ? { width } : {}),
         position: positionType,

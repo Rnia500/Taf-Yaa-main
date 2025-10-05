@@ -60,6 +60,15 @@
   bottom: 6px;
 }
 
+/* No underline for specific nav items */
+.navItem.no-underline::after {
+  display: none;
+}
+
+.navItem.no-underline:hover::after {
+  width: 0;
+}
+
 /* Button styling to match NavLink */
 .navItem button {
   color: var(--color-primary-text);
