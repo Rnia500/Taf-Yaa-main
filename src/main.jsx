@@ -16,7 +16,9 @@ import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
 import MyTreesPage from "./pages/MyTreesPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
+import Custom404Page from "./components/Custom404Page.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
 // Component to handle landing page routing
@@ -70,10 +72,12 @@ const router = createBrowserRouter([
         <LandingPage />
       </LandingRouteWrapper>
     ),
+    errorElement: <Custom404Page />,
   },
   {
     path: "/family-tree/:treeId",
     element: <App />,
+    errorElement: <Custom404Page />,
     children: [
       {
         index: true,
@@ -119,35 +123,48 @@ const router = createBrowserRouter([
   {
     path: "/create-tree",
     element: <CreateTreePage />, 
+    errorElement: <Custom404Page />,
   },
   {
     path: "/members",
     element: <App />,
+    errorElement: <Custom404Page />,
   },
 
   {
     path: "/settings",
     element: <App />,
+    errorElement: <Custom404Page />,
   },
   {
     path: "/language",
     element: <App />,
+    errorElement: <Custom404Page />,
   },
   {
     path: "/notifications",
     element: <RedirectToNestedRoute targetPath="/notificationcenter" />,
+    errorElement: <Custom404Page />,
   },
   {
     path: "/suggestions",
     element: <RedirectToNestedRoute targetPath="/suggestions" />,
+    errorElement: <Custom404Page />,
   },
   {
     path: "/my-trees",
     element: <MyTreesPage />,
+    errorElement: <Custom404Page />,
   },
   {
     path: "/login",
     element: <LoginPage />,
+    errorElement: <Custom404Page />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+    errorElement: <Custom404Page />,
   },
 
 ]);

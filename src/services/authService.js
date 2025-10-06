@@ -3,21 +3,23 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 
 export const authService = {
   // Register new user
-  async register(email, password, displayName) {
+  async register(email, password, displayName, preferences = {}) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
       // Update profile
       await updateProfile(user, { displayName });
-      
+
       // Create user document in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
@@ -28,15 +30,21 @@ export const authService = {
         joinedTrees: [],
         roles: {},
         preferences: {
-          language: 'en',
-          darkMode: false,
-          treeDefaultView: 'radial'
+          language: preferences.language || 'en',
+          darkMode: preferences.darkMode ?? false,
+          treeDefaultView: preferences.treeDefaultView || 'radial',
+          notificationEnabled: preferences.notificationEnabled ?? true,
+          ...preferences,
         },
         invitedBy: null,
         lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true,
+        isDeleted: false,
+        deletedAt: null,
       });
-      
+
       return user;
     } catch (error) {
       throw new Error(error.message);
@@ -78,6 +86,51 @@ export const authService = {
     } catch (error) {
       console.error('Error fetching user data:', error);
       return null;
+    }
+  },
+
+  // Login with Google
+  async loginWithGoogle() {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Check if user document exists, if not create it
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || 'Unknown',
+          profilePhoto: user.photoURL || null,
+          linkedPersonId: null,
+          joinedTrees: [],
+          roles: {},
+          preferences: {
+            language: 'en',
+            darkMode: false,
+            treeDefaultView: 'radial',
+            notificationEnabled: true,
+          },
+          invitedBy: null,
+          lastLogin: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isActive: true,
+          isDeleted: false,
+          deletedAt: null,
+        });
+      } else {
+        // Update last login
+        await setDoc(doc(db, 'users', user.uid), {
+          lastLogin: new Date().toISOString()
+        }, { merge: true });
+      }
+
+      return user;
+    } catch (error) {
+      throw new Error(error.message);
     }
   },
 

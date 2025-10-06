@@ -1,11 +1,13 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
 import { SearchIcon, MicIcon, PlayIcon, Volume2Icon, UsersIcon, TreePine, Languages, Handshake, UserIcon, RefreshCwIcon, NetworkIcon, Users, Plus, ChevronDown, GitFork, Wifi, Globe, Globe2 } from 'lucide-react';
 import PageFrame from "../layout/containers/PageFrame";
 import DefaultNavbar from "../components/navbar/DefaultNavbar";
 import Button from "../components/Button";
 
 
-function LandingPageHTML() {
+const LandingPageHTML = () => {
+  const navigate = useNavigate();
     return (
         <div className="relative w-full min-h-screen overflow-x-hidden bg-background-dark text-white">
             {/* Background Image */}
@@ -54,6 +56,7 @@ function LandingPageHTML() {
                                     variant="primary"
                                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                    onClick={() => navigate('/login')}
                                 >
                                     Create a Family
                                 </Button>
@@ -74,6 +77,7 @@ function LandingPageHTML() {
                                         e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
                                         e.currentTarget.style.transform = 'scale(1)';
                                     }}
+                                    onClick={() => navigate('/login')}
                                 >
                                     Join a Family
                                 </Button>
@@ -746,6 +750,7 @@ function LandingPageHTML() {
                                 variant="primary"
                                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                onClick={() => navigate('/login')}
 
                             >
                                 Create a Family
@@ -755,6 +760,7 @@ function LandingPageHTML() {
                                 variant="secondary"
                                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                onClick={() => navigate('/login')}
                             >
                                 Join a family
                             </Button>

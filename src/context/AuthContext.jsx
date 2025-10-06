@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     register: authService.register,
     login: authService.login,
+    loginWithGoogle: authService.loginWithGoogle,
     logout: authService.logout
   };
 

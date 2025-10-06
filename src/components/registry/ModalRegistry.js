@@ -10,7 +10,6 @@ import WarningModal from "../modals/WarningModal";
 import PDFExport from "../PdfExport";
 import InfoModal from "../modals/InfoModal";
 import CascadeDetailsModal from "../modals/CascadeDetailsModal";
-
 export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
   addChildModal: AddChildModal,

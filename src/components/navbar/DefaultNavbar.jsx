@@ -68,7 +68,7 @@ export default function DefaultNavbar() {
                 Log In
               </NavLink>
               <NavLink
-                to='/signup'
+                to='/register'
                 className='navItem no-underline'
                 style={{
                   background: '#c75c1c',
@@ -89,7 +89,7 @@ export default function DefaultNavbar() {
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                Sign In
+                Sign up
               </NavLink>
               </>
             </div>
