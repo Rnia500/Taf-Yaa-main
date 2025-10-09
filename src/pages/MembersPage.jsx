@@ -14,7 +14,6 @@ import { useAuth } from '../context/AuthContext';
 import dataService from '../services/dataService';
 import useToastStore from '../store/useToastStore';
 import useModalStore from '../store/useModalStore';
-import EditPersonModal from '../components/Edit Person/EditPersonModal';
 import { DeletePersonModal } from '../components/modals/DeletePersonModal';
 import { UserPen, Trash2, Users, User, Settings, Users2 } from 'lucide-react';
 
@@ -74,10 +73,6 @@ const MembersPage = () => {
     openModal('deletePerson', { person, onDeleteComplete: reload });
   };
 
-  const handleEditComplete = () => {
-    reload();
-  };
-
   const handleViewRelationships = (personId) => {
     openModal('relationships', { personId });
   };
@@ -104,7 +99,6 @@ const MembersPage = () => {
   const tabs = [
     { id: 'people', label: 'Manage People', icon: User },
     { id: 'members', label: 'Manage Members', icon: Users },
-    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   const renderTabContent = () => {
@@ -113,8 +107,6 @@ const MembersPage = () => {
         return <ManagePeopleTab people={people} onEdit={handleEditPerson} onDelete={handleDeletePerson} onViewRelationships={handleViewRelationships} />;
       case 'members':
         return <ManageMembersTab members={members} roleOptions={roleOptions} onRoleChange={handleRoleChange} updatingRole={updatingRole} canManageRoles={canManageRoles} />;
-      case 'settings':
-        return <SettingsTab tree={tree} />;
       default:
         return null;
     }
@@ -158,7 +150,6 @@ const MembersPage = () => {
       {renderTabContent()}
 
       {/* Modals */}
-      <EditPersonModal onClose={handleEditComplete} />
       <DeletePersonModal />
     </FlexContainer>
   );
@@ -287,19 +278,5 @@ const ManageMembersTab = ({ members, roleOptions, onRoleChange, updatingRole, ca
   );
 };
 
-const SettingsTab = ({ tree }) => {
-  return (
-    <Card padding="20px">
-      <Text variant="heading2">Tree Settings</Text>
-      <Text variant="body1" margin="10px 0">
-        Configure settings for {tree.familyName}.
-      </Text>
-      {/* Add settings controls here */}
-      <Text variant="body2" color="gray">
-        Settings functionality coming soon...
-      </Text>
-    </Card>
-  );
-};
 
 export default MembersPage;
