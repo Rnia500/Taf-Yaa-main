@@ -15,10 +15,12 @@ import SuggestionsPage from "./pages/SuggestionsPage.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
 import MyTreesPage from "./pages/MyTreesPage.jsx";
+import MembersPage from "./pages/MembersPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import Custom404Page from "./components/Custom404Page.jsx";
+import TreeSettingsPage from "./pages/TreeSettingsPage.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 
 // Component to handle landing page routing
@@ -74,52 +76,60 @@ const router = createBrowserRouter([
     ),
     errorElement: <Custom404Page />,
   },
-  {
-    path: "/family-tree/:treeId",
-    element: <App />,
-    errorElement: <Custom404Page />,
-    children: [
       {
-        index: true,
-        element: <FamilyTreePage />,
-      },
-      {
-        path: "deleted-persons",
-        element: <DeletedPersonsPage />,
-      },
-      {
-        path: "export",
-        element: <ExportPage />,
-      },
-      {
-        path: "notificationcenter",
-        element: <NotificationCenter />,
+        path: "/family-tree/:treeId",
+        element: <App />,
+        errorElement: <Custom404Page />,
         children: [
           {
             index: true,
-            element: <NotificationOverviewPage />,
+            element: <FamilyTreePage />,
           },
           {
-            path: "suggestions",
-            element: <SuggestionsPage />,
+            path: "deleted-persons",
+            element: <DeletedPersonsPage />,
           },
           {
-            path: "merge",
-            element: <div>Merge Requests Content</div>,
+            path: "export",
+            element: <ExportPage />,
           },
           {
-            path: "requests",
-            element: <div>Pending Requests Content</div>,
+            path: "members",
+            element: <MembersPage />,
           },
           {
-            path: "activity",
-            element: <div>Family Activity Content</div>,
+            path: "notificationcenter",
+            element: <NotificationCenter />,
+            children: [
+              {
+                index: true,
+                element: <NotificationOverviewPage />,
+              },
+              {
+                path: "suggestions",
+                element: <SuggestionsPage />,
+              },
+              {
+                path: "merge",
+                element: <div>Merge Requests Content</div>,
+              },
+              {
+                path: "requests",
+                element: <div>Pending Requests Content</div>,
+              },
+              {
+                path: "activity",
+                element: <div>Family Activity Content</div>,
+              },
+            ],
           },
+          {
+            path: "settings",
+            element: <TreeSettingsPage />,
+          },
+
         ],
       },
-
-    ],
-  },
   {
     path: "/create-tree",
     element: <CreateTreePage />, 

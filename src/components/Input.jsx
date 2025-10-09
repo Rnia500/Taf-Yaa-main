@@ -135,44 +135,52 @@ export const TextInput = ({
 
 
 export const SearchInput = ({ value, onChange, placeholder, onSearch, backgroundColor = "var(--color-transparent)", color = "var(--color-primary-text)", size = "md" }) => (
-  <div className={`input-group search-input-group ${size}`}>
-    <input
-      type="search"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder || "Search..."}
-      className={`input search ${size}`}
-      onKeyDown={e => {
-        if (e.key === 'Enter' && onSearch) {
-          onSearch(value);
-        }
-      }}
-      style={{ backgroundColor, color }}
-    />
-    {value ? (
-      <span
-        className={`search-icon clear ${size}`}
-        onClick={() => onChange('')}
-        role="button"
-        tabIndex={0}
+    <div className={`input-group search-input-group ${size}`}>
+    <div className="input-wrapper" style={{ backgroundColor }}>
+      <input
+        type="search"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder || "Search..."}
+        className={`input search ${size}`}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && onSearch) {
+            onSearch(value);
+          }
+        }}
+        style={{ color }}
+      />
+
+      {/* Inline search button inside wrapper so it aligns like trailing icons */}
+      <button
+        type="button"
+        className={`search-button ${value ? 'clear' : ''} ${size}`}
+        onClick={() => {
+          if (value) {
+            onChange('');
+          } else if (onSearch) {
+            onSearch(value);
+          }
+        }}
+        aria-label={value ? 'Clear search' : 'Search'}
       >
-        &#10006;
-      </span>
-    ) : (
-      <span className={`search-icon ${size}`}>&#128269;</span>
-    )}
+        {value ? '\u2716' : '\u{1F50D}'}
+      </button>
+    </div>
   </div>
 );
 
 export const TextArea = ({ label, value, onChange, placeholder, backgroundColor = "var(--color-transparent)", color = "var(--color-primary-text)" }) => (
   <div className="input-group">
     {label && <label>{label}</label>}
-    <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="textarea"
-      style={{ backgroundColor, color }}
-    />
+    <div className="input-wrapper" style={{ backgroundColor }}>
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="textarea"
+        style={{ color, width: '100%', border: 'none', outline: 'none', resize: 'vertical', padding: '12px 16px', background: 'transparent' }}
+      />
+    </div>
   </div>
 );

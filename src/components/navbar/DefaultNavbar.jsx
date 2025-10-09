@@ -24,7 +24,6 @@ export default function DefaultNavbar() {
       {/* Logo Section */}
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
         <div className="logo-section">
-          {/* Replace with your own logo icon if needed */}
           <ImageCard image='/Images/Logo.png' size={40} rounded margin='0px' />
           <Text variant='heading2' className="brand-text" style={{ fontWeight: 700, marginLeft: 8 }}>Taf'Yaa</Text>
         </div>
@@ -33,7 +32,6 @@ export default function DefaultNavbar() {
         <div className="desktop-nav">
           <Row width='100%' fitContent={true} gap='2rem' padding='0px' margin='0px' className='navbar-row' justifyContent='end'>
             <div className="nav-items-container" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-              <>
               <NavLink to='/about' className={`navItem${location.pathname === '/about' ? ' active' : ''}`}>About Us</NavLink>
               <div ref={languageMenuTriggerRef}>
                 <button className='navItem' style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.75rem 1rem' }} onClick={openLanguageMenu}>
@@ -43,6 +41,7 @@ export default function DefaultNavbar() {
                   <LanguageMenu isOpen={languageMenuOpen} onClose={closeLanguageMenu} triggerRef={languageMenuTriggerRef} />
                 )}
               </div>
+
               <NavLink
                 to='/login'
                 className='navItem no-underline'
@@ -67,6 +66,7 @@ export default function DefaultNavbar() {
               >
                 Log In
               </NavLink>
+
               <NavLink
                 to='/register'
                 className='navItem no-underline'
@@ -89,9 +89,8 @@ export default function DefaultNavbar() {
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                Sign up
+                Sign Up
               </NavLink>
-              </>
             </div>
           </Row>
         </div>
@@ -116,7 +115,7 @@ export default function DefaultNavbar() {
               <span role="img" aria-label="language">🌐</span> Language
             </button>
             <NavLink to='/login' className='mobile-nav-item' style={{ background: '#f5e7df', color: '#c75c1c', borderRadius: '24px', fontWeight: 600 }} onClick={closeMobileMenu}>Log In</NavLink>
-            <NavLink to='/signup' className='mobile-nav-item' style={{ background: '#c75c1c', color: 'white', borderRadius: '24px', fontWeight: 600 }} onClick={closeMobileMenu}>Sign In</NavLink>
+            <NavLink to='/register' className='mobile-nav-item' style={{ background: '#c75c1c', color: 'white', borderRadius: '24px', fontWeight: 600 }} onClick={closeMobileMenu}>Sign Up</NavLink>
           </div>
         </div>,
         document.body

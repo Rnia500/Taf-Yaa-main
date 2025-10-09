@@ -10,14 +10,17 @@ const useModalStore = create((set) => ({
     addSpouseModal: false,
     addChildModal: false,
     addParentModal: false,
-    addTreeModal: false,
+    treeModal: false,
     confirmationModal: false,
     editPerson: false,  // Added editPerson modal
     deletePerson: false,
+    relationships: false,
     warningModal: false,
     pdfExportModal: false,
+    infoModal: false,
+    cascadeDetailsModal: false,
   },
-  
+
   // Modal data
   modalData: {
     addSpouseModal: {
@@ -33,7 +36,7 @@ const useModalStore = create((set) => ({
       message: '',
       onConfirm: null,
     },
-    addTree: {
+    treeModal: {
       userId: null,
     },
     editPerson: {  // Added editPerson modal data
@@ -43,6 +46,9 @@ const useModalStore = create((set) => ({
       person: null,
       onDeleteComplete: null,
     },
+    relationships: {
+      personId: null,
+    },
     warningModal: {
       title: '',
       message: '',
@@ -50,24 +56,35 @@ const useModalStore = create((set) => ({
       onCancel: null,
     },
     pdfExportModal: false,
+    infoModal: {
+      title: '',
+      message: '',
+      confirmText: 'Close',
+    },
+    cascadeDetailsModal: {
+      person: null,
+    },
   },
-  
+
   // Open a specific modal with optional data
-  openModal: (modalName, data = {}) => set((state) => ({
-    modals: { ...state.modals, [modalName]: true },
-    modalData: { ...state.modalData, [modalName]: { ...state.modalData[modalName], ...data } }
-  })),
-  
+  openModal: (modalName, data = {}) => {
+    console.log('useModalStore openModal called:', modalName, data);
+    set((state) => ({
+      modals: { ...state.modals, [modalName]: true },
+      modalData: { ...state.modalData, [modalName]: { ...state.modalData[modalName], ...data } }
+    }));
+  },
+
   // Close a specific modal
   closeModal: (modalName) => set((state) => ({
     modals: { ...state.modals, [modalName]: false }
   })),
-  
+
   // Toggle a specific modal
   toggleModal: (modalName) => set((state) => ({
     modals: { ...state.modals, [modalName]: !state.modals[modalName] }
   })),
-  
+
   // Close all modals
   closeAllModals: () => set({
     modals: {
@@ -77,12 +94,15 @@ const useModalStore = create((set) => ({
       addSpouseModal: false,
       addChildModal: false,
       addParentModal: false,
-      addTreeModal: false,
+      treeModal: false,
       confirmationModal: false,
-      editPerson: false,  // Added editPerson to closeAllModals
+      editPerson: false,
       deletePerson: false,
+      relationships: false,
       warningModal: false,
       pdfExportModal: false,
+      infoModal: false,
+      cascadeDetailsModal: false,
     }
   }),
 }));

@@ -60,7 +60,7 @@ function PersonCard({ variant = "default", style, name, sex, birthDate, deathDat
 
   const finalRole = (role) => {
 
-    if (role === 'null') {
+    if (role === null || role === 'null') {
       return null;
     }
 

@@ -136,6 +136,22 @@
   box-shadow: none;
 }
 
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-primary-text);
+  border: none;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-gray-lightest);
+}
+
+.btn-ghost:focus,
+.btn-ghost:active {
+  outline: none;
+  box-shadow: none;
+}
+
 /* Link */
 .btn-link {
   background: transparent;

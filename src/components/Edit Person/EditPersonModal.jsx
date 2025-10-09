@@ -4,14 +4,20 @@ import EditPersonController from '../../controllers/form/EditPersonController';
 import '../../styles/AddRelativeModal.css';
 import { X } from 'lucide-react';
 import Card from '../../layout/containers/Card';
+import {useFamilyData} from '../../hooks/useFamilyData';
+import { useParams } from 'react-router-dom';
 
 const EditPersonModal = ({ personId, onClose }) => {
   const { modals, closeModal } = useModalStore();
   const isOpen = modals.editPerson || false;
+   const { treeId } = useParams();
+
+  const { reload } = useFamilyData(treeId);
 
   const handleSuccess = (result) => {
     if (onClose) onClose(result);
     closeModal('editPerson');
+    reload();
   };
 
   const handleClose = () => {

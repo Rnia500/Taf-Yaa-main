@@ -1,64 +1,38 @@
 import React, { useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Row from '../../layout/containers/Row';
 import ImageCard from '../../layout/containers/ImageCard';
 import Text from '../Text';
 import { useTranslation } from "react-i18next";
 import Submenu from '../Submenu';
-
 import {
   CircleUser,
   Menu,
   X,
   EarthIcon,
   Settings,
-  Bell, Trash2,
-  ArrowDownToLine, User, LogOut, Shield, TreePine
+  LogOut,
+  BookOpen,
+  Compass,
+  TreePine
 } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 import '../../styles/Navbar.css';
-import useModalStore from '../../store/useModalStore';
 import { NavLink } from "react-router-dom";
 import LanguageMenu from '../LanguageMenu';
 
-export default function AdminNavbar() {
+export default function MyTreeNavBar() {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
-  const { treeId } = useParams();
-  const location = useLocation();
   const submenuRef = useRef(null);
   const langMenuRef = useRef(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
-
-  // Extract treeId from URL if not available from useParams
-  const getTreeId = () => {
-    if (treeId) {
-      localStorage.setItem('currentTreeId', treeId);
-      return treeId;
-    }
-
-    const pathMatch = location.pathname.match(/\/family-tree\/([^/]+)/);
-    if (pathMatch) {
-      const extractedTreeId = pathMatch[1];
-      localStorage.setItem('currentTreeId', extractedTreeId);
-      return extractedTreeId;
-    }
-
-    const storedTreeId = localStorage.getItem('currentTreeId');
-    if (storedTreeId) {
-      return storedTreeId;
-    }
-
-    return 'tree001';
-  };
-
-  const currentTreeId = getTreeId();
 
   const toggleSubmenu = () => {
     setSubmenuOpen(prev => !prev);
@@ -84,7 +58,6 @@ export default function AdminNavbar() {
     setActiveButton(null);
   };
 
-  // Handle clicking on the language button when menu is open (should close it)
   const handleLanguageButtonClick = () => {
     if (langMenuOpen) {
       closeLanguageMenu();
@@ -102,39 +75,14 @@ export default function AdminNavbar() {
     }
   };
 
-  // Submenu items with proper functionality
+  // Submenu items
   const submenuItems = [
-    {
-      label: t('navbar.profile'),
-      icon: User,
-      href: '/profile',
-      action: () => {
-        closeSubmenu();
-      }
-    },
-    {
-      label: t('navbar.notifications'),
-      icon: Bell,
-      href: `/family-tree/${currentTreeId}/notificationcenter`,
-      action: () => {
-        closeSubmenu();
-      }
-    },
     {
       label: t('navbar.settings'),
       icon: Settings,
-      href: `/family-tree/${currentTreeId}/settings`,
+      href: '/settings',
       action: () => {
         closeSubmenu();
-      }
-    },
-    {
-      label: 'My Trees',
-      icon: TreePine,
-      href: '/my-trees',
-      action: () => {
-        closeSubmenu();
-        navigate('/my-trees');
       }
     },
     {
@@ -147,22 +95,15 @@ export default function AdminNavbar() {
     }
   ];
 
-  const { openModal } = useModalStore();
-
   const navItems = [
-    { label: t('navbar.tree_view'), href: `/family-tree/${currentTreeId}` },
-    { label: t('navbar.members'), href: `/family-tree/${currentTreeId}/members` },
-    { label: t('navbar.notification_center'), href: `/family-tree/${currentTreeId}/notificationcenter` },
-    { label: t('navbar.tree_settings'), href: `/family-tree/${currentTreeId}/settings` },
+    { label: 'My Stories', href: '/my-stories' },
+    { label: 'Discover', href: '/discover' },
   ];
 
   const MobileNavItems = [
-    { label: t('navbar.tree_view'), href: `/family-tree/${currentTreeId}` },
-    { label: t('navbar.members'), href: `/family-tree/${currentTreeId}/members` },
-    { label: t('navbar.notification_center'), href: `/family-tree/${currentTreeId}/notificationcenter` },
-    { label: t('navbar.export'), action: () => openModal('pdfExportModal') },
-    { label: t('navbar.deleted_persons'), href: `/family-tree/${currentTreeId}/deleted-persons` },
-    { label: t('navbar.tree_settings'), href: `/family-tree/${currentTreeId}/settings` },
+    { label: 'My Stories', href: '/my-stories' },
+    { label: 'Discover', href: '/discover' },
+    { label: t('navbar.settings'), href: '/settings' },
     { label: t('navbar.language'), href: '/language' },
   ];
 
@@ -172,7 +113,7 @@ export default function AdminNavbar() {
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
         <div className="logo-section">
           <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
-          <Text variant='heading2' className="brand-text">{t('navbar.brand_name')}</Text>
+          <Text variant='heading2' className="brand-text">My Trees</Text>
         </div>
 
         {/* Desktop Nav */}
@@ -183,7 +124,6 @@ export default function AdminNavbar() {
                 <NavLink
                   key={item.label}
                   to={item.href}
-                  end={item.label === t('navbar.tree_view')}
                   className={({ isActive }) => `navItem ${isActive ? 'active' : ''}`}
                 >
                   <Text variant='body1' bold>
@@ -194,13 +134,6 @@ export default function AdminNavbar() {
             </div>
 
             <div className="action-buttons">
-              <NavLink
-                to={`/family-tree/${currentTreeId}/deleted-persons`}
-                className={({ isActive }) => `action-btn ${isActive ? 'active' : ''}`}
-              >
-                <Trash2 size={20} color="var(--color-primary-text)" />
-              </NavLink>
-
               <div
                 className={`action-btn ${activeButton === 'language' ? 'active' : ''}`}
                 onClick={handleLanguageButtonClick}
@@ -214,10 +147,6 @@ export default function AdminNavbar() {
                 onClose={closeLanguageMenu}
                 triggerRef={langMenuRef}
               />
-
-              <div className="action-btn" onClick={() => openModal('pdfExportModal')}>
-                <ArrowDownToLine size={20} color="var(--color-primary-text)"  />
-              </div>
 
               <div
                 className={`action-btn ${activeButton === 'profile' ? 'active' : ''}`}
@@ -246,30 +175,25 @@ export default function AdminNavbar() {
         <div className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
           <div className="mobile-nav-content">
               {MobileNavItems.map((item) => (
-                item.action ? (
-                  <button
-                    key={item.label}
-                    onClick={() => {
-                      item.action();
-                      closeMobileMenu();
-                    }}
-                    className="mobile-nav-item"
-                    style={{ background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <NavLink
-                    key={item.label}
-                    to={item.href}
-                    end={item.label === t('navbar.tree_view')}
-                    className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
-                    onClick={closeMobileMenu}
-                  >
-                    {item.label}
-                  </NavLink>
-                )
+                <NavLink
+                  key={item.label}
+                  to={item.href}
+                  className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </NavLink>
               ))}
+              <button
+                onClick={() => {
+                  handleLogout();
+                  closeMobileMenu();
+                }}
+                className="mobile-nav-item"
+                style={{ background: "none", border: "none", cursor: "pointer" }}
+              >
+                {t('navbar.log_out')}
+              </button>
           </div>
         </div>,
         document.body

@@ -10,11 +10,13 @@ import WarningModal from "../modals/WarningModal";
 import PDFExport from "../PdfExport";
 import InfoModal from "../modals/InfoModal";
 import CascadeDetailsModal from "../modals/CascadeDetailsModal";
+import RelationshipsModal from "../modals/RelationshipsModal";
+
 export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
   addChildModal: AddChildModal,
   addParentModal: AddParentModal,
-  addTreeModal: AddTreeModal,
+  treeModal: AddTreeModal,
   confirmationModal: ConfirmationModal,
   editPerson: EditPersonModal,
   deletePerson: DeletePersonModal,
@@ -22,4 +24,5 @@ export const modalRegistry = {
   pdfExportModal: PDFExport,
   infoModal: InfoModal,
   cascadeDetailsModal: CascadeDetailsModal,
+  relationships: RelationshipsModal,
 };

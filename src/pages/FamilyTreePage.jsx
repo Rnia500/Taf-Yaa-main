@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import TreeCanvasWrapper from "../components/tree/TreeCanvas";
 import dataService from "../services/dataService";
 import { TreeProvider } from "../context/TreeContext.jsx";
+import useModalStore from "../store/useModalStore";
 
 export default function FamilyTreePage() {
   const { treeId } = useParams();
@@ -11,6 +12,12 @@ export default function FamilyTreePage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [notFound, setNotFound] = useState(false);
+  const { closeAllModals } = useModalStore();
+
+  // Close all modals when entering the tree canvas
+  useEffect(() => {
+    closeAllModals();
+  }, [closeAllModals]);
 
   // Fetch tree data on mount or when treeId changes
   useEffect(() => {

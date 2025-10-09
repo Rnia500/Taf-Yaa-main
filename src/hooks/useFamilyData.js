@@ -1,7 +1,6 @@
-// src/hooks/useFamilyData.js
+
 import { useEffect, useState, useCallback } from "react";
 
-// Import your services
 import  dataService  from "../services/dataService";
 
 /**
@@ -47,6 +46,15 @@ export function useFamilyData(treeId) {
         deletionMode: person.deletionMode,
         pendingDeletion: person.pendingDeletion,
       })));
+
+      // Assign roles based on linked users
+      p = p.map(person => {
+        console.log(`Person ${person.name} (id: ${person.id}) linkedUserId:`, person.linkedUserId);
+        return {
+          ...person,
+          role: (!person.isDeceased && person.linkedUserId) ? (t.members?.find(m => m.userId === person.linkedUserId)?.role || null) : null
+        };
+      });
 
       // 3. Load marriages
       const m = await dataService.getAllMarriages();

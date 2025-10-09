@@ -6,20 +6,48 @@ import { X } from 'lucide-react';
 import Card from '../../layout/containers/Card';
 
 
-export default function AddTreeModal({ createdBy, onSuccess }) {
-  const { modals, closeModal } = useModalStore();
-  const isOpen = modals.treeModal || false;
+export default function AddTreeModal({ createdBy, onSuccess, isEdit = false, treeToEdit = null, onCancel }) {
+  console.log('AddTreeModal rendered with:', { createdBy, onSuccess, isEdit, treeToEdit, onCancel });
+  const { closeModal } = useModalStore();
+  const title = isEdit ? 'Edit Family Tree' : 'Create New Family Tree';
 
   const handleSuccess = (result) => {
     if (onSuccess) onSuccess(result);
-    closeModal('treeModal');
+    if (onCancel) onCancel(); else closeModal('treeModal');
   };
 
   const handleClose = () => {
-    closeModal('treeModal');
+    if (onCancel) onCancel(); else closeModal('treeModal');
   };
 
-  if (!isOpen) return null;
+
+
+  if (onCancel) {
+    return (
+      <Card
+        fitContent
+        borderRadius='15px'
+        backgroundColor="var(--color-background)"
+        margin='20px 0px'
+        padding='20px'
+      >
+        <div className="modal-header">
+          <h2 className="modal-title">
+            {title}
+          </h2>
+        </div>
+        <div className="modal-body">
+          <TreeCreationController
+            createdBy={createdBy}
+            onSuccess={handleSuccess}
+            onCancel={handleClose}
+            isEdit={isEdit}
+            treeToEdit={treeToEdit}
+          />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
@@ -39,7 +67,7 @@ export default function AddTreeModal({ createdBy, onSuccess }) {
 
         <div className="modal-header">
           <h2 className="modal-title">
-            Create New Family Tree
+            {title}
           </h2>
         </div>
 
@@ -48,6 +76,8 @@ export default function AddTreeModal({ createdBy, onSuccess }) {
             createdBy={createdBy}
             onSuccess={handleSuccess}
             onCancel={handleClose}
+            isEdit={isEdit}
+            treeToEdit={treeToEdit}
           />
         </div>
       </div>

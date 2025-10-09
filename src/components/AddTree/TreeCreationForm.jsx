@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TextInput, TextArea } from '../Input';
 import SelectDropdown from '../SelectDropdown';
 import DateInput from '../DateInput';
@@ -15,7 +15,7 @@ import ToggleSwitch from '../ToggleSwitch';
 import countryList from "react-select-country-list";
 import Grid from '../../layout/containers/Grid';
 
-const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
+const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en', isEdit = false, treeToEdit = null }) => {
   const [formData, setFormData] = useState({
     // Tree Information
     familyName: '',
@@ -50,6 +50,67 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
 
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    if (isEdit && treeToEdit) {
+      setFormData({
+        familyName: treeToEdit.familyName || '',
+        familyDescription: treeToEdit.familyDescription || '',
+        origineTribe: treeToEdit.origineTribe || '',
+        origineTongue: treeToEdit.origineTongue || '',
+        origineHomeLand: treeToEdit.origineHomeLand || '',
+        familyPhoto: treeToEdit.familyPhoto || null,
+        marriageTypeAllowed: treeToEdit.marriageTypeAllowed || '',
+        rootPersonName: '',
+        rootPersonGender: '',
+        rootPersonDob: '',
+        rootPersonPlaceOfBirth: '',
+        rootPersonPhoto: null,
+        rootPersonBiography: '',
+        rootPersonTribe: '',
+        rootPersonStoryTitle: '',
+        rootPersonAudioFile: null,
+        rootPersonAudioURL: null,
+        language: treeToEdit.language || interfaceLanguage,
+        globalMatchOptIn: treeToEdit.globalMatchOptIn || false,
+        allowMergeRequests: treeToEdit.allowMergeRequests || false,
+        isPublic: treeToEdit.isPublic || false,
+        invitesEnabled: treeToEdit.invitesEnabled !== undefined ? treeToEdit.invitesEnabled : true,
+      });
+    } else {
+      setFormData({
+        // Tree Information
+        familyName: '',
+        familyDescription: '',
+        origineTribe: '',
+        origineTongue: '',
+        origineHomeLand: '',
+        familyPhoto: null,
+        marriageTypeAllowed: '',
+
+        // Root Person Information
+        rootPersonName: '',
+        rootPersonGender: '',
+        rootPersonDob: '',
+        rootPersonPlaceOfBirth: '',
+        rootPersonPhoto: null,
+        rootPersonBiography: '',
+        rootPersonTribe: '',
+        rootPersonStoryTitle: '',
+        rootPersonAudioFile: null,
+        rootPersonAudioURL: null,
+
+        // Language
+        language: interfaceLanguage,
+
+        // Role Assignment
+        globalMatchOptIn: false,
+        allowMergeRequests: false,
+        isPublic: false,
+        invitesEnabled: true,
+      });
+    }
+  }, [isEdit, treeToEdit, interfaceLanguage]);
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -62,11 +123,13 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
     if (!formData.familyName.trim()) {
       newErrors.familyName = 'Tree name is required';
     }
-    if (!formData.rootPersonName.trim()) {
-      newErrors.rootPersonName = 'Root person name is required';
-    }
-    if (!formData.rootPersonGender) {
-      newErrors.rootPersonGender = 'Root person gender is required';
+    if (!isEdit) {
+      if (!formData.rootPersonName.trim()) {
+        newErrors.rootPersonName = 'Root person name is required';
+      }
+      if (!formData.rootPersonGender) {
+        newErrors.rootPersonGender = 'Root person gender is required';
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -195,101 +258,103 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
       </div>
 
       {/* Section 2: Root Person Information */}
-      <div className="section-card">
-        <div className="section-header">
-          <Card fitContent margin='0.5rem' className="section-icon">
-            <User size={20} />
-          </Card>
-          <Column padding='0px' margin='0px' gap='1px'>
-            <Text as='p' variant='heading2'>Root Person Information</Text>
-            <Text as='p' variant='caption1'>This person will be the starting point of your family tree</Text>
-          </Column>
+      {!isEdit && (
+        <div className="section-card">
+          <div className="section-header">
+            <Card fitContent margin='0.5rem' className="section-icon">
+              <User size={20} />
+            </Card>
+            <Column padding='0px' margin='0px' gap='1px'>
+              <Text as='p' variant='heading2'>Root Person Information</Text>
+              <Text as='p' variant='caption1'>This person will be the starting point of your family tree</Text>
+            </Column>
+          </div>
+
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Full Name *</label>
+              <TextInput
+                value={formData.rootPersonName}
+                onChange={(e) => handleInputChange('rootPersonName', e.target.value)}
+                required
+                placeholder="Enter full name"
+              />
+              {errors.rootPersonName && <span className="error-message">{errors.rootPersonName}</span>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Gender *</label>
+              <SelectDropdown
+                value={formData.rootPersonGender}
+                onChange={(e) => handleInputChange('rootPersonGender', e.target.value)}
+                options={genderOptions}
+                required
+                placeholder="Select gender"
+              />
+              {errors.rootPersonGender && <span className="error-message">{errors.rootPersonGender}</span>}
+            </div>
+
+            <div className="form-group">
+              <Row gap="0.5rem" padding='0px' margin='0px' justifyContent="start">
+                <Column gap='0.10rem' padding='0px' margin='0px'>
+                  <label className="form-label">Date of Birth</label>
+                  <DateInput
+                    value={formData.rootPersonDob}
+                    onChange={(e) => handleInputChange('rootPersonDob', e.target.value)}
+                    placeholder="Select date of birth"
+                  />
+                </Column>
+                <Column gap='0.10rem' padding='0px' margin='0px'>
+                  <label className="form-label">Place of Birth</label>
+                  <TextInput
+                    value={formData.rootPersonPlaceOfBirth}
+                    onChange={(e) => handleInputChange('rootPersonPlaceOfBirth', e.target.value)}
+                    placeholder="Enter place of birth"
+                  />
+                </Column>
+              </Row>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Profile Photo</label>
+              <FileUpload
+                onChange={(file) => handleInputChange('rootPersonPhoto', file)}
+                accept="image/*"
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <label className="form-label">Biography</label>
+              <TextArea
+                value={formData.rootPersonBiography}
+                onChange={(e) => handleInputChange('rootPersonBiography', e.target.value)}
+                placeholder="Share their life story..."
+                rows={4}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Story Title</label>
+              <TextInput
+                value={formData.rootPersonStoryTitle}
+                onChange={(e) => handleInputChange('rootPersonStoryTitle', e.target.value)}
+                placeholder="Enter story title"
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <label className="form-label">Upload Audio Story</label>
+              <AudioUploadCard
+                onAudioUpload={(file, audioURL) => {
+                  handleInputChange('rootPersonAudioFile', file);
+                  handleInputChange('rootPersonAudioURL', audioURL);
+                }}
+                storyTitle={formData.rootPersonStoryTitle}
+              />
+            </div>
+          </div>
         </div>
-
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Full Name *</label>
-            <TextInput
-              value={formData.rootPersonName}
-              onChange={(e) => handleInputChange('rootPersonName', e.target.value)}
-              required
-              placeholder="Enter full name"
-            />
-            {errors.rootPersonName && <span className="error-message">{errors.rootPersonName}</span>}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Gender *</label>
-            <SelectDropdown
-              value={formData.rootPersonGender}
-              onChange={(e) => handleInputChange('rootPersonGender', e.target.value)}
-              options={genderOptions}
-              required
-              placeholder="Select gender"
-            />
-            {errors.rootPersonGender && <span className="error-message">{errors.rootPersonGender}</span>}
-          </div>
-
-          <div className="form-group">
-            <Row gap="0.5rem" padding='0px' margin='0px' justifyContent="start">
-              <Column gap='0.10rem' padding='0px' margin='0px'>
-                <label className="form-label">Date of Birth</label>
-                <DateInput
-                  value={formData.rootPersonDob}
-                  onChange={(e) => handleInputChange('rootPersonDob', e.target.value)}
-                  placeholder="Select date of birth"
-                />
-              </Column>
-              <Column gap='0.10rem' padding='0px' margin='0px'>
-                <label className="form-label">Place of Birth</label>
-                <TextInput
-                  value={formData.rootPersonPlaceOfBirth}
-                  onChange={(e) => handleInputChange('rootPersonPlaceOfBirth', e.target.value)}
-                  placeholder="Enter place of birth"
-                />
-              </Column>
-            </Row>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Profile Photo</label>
-            <FileUpload
-              onChange={(file) => handleInputChange('rootPersonPhoto', file)}
-              accept="image/*"
-            />
-          </div>
-
-          <div className="form-group full-width">
-            <label className="form-label">Biography</label>
-            <TextArea
-              value={formData.rootPersonBiography}
-              onChange={(e) => handleInputChange('rootPersonBiography', e.target.value)}
-              placeholder="Share their life story..."
-              rows={4}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Story Title</label>
-            <TextInput
-              value={formData.rootPersonStoryTitle}
-              onChange={(e) => handleInputChange('rootPersonStoryTitle', e.target.value)}
-              placeholder="Enter story title"
-            />
-          </div>
-
-          <div className="form-group full-width">
-            <label className="form-label">Upload Audio Story</label>
-            <AudioUploadCard
-              onAudioUpload={(file, audioURL) => {
-                handleInputChange('rootPersonAudioFile', file);
-                handleInputChange('rootPersonAudioURL', audioURL);
-              }}
-              storyTitle={formData.rootPersonStoryTitle}
-            />
-          </div>
-        </div>
-      </div>
+      )}
 
 
 
@@ -377,7 +442,7 @@ const TreeCreationForm = ({ onSubmit, onCancel, interfaceLanguage = 'en' }) => {
           Cancel
         </Button>
         <Button fullWidth type="submit">
-          Create Tree
+          {isEdit ? 'Update Tree' : 'Create Tree'}
         </Button>
       </Row>
     </form>

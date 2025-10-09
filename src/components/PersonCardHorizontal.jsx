@@ -10,7 +10,7 @@ import { AdminBadge, ModeratorBadge, EditorBadge, ViewerBadge } from "./PersonBa
 import Spacer from "./Spacer";
 //variants are root, directline, spouce, dead
 
-function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate, deathDate, role = 'null', isDead = false, profileImage, isPlaceholder = false, isSoftDeleted = false, undoExpiresAt, onClick }) {
+function PersonCardHorizontal({ variant = "default", style, name, gender, birthDate, deathDate, role = 'null', isDead = false, profileImage, isPlaceholder = false, isSoftDeleted = false, undoExpiresAt, onClick }) {
   const [timeLeft, setTimeLeft] = useState(null);
 
   const formatDate = (dateStr) => {
@@ -60,7 +60,7 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
 
   const finalRole = (role) => {
 
-    if (role === 'null') {
+    if (role === null || role === 'null') {
       return null;
     }
 
@@ -132,7 +132,7 @@ function PersonCardHorizontal({ variant = "default", style, name, sex, birthDate
                 <Column width="9rem" gap="0.25rem" padding="0px" style={{ justifyContent: "center" }}>
                   <div style={{marginLeft: "20px"}}>
                   <Row fitContent width="7rem" gap="0.10rem" padding="0px" alignItems="center">
-                    {sex === "M" ? <Mars size={20} strokeWidth={3} color="var(--color-male)" /> : <Venus strokeWidth={3} size={25} color="var(--color-female)" />}
+                    {gender === "male" ? <Mars size={20} strokeWidth={3} color="var(--color-male)" /> : <Venus strokeWidth={3} size={25} color="var(--color-female)" />}
                     <Text as="p" ellipsis variant="body1" bold>{name}</Text>
                   </Row>
                   </div>

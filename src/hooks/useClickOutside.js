@@ -1,12 +1,5 @@
 import { useEffect, useRef } from 'react';
 
-/**
- * Custom hook for handling click outside behavior
- * @param {Function} callback - Function to call when clicking outside
- * @param {boolean} isActive - Whether the click outside detection should be active
- * @param {number} delay - Delay in milliseconds before adding event listener (useful for portals)
- * @returns {Object} - Ref object to attach to the element
- */
 export const useClickOutside = (callback, isActive = true, delay = 0) => {
   const ref = useRef(null);
 

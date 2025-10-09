@@ -3,10 +3,11 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import TreeCreationForm from "../../components/AddTree/TreeCreationForm.jsx";
 import { addTree } from "../tree/addTree.js";
+
 import useToastStore from "../../store/useToastStore.js";
 import useModalStore from "../../store/useModalStore.js";
 
-const TreeCreationController = ({ onSuccess, onCancel, createdBy }) => {
+const TreeCreationController = ({ onSuccess, onCancel, createdBy, isEdit = false, treeToEdit = null }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const hasSubmitted = useRef(false);
@@ -22,30 +23,41 @@ const TreeCreationController = ({ onSuccess, onCancel, createdBy }) => {
     setError(null);
 
     try {
-      const result = await addTree(formData, {
-        createdBy,
-        onError: (msg, type) => addToast(msg, type || "error"),
-      });
+      let result;
+      if (isEdit && treeToEdit) {
+        // Remove edit tree functionality by not allowing updateTree call
+        // Instead, just close modal and notify user that editing is now done via settings page
+        addToast("Editing trees via creation modal is disabled. Please use the Settings page to edit your tree.", "info");
+        closeModal("treeModal");
+        return;
+      } else {
+        result = await addTree(formData, {
+          createdBy,
+          onError: (msg, type) => addToast(msg, type || "error"),
+        });
 
-      if (result && !hasSubmitted.current) {
-        hasSubmitted.current = true;
-        addToast("Tree created successfully!", "success");
-        onSuccess?.(result);
-        closeModal("createTree");
+        if (result && !hasSubmitted.current) {
+          hasSubmitted.current = true;
+          addToast("Tree created successfully!", "success");
+          onSuccess?.(result);
+          closeModal("treeModal");
 
-        // Navigate to TreeCanvas with rootPerson preloaded
-        if (result.tree && result.rootPerson) {
-          const treeId = result.tree.id || result.tree._id || null;
-          const rootPersonId = result.rootPerson.id || result.rootPerson._id || null;
-          if (treeId && rootPersonId) {
-            // Navigate to the family tree page with the tree ID and root person ID as query param
-            navigate(`/family-tree/${treeId}?root=${rootPersonId}`);
+          // Navigate to TreeCanvas with rootPerson preloaded
+          if (result.tree && result.rootPerson) {
+            const treeId = result.tree.id || result.tree._id || null;
+            const rootPersonId = result.rootPerson.id || result.rootPerson._id || null;
+            if (treeId && rootPersonId) {
+              // Navigate to the family tree page with the tree ID and root person ID as query param
+              navigate(`/family-tree/${treeId}?root=${rootPersonId}`);
+            }
           }
         }
-      } else if (!result && !hasSubmitted.current) {
+      }
+
+      if (!result && !hasSubmitted.current) {
         setError("Operation could not be completed. Please check inputs.");
         setIsSubmitting(false);
-        closeModal("createTree");
+        closeModal("treeModal");
       }
     } catch (err) {
       if (!hasSubmitted.current) {
@@ -64,9 +76,12 @@ const TreeCreationController = ({ onSuccess, onCancel, createdBy }) => {
     <>
       {error && <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
       <TreeCreationForm
+        key={isEdit ? 'edit' : 'create'}
         onSubmit={handleSubmit}
         onCancel={onCancel}
         isSubmitting={isSubmitting}
+        isEdit={isEdit}
+        treeToEdit={treeToEdit}
       />
     </>
   );
