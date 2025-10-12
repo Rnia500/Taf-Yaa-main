@@ -42,7 +42,7 @@ export default function AddParentModal({ onSuccess, treeId }) {
         <div className="modal-body">
           {targetNodeId && (
             <AddParentController
-              treeId={treeId || "tree001"}
+              treeId={treeId}
               childId={targetNodeId}
               onSuccess={(result) => {
                 if (onSuccess) onSuccess(result);

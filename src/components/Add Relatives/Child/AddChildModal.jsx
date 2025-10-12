@@ -37,7 +37,7 @@ export default function AddChildModal({ onSuccess, treeId }) {
         <div className="modal-body">
           {targetNodeId && (
             <AddChildController
-              treeId={treeId || "tree001"}
+              treeId={treeId}
               parentId={targetNodeId}
               onSuccess={(child) => {
                 if (onSuccess) onSuccess(child);

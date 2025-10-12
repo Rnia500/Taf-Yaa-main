@@ -48,7 +48,7 @@ export default function AddSpouseModal({ targetNodeId, partnerName, onSuccess, t
         <div className="modal-body">
           {targetNodeId && (
             <AddSpouseController
-              treeId={treeId || "tree001"}
+              treeId={treeId}
               existingSpouseId={targetNodeId}
               onSuccess={handleSuccess}
               onCancel={handleClose}

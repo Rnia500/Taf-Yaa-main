@@ -10,7 +10,6 @@ import {
   deleteDoc,
   query,
   where,
-  arrayUnion,
   serverTimestamp,
   deleteField
 } from 'firebase/firestore';
@@ -61,18 +60,63 @@ async function getMarriage(id) {
 
 async function updateMarriage(marriageId, updatedMarriageData) {
   try {
-    const marriageRef = doc(db, 'marriages', marriageId);
-    const updateData = {
-      ...updatedMarriageData,
-      updatedAt: getCurrentTimestamp()
-    };
+    console.log('updateMarriage called with:', JSON.stringify(updatedMarriageData, null, 2));
 
-    await updateDoc(marriageRef, updateData);
-    
+    const marriageRef = doc(db, 'marriages', marriageId);
+
+    // Prepare update data, handling undefined fields with deleteField
+    const updateData = {};
+    const deleteFields = [];
+
+    // Add updatedAt
+    updateData.updatedAt = getCurrentTimestamp();
+
+    // Process each field
+    for (const [key, value] of Object.entries(updatedMarriageData)) {
+      if (value === undefined) {
+        // Use deleteField for undefined values (indicating removal)
+        deleteFields.push(key);
+      } else {
+        // Check for undefined in nested structures
+        if (Array.isArray(value) || typeof value === 'object') {
+          checkForUndefinedInArrays(value, `${key}`);
+        }
+        updateData[key] = value;
+      }
+    }
+
+    // Apply updates
+    const updateObj = { ...updateData };
+    deleteFields.forEach(field => {
+      updateObj[field] = deleteField();
+    });
+
+    await updateDoc(marriageRef, updateObj);
+
     // Return updated marriage
     return await getMarriage(marriageId);
   } catch (error) {
     throw new Error(`Failed to update marriage: ${error.message}`);
+  }
+}
+
+// Helper function to check for undefined in arrays
+function checkForUndefinedInArrays(obj, path = '') {
+  if (obj === null || typeof obj !== 'object') return;
+  if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      if (item === undefined) {
+        throw new Error(`Undefined value found in array at ${path}[${index}]`);
+      }
+      checkForUndefinedInArrays(item, `${path}[${index}]`);
+    });
+  } else {
+    for (const key in obj) {
+      if (obj[key] === undefined) {
+        throw new Error(`Undefined value found in object at ${path}.${key}`);
+      }
+      checkForUndefinedInArrays(obj[key], `${path}.${key}`);
+    }
   }
 }
 

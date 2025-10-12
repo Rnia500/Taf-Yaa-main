@@ -36,26 +36,14 @@ export default function AdminNavbar() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  // Extract treeId from URL if not available from useParams
+  // Extract treeId from URL
   const getTreeId = () => {
-    if (treeId) {
-      localStorage.setItem('currentTreeId', treeId);
-      return treeId;
-    }
+    if (treeId) return treeId;
 
     const pathMatch = location.pathname.match(/\/family-tree\/([^/]+)/);
-    if (pathMatch) {
-      const extractedTreeId = pathMatch[1];
-      localStorage.setItem('currentTreeId', extractedTreeId);
-      return extractedTreeId;
-    }
+    if (pathMatch) return pathMatch[1];
 
-    const storedTreeId = localStorage.getItem('currentTreeId');
-    if (storedTreeId) {
-      return storedTreeId;
-    }
-
-    return 'tree001';
+    throw new Error('Tree ID is missing from URL');
   };
 
   const currentTreeId = getTreeId();

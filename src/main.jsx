@@ -6,6 +6,7 @@ import "./index.css";
 import "./styles/fonts.css";
 import "./i18n.js";
 import App from "./App.jsx";
+import GlobalModals from "./pages/GlobalModals";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import ExportPage from "./pages/ExportPage.jsx";
 import { CreateTreePage } from "./pages/CreateTreePage.jsx";
@@ -183,6 +184,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <RouterProvider router={router} />
+      <GlobalModals />
     </AuthProvider>
   </StrictMode>
 );

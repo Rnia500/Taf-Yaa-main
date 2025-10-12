@@ -36,8 +36,6 @@ import UndoCountdown from "../UndoCountdown";
 import usePersonMenuStore from "../../store/usePersonMenuStore";
 import useSidebarStore from "../../store/useSidebarStore";
 import useModalStore from "../../store/useModalStore";
-import dataService from "../../services/dataService";
-import Button from "../Button";
 
 // ----- React Flow `config -----
 const nodeTypes = {
@@ -310,15 +308,15 @@ useEffect(() => {
           setTargetNodeId(personId);
           const person = allPeople.find((p) => p.id === personId);
           if (person) setPartnerName(person.name);
-          openModal("addSpouseModal", { targetNodeId: personId });
+          openModal("addSpouseModal", { targetNodeId: personId, treeId, partnerName: person?.name, onSuccess: () => { reload(); setTargetNodeId(null); setViewRootId(personId); setIsManualRoot(true); } });
         }}
         onAddChild={(personId) => {
           setTargetNodeId(personId);
-          openModal("addChildModal", { targetNodeId: personId });
+          openModal("addChildModal", { targetNodeId: personId, treeId, onSuccess: () => { reload(); setTargetNodeId(null); } });
         }}
       onAddParent={(personId) => {
         setTargetNodeId(personId);
-        openModal("addParentModal", { targetNodeId: personId });
+        openModal("addParentModal", { targetNodeId: personId, treeId, onSuccess: () => { reload(); setTargetNodeId(null); } });
       }}
       onEditPerson={(personId) => {
         setTargetNodeId(personId);

@@ -101,6 +101,7 @@ const MyTreesPage = () => {
   const handleCreateTree = () => {
     openModal('treeModal', {
       createdBy: currentUser?.uid,
+      navigate: navigate,
       onSuccess: async (result) => {
         console.log('Tree operation successful:', result);
         setTrees(prevTrees => {
@@ -136,6 +137,15 @@ const MyTreesPage = () => {
             ...prev,
             [result.tree.id]: 'No Root'
           }));
+        }
+
+        // Navigate to TreeCanvas with rootPerson preloaded
+        if (result.tree && result.rootPerson) {
+          const treeId = result.tree.id || result.tree._id || null;
+          const rootPersonId = result.rootPerson.id || result.rootPerson._id || null;
+          if (treeId && rootPersonId) {
+            navigate(`/family-tree/${treeId}?root=${rootPersonId}`);
+          }
         }
       }
     });
