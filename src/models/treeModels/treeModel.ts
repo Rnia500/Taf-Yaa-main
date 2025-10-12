@@ -12,6 +12,7 @@ export interface Tree {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string | null;
   currentRootId?: string | null;
 
   roles: Record<string, "admin" | "moderator" | "editor" | "viewer">;

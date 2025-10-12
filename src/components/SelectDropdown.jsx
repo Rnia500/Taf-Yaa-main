@@ -1,7 +1,7 @@
 import React from "react";
 import Select from "react-select";
 
-function SelectDropdown({ label, options = [], value, onChange, placeholder }) {
+function SelectDropdown({ label, options = [], value, onChange, placeholder, style: _style }) {
   // normalize options
   const formattedOptions = options.map(opt =>
     typeof opt === "string" ? { value: opt, label: opt } : opt

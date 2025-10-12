@@ -65,7 +65,7 @@ async function getTree(treeId) {
   }
 }
 
-async function getTreesByUserId(userId) {
+async function getTreesByUserId(userId, includeDeleted = false) {
   try {
     const treesRef = collection(db, 'trees');
     const q = query(treesRef, where('active', '==', true));
@@ -76,7 +76,9 @@ async function getTreesByUserId(userId) {
       const tree = { id: doc.id, ...doc.data() };
       // Check if user is a member of this tree
       if (tree.members?.some(m => m.userId === userId)) {
-        trees.push(tree);
+        if (includeDeleted || !tree.deletedAt) {
+          trees.push(tree);
+        }
       }
     });
     
@@ -244,6 +246,41 @@ async function getUserLatestTree(userId) {
   }
 }
 
+async function deleteTree(treeId) {
+  try {
+    const treeRef = doc(db, 'trees', treeId);
+    await deleteDoc(treeRef);
+  } catch (error) {
+    throw new Error(`Failed to delete tree: ${error.message}`);
+  }
+}
+
+async function softDeleteTree(treeId) {
+  try {
+    await updateTree(treeId, { deletedAt: getCurrentTimestamp() });
+    return await getTree(treeId);
+  } catch (error) {
+    throw new Error(`Failed to soft delete tree: ${error.message}`);
+  }
+}
+
+async function restoreTree(treeId) {
+  try {
+    await updateTree(treeId, { deletedAt: null });
+    return await getTree(treeId);
+  } catch (error) {
+    throw new Error(`Failed to restore tree: ${error.message}`);
+  }
+}
+
+async function purgeTree(treeId) {
+  try {
+    await deleteTree(treeId);
+  } catch (error) {
+    throw new Error(`Failed to purge tree: ${error.message}`);
+  }
+}
+
 // Export all the functions in a single service object.
 export const treeServiceFirebase = {
   addTree,
@@ -257,5 +294,9 @@ export const treeServiceFirebase = {
   setRootPerson,
   toggleInvites,
   setMergeOptIn,
-  getUserLatestTree, // Added missing function
+  getUserLatestTree,
+  deleteTree,
+  softDeleteTree,
+  restoreTree,
+  purgeTree,
 };

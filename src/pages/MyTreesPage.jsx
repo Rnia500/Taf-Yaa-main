@@ -11,14 +11,19 @@ import { useAuth } from '../context/AuthContext';
 import dataService from '../services/dataService';
 import ImageCard from '../layout/containers/ImageCard';
 import { SearchInput } from '../components/Input';
+import SelectDropdown from '../components/SelectDropdown';
 import useModalStore from '../store/useModalStore';
 import Toast from '../components/toasts/Toast';
 import useToastStore from '../store/useToastStore';
 import { authService } from '../services/authService';
 import TreeInfoModal from '../components/modals/TreeInfoModal';
+import WarningModal from '../components/modals/WarningModal';
+import PurgeModal from '../components/modals/PurgeModal';
+import TreeCard from '../components/TreeCard';
+import Pagination from '../components/Pagination';
 
 import '../styles/PersonMenu.css';
-import { Users, User, CircleUserRound, MapPinHouse, GitCompareArrows, Settings } from 'lucide-react';
+import { Users, User, CircleUserRound, MapPinHouse, GitCompareArrows, Settings, Filter } from 'lucide-react';
 import PageFrame from '../layout/containers/PageFrame';
 import MyTreeNavBar from '../components/navbar/MyTreeNavBar';
 
@@ -35,10 +40,20 @@ const MyTreesPage = () => {
   const menuRef = useRef();
   const [isTreeInfoModalOpen, setIsTreeInfoModalOpen] = useState(false);
   const [treeInfoData, setTreeInfoData] = useState({ tree: null, rootName: 'N/A', creatorName: 'N/A' });
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [treeToDelete, setTreeToDelete] = useState(null);
+  const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
+  const [treeToPurge, setTreeToPurge] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 9; // 3x3 grid
+  const pageSize = 3; 
+  const [peopleCounts, setPeopleCounts] = useState({});
+  const [filterStatus, setFilterStatus] = useState('all');
 
-
+  const filterOptions = [
+    { value: 'all', label: 'All Trees' },
+    { value: 'active', label: 'Active' },
+    { value: 'deleted', label: 'Deleted' }
+  ];
 
   useEffect(() => {
     if (!contextMenu.visible) return;
@@ -57,12 +72,31 @@ const MyTreesPage = () => {
     const fetchTrees = async () => {
       if (!currentUser) return;
       try {
-        const userTrees = await dataService.getTreesByUserId(currentUser.uid);
-        setTrees(userTrees);
+        const userTrees = await dataService.getTreesByUserId(currentUser.uid, true); // Include deleted
 
-        // Fetch root person names
-        const names = {};
+        // Automatic purging of expired trees (30 days)
+        const now = new Date();
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        const activeTrees = [];
         for (const tree of userTrees) {
+          if (tree.deletedAt && (now - new Date(tree.deletedAt)) > thirtyDaysMs) {
+            try {
+              await dataService.purgeTree(tree.id);
+              console.log(`Automatically purged expired tree: ${tree.id}`);
+            } catch (error) {
+              console.error('Failed to auto-purge tree:', error);
+            }
+          } else {
+            activeTrees.push(tree);
+          }
+        }
+
+        setTrees(activeTrees);
+
+        // Fetch root person names and people counts
+        const names = {};
+        const counts = {};
+        for (const tree of activeTrees) {
           if (tree.currentRootId) {
             try {
               const person = await dataService.getPerson(tree.currentRootId);
@@ -74,8 +108,18 @@ const MyTreesPage = () => {
           } else {
             names[tree.id] = 'No Root';
           }
+
+          // Fetch people count for the tree
+          try {
+            const people = await dataService.getPeopleByTreeId(tree.id);
+            counts[tree.id] = people.length;
+          } catch (error) {
+            console.error('Failed to fetch people count for tree:', error);
+            counts[tree.id] = 0;
+          }
         }
         setRootNames(names);
+        setPeopleCounts(counts);
       } catch (error) {
         console.error('Failed to fetch trees:', error);
       } finally {
@@ -86,17 +130,21 @@ const MyTreesPage = () => {
     fetchTrees();
   }, [currentUser]);
 
-  const filteredTrees = trees.filter(tree =>
-    tree.familyName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTrees = trees.filter(tree => {
+    const matchesSearch = tree.familyName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filterStatus === 'all' ||
+      (filterStatus === 'active' && !tree.deletedAt) ||
+      (filterStatus === 'deleted' && tree.deletedAt);
+    return matchesSearch && matchesFilter;
+  });
 
   const totalPages = Math.ceil(filteredTrees.length / pageSize);
   const paginatedTrees = filteredTrees.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Reset to page 1 when search changes
+  // Reset to page 1 when search or filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filterStatus]);
 
   const handleCreateTree = () => {
     openModal('treeModal', {
@@ -117,7 +165,7 @@ const MyTreesPage = () => {
           }
         });
 
-        // Fetch root name for the tree (new or updated)
+        // Fetch root name and people count for the tree (new or updated)
         if (result.tree.currentRootId) {
           try {
             const person = await dataService.getPerson(result.tree.currentRootId);
@@ -136,6 +184,21 @@ const MyTreesPage = () => {
           setRootNames(prev => ({
             ...prev,
             [result.tree.id]: 'No Root'
+          }));
+        }
+
+        // Fetch people count for the new/updated tree
+        try {
+          const people = await dataService.getPeopleByTreeId(result.tree.id);
+          setPeopleCounts(prev => ({
+            ...prev,
+            [result.tree.id]: people.length
+          }));
+        } catch (error) {
+          console.error('Failed to fetch people count for new tree:', error);
+          setPeopleCounts(prev => ({
+            ...prev,
+            [result.tree.id]: 0
           }));
         }
 
@@ -170,18 +233,54 @@ const MyTreesPage = () => {
     navigate(`/family-tree/${treeId}/members`);
   };
 
-  const handleDeleteTree = async (treeId) => {
+  const handleDeleteTree = (treeId) => {
     setContextMenu({ ...contextMenu, visible: false });
-    if (window.confirm('Are you sure you want to delete this tree?')) {
-      try {
-        await dataService.deleteTree(treeId);
-        setTrees(trees.filter(t => t.id !== treeId));
-        addToast('Tree deleted successfully', 'success');
-      } catch (error) {
-        console.error('Failed to delete tree:', error);
-        addToast('Failed to delete tree', 'error');
-      }
+    setTreeToDelete(treeId);
+    setIsWarningModalOpen(true);
+  };
+
+  const confirmDeleteTree = async (_dontRemindMe) => {
+    if (!treeToDelete) return;
+    try {
+      await dataService.softDeleteTree(treeToDelete);
+      setTrees(trees.map(t => t.id === treeToDelete ? { ...t, deletedAt: new Date() } : t));
+      addToast('Tree soft deleted successfully', 'success');
+    } catch (error) {
+      console.error('Failed to soft delete tree:', error);
+      addToast('Failed to soft delete tree', 'error');
     }
+    setTreeToDelete(null);
+  };
+
+  const handleRestoreTree = async (treeId) => {
+    try {
+      await dataService.restoreTree(treeId);
+      setTrees(trees.map(t => t.id === treeId ? { ...t, deletedAt: null } : t));
+      addToast('Tree restored successfully', 'success');
+    } catch (error) {
+      console.error('Failed to restore tree:', error);
+      addToast('Failed to restore tree', 'error');
+    }
+  };
+
+  const handlePurgeTree = async (treeId) => {
+    const tree = trees.find(t => t.id === treeId);
+    if (!tree) return;
+    setTreeToPurge(tree);
+    setIsPurgeModalOpen(true);
+  };
+
+  const confirmPurgeTree = async () => {
+    if (!treeToPurge) return;
+    try {
+      await dataService.purgeTree(treeToPurge.id);
+      setTrees(trees.filter(t => t.id !== treeToPurge.id));
+      addToast('Tree permanently deleted', 'success');
+    } catch (error) {
+      console.error('Failed to purge tree:', error);
+      addToast('Failed to permanently delete tree', 'error');
+    }
+    setTreeToPurge(null);
   };
 
   const handleViewTreeInfo = async (treeId) => {
@@ -254,129 +353,129 @@ const MyTreesPage = () => {
 
         </Row>
 
-      <Row justify="space-between" align="center">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search for a tree"
-          style={{
-            flex: 1,
-            maxWidth: '300px'
-          }}
-        />
-      </Row>
+        <Row justify="flex-start" align="center" gap="16px">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search for a tree"
+            style={{
+              flex: 1,
+              maxWidth: '300px'
+            }}
+          />
+          <SelectDropdown
+            options={filterOptions}
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value || 'all')}
+            placeholder="Filter trees"
+            style={{ width: '150px' }}
+          />
+        </Row>
 
-      {filteredTrees.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-gray-600">No trees found. Create your first family tree!</p>
-        </div>
-      ) : (
-        <div className="w-full flex flex-col items-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {paginatedTrees.map((tree) => (
-              <div
-                key={tree.id}
-                onClick={() => handleTreeClick(tree.id)}
-                onContextMenu={(e) => handleContextMenu(e, tree.id)}
-                className="bg-white rounded-xl max-w-90 shadow-lg overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-transform duration-300 group"
-              >
-                <div className="relative h-56">
-                  <img
-                    src={tree.familyPhoto}
-                    alt={`${tree.familyName} family`}
-                    className="w-full h-full object-cover"
+        {filteredTrees.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-gray-600">No trees found. Create your first family tree!</p>
+          </div>
+        ) : (
+          <div className="w-full flex flex-col items-center">
+            <div className="w-full flex flex-col">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-20 max-w-6xl justify-items-center w-full mx-auto">
+                {paginatedTrees.map((tree) => (
+                  <TreeCard
+                    key={tree.id}
+                    tree={tree}
+                    rootName={rootNames[tree.id]}
+                    peopleCount={peopleCounts[tree.id] || 0}
+                    onClick={() => handleTreeClick(tree.id)}
+                    onContextMenu={(e) => handleContextMenu(e, tree.id)}
+                    onRestore={handleRestoreTree}
+                    onPurge={handlePurgeTree}
                   />
-                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                </div>
-                <div className="p-4">
-                  <Text variant='heading3' bold>The {tree.familyName} Family Tree</Text>
-                  <div className="text-gray-600 space-y-1">
-                    <p><span className=" text-sm font-semibold">Role:</span> {tree.role}</p>
-                    <p><span className=" text-sm font-semibold">Root Person:</span> {rootNames[tree.id] || 'Loading...'}</p>
-                    <p><span className=" text-sm font-semibold">Number of members:</span> {tree.members?.length || 0}</p>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          {filteredTrees.length > 0 && (
-            <div className="flex justify-center items-center mt-12 space-x-2">
-              <Button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                variant="secondary"
-                size="sm"
-              >
-                Prev
-              </Button>
-              <Text variant="body">Page {currentPage} of {totalPages}</Text>
-              <Button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                variant="secondary"
-                size="sm"
-              >
-                Next
-              </Button>
             </div>
-          )}
-        </div>
-      )}
-
-      {contextMenu.visible && (
-        <div
-          ref={menuRef}
-          className="person-menu"
-          style={{
-            position: 'fixed',
-            top: contextMenu.y,
-            left: contextMenu.x,
-            zIndex: 10000,
-          }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <div className="person-menu-header">
-            <div className="person-menu-title">Tree Actions</div>
+            
+            {filteredTrees.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </div>
+        )}
 
-          <div className="person-menu-items">
-            <button className="person-menu-item" onClick={() => handleManageMembers(contextMenu.treeId)}>
-              <Users size={15} />
-              <span className="person-menu-text">Manage Members</span>
-            </button>
-            <button className="person-menu-item" onClick={() => handleViewTreeInfo(contextMenu.treeId)}>
-              <CircleUserRound size={15} />
-              <span className="person-menu-text">View Tree Info</span>
-            </button>
-            <button className="person-menu-item" onClick={() => handleSettings(contextMenu.treeId)}>
-              <Settings size={15} />
-              <span className="person-menu-text">Settings</span>
-            </button>
+        {contextMenu.visible && (
+          <div
+            ref={menuRef}
+            className="person-menu"
+            style={{
+              position: 'fixed',
+              top: contextMenu.y,
+              left: contextMenu.x,
+              zIndex: 10000,
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="person-menu-header">
+              <div className="person-menu-title">Tree Actions</div>
+            </div>
 
-            <button className="person-menu-item" onClick={() => handleShareTree()}>
-              <GitCompareArrows size={15} />
-              <span className="person-menu-text">Share Tree</span>
-            </button>
-            <button className="person-menu-item" onClick={() => handleDeleteTree(contextMenu.treeId)}>
-              <User size={15} />
-              <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Tree</span>
-            </button>
+            <div className="person-menu-items">
+              <button className="person-menu-item" onClick={() => handleManageMembers(contextMenu.treeId)}>
+                <Users size={15} />
+                <span className="person-menu-text">Manage Members</span>
+              </button>
+              <button className="person-menu-item" onClick={() => handleViewTreeInfo(contextMenu.treeId)}>
+                <CircleUserRound size={15} />
+                <span className="person-menu-text">View Tree Info</span>
+              </button>
+              <button className="person-menu-item" onClick={() => handleSettings(contextMenu.treeId)}>
+                <Settings size={15} />
+                <span className="person-menu-text">Settings</span>
+              </button>
+
+              <button className="person-menu-item" onClick={() => handleShareTree()}>
+                <GitCompareArrows size={15} />
+                <span className="person-menu-text">Share Tree</span>
+              </button>
+              <button className="person-menu-item" onClick={() => handleDeleteTree(contextMenu.treeId)}>
+                <User size={15} />
+                <span className="person-menu-text" style={{ color: '#dc3545' }}>Soft Delete Tree</span>
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
 
 
-      <TreeInfoModal
-        isOpen={isTreeInfoModalOpen}
-        onClose={() => setIsTreeInfoModalOpen(false)}
-        tree={treeInfoData.tree}
-        rootName={treeInfoData.rootName}
-        creatorName={treeInfoData.creatorName}
-      />
+        <TreeInfoModal
+          isOpen={isTreeInfoModalOpen}
+          onClose={() => setIsTreeInfoModalOpen(false)}
+          tree={treeInfoData.tree}
+          rootName={treeInfoData.rootName}
+          creatorName={treeInfoData.creatorName}
+        />
 
-    </FlexContainer>
+        <WarningModal
+          isOpen={isWarningModalOpen}
+          onClose={() => setIsWarningModalOpen(false)}
+          onConfirm={confirmDeleteTree}
+          title="Delete Tree"
+          message="Are you sure you want to delete this tree? It can be restored within 30 days."
+          confirmText="Delete"
+          cancelText="Cancel"
+          confirmVariant="danger"
+        />
+
+        <PurgeModal
+          isOpen={isPurgeModalOpen}
+          onClose={() => setIsPurgeModalOpen(false)}
+          onConfirm={confirmPurgeTree}
+          familyName={treeToPurge?.familyName || ''}
+        />
+
+      </FlexContainer>
     </PageFrame>
   );
 };
