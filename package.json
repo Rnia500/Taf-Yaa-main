@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "setup": "npm i qrcode uuid puppeteer body-parser cors dotenv",
     "setup:firebase": "npm i firebase-admin",
-    "start:backend": "node functions/inde.js",
+    "start:backend": "node functions/index.js",
 
     "git:status": "git status -sb && git remote -v",
     "git:whoami": "git config --get user.name && git config --get user.email",

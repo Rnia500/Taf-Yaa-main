@@ -55,6 +55,11 @@ const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:5173'; // use
 const INVITE_COLLECTION = 'tafia_invites';
 const MEMBERS_COLLECTION = 'tafia_members';
 
+function b64urlEncode(obj) {
+  const json = typeof obj === 'string' ? obj : JSON.stringify(obj);
+  return Buffer.from(json).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
 /** Utility: store invite (Firebase or in-memory) */
 async function storeInvite(invite) {
   if (USE_FIREBASE && firestore) {
@@ -189,7 +194,8 @@ function escapeHtml(s) {
 app.post('/api/invite', async (req, res) => {
   try {
     // Accept fields: email, role, expiresIn (seconds), meta
-    const { email, role, expiresIn = 60 * 60 * 24 * 7, meta = {} } = req.body || {};
+    // Optional: familyId, qrPayloadMode: 'link' | 'rich'
+    const { email, role, expiresIn = 60 * 60 * 24 * 7, meta = {}, familyId = null, qrPayloadMode = 'link' } = req.body || {};
 
     const token = uuidv4();
     const createdAt = new Date().toISOString();
@@ -204,13 +210,30 @@ app.post('/api/invite', async (req, res) => {
       expireAt,
       used: false,
       meta,
+      familyId: familyId || null,
     };
 
     await storeInvite(invite);
 
     // Create a join link encoded in QR. Frontend routes should handle /join?token=...
     const joinUrl = `${APP_BASE_URL}/join?token=${encodeURIComponent(token)}`;
-    const { dataUrl, pngBuffer } = await generateQr(joinUrl);
+
+    let qrText = joinUrl;
+    let qrPayload = null;
+    if (qrPayloadMode === 'rich') {
+      qrPayload = {
+        v: 1,
+        t: token,
+        url: joinUrl,
+        fid: familyId || null,
+        role: invite.role,
+        exp: expireAt,
+      };
+      const p = b64urlEncode(qrPayload);
+      qrText = `${joinUrl}&p=${p}`;
+    }
+
+    const { dataUrl, pngBuffer } = await generateQr(qrText);
 
     // Return both data URL and base64 PNG so frontend can choose
     res.json({
@@ -218,6 +241,8 @@ app.post('/api/invite', async (req, res) => {
       invite,
       token,
       joinUrl,
+      qrText,
+      qrPayload,
       qrDataUrl: dataUrl,
       qrPngBase64: pngBuffer.toString('base64'),
       message: 'Invite created. Scan QR to open join link.',

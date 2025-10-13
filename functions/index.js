@@ -302,6 +302,55 @@ app.post('/api/export/tree', async (req, res) => {
   }
 });
 
+app.get('/api/sim/invite', async (req, res) => {
+  try {
+    const token = uuidv4();
+    const createdAt = new Date().toISOString();
+    const expireAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const invite = { token, email: 'demo@example.com', role: 'member', createdAt, expireAt, used: false, meta: {} };
+    await storeInvite(invite);
+    const joinUrl = `${APP_BASE_URL}/join?token=${encodeURIComponent(token)}`;
+    const { dataUrl, pngBuffer } = await generateQr(joinUrl);
+    res.json({ success: true, invite, token, joinUrl, qrDataUrl: dataUrl, qrPngBase64: pngBuffer.toString('base64') });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/sim/export/:format', async (req, res) => {
+  try {
+    const format = (req.params.format || 'pdf').toLowerCase();
+    if (!['pdf', 'png', 'jpeg'].includes(format)) return res.status(400).json({ success: false, error: 'Invalid format. Use pdf, png or jpeg.' });
+    const tree = { name: 'Root', birthYear: 1950, children: [{ name: 'Child 1', birthYear: 1975, children: [{ name: 'Grandchild A' }] }, { name: 'Child 2' }] };
+    const html = renderTreeHtml(tree, 'Tafia Genealogy Tree');
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    try {
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 2 });
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      if (format === 'pdf') {
+        const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' } });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename="demo_tree.pdf"');
+        res.setHeader('Cache-Control', 'no-store');
+        return res.send(pdfBuffer);
+      } else {
+        const type = format === 'jpeg' ? 'jpeg' : 'png';
+        const imageBuffer = await page.screenshot({ fullPage: true, type, quality: type === 'jpeg' ? 90 : undefined });
+        const contentType = type === 'jpeg' ? 'image/jpeg' : 'image/png';
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="demo_tree.${type === 'jpeg' ? 'jpg' : 'png'}"`);
+        res.setHeader('Cache-Control', 'no-store');
+        return res.send(imageBuffer);
+      }
+    } finally {
+      try { await browser.close(); } catch {}
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 /** Simple health check */
 app.get('/api/health', (req, res) => {
   res.json({ success: true, status: 'ok', firebase: !!USE_FIREBASE });
