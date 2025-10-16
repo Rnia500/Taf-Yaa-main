@@ -81,7 +81,7 @@ export const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete })
       confirmText: 'Yes, Delete Everything',
       cancelText: 'Cancel',
       confirmVariant: 'danger',
-      onConfirm: (dontRemindMe) => {
+      onConfirm: () => {
         closeModal('warningModal');
         setShowConfirmation(true);
       },
@@ -100,7 +100,9 @@ export const DeletePersonModal = ({ isOpen, onClose, person, onDeleteComplete })
   };
 
   const requiredText = person?.name;
-  const isConfirmationValid = confirmationText === requiredText;
+  const normalizeText = (text) => text?.trim().replace(/\s+/g, ' ').toLowerCase() || '';
+  const isConfirmationValid = person && normalizeText(confirmationText) === normalizeText(person.name);
+
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxHeight="90vh">

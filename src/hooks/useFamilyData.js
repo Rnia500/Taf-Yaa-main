@@ -18,6 +18,16 @@ export function useFamilyData(treeId) {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
+      if (!treeId) {
+        setTree(null);
+        setPeople([]);
+        setMarriages([]);
+        setEvents([]);
+        setStories([]);
+        setLoading(false);
+        return;
+      }
+
       // 1. Load the tree
       const t = await dataService.getTree(treeId);
       setTree(t);
