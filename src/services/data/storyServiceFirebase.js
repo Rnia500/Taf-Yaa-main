@@ -10,7 +10,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
   deleteField
 } from 'firebase/firestore';
@@ -20,16 +19,32 @@ import { generateId } from '../../utils/personUtils/idGenerator.js';
 // Helper function to get current timestamp
 const getCurrentTimestamp = () => serverTimestamp();
 
+// Helper function to calculate contributors from createdBy and attachments
+const calculateContributors = (createdBy, attachments = []) => {
+  const contributors = new Set();
+  contributors.add(createdBy);
+
+  if (attachments && attachments.length > 0) {
+    attachments.forEach(attachment => {
+      if (attachment.uploadedBy) {
+        contributors.add(attachment.uploadedBy);
+      }
+    });
+  }
+
+  return Array.from(contributors);
+};
+
 async function addStory(story) {
   try {
     // Check if story with same ID already exists
-    const existingStory = await getStory(story.storyId);
+    const existingStory = await getStory(story.id);
     if (existingStory) {
-      console.warn("storyServiceFirebase.addStory -> duplicate story id detected:", story.storyId);
-      story = { ...story, storyId: generateId("story") };
+      console.warn("storyServiceFirebase.addStory -> duplicate story id detected:", story.id);
+      story = { ...story, id: generateId("story") };
     }
 
-    const storyRef = doc(db, 'stories', story.storyId);
+    const storyRef = doc(db, 'stories', story.id);
     const storyData = {
       ...story,
       active: true, // Add active field for better querying
@@ -62,13 +77,25 @@ async function getStory(storyId) {
 async function updateStory(storyId, updatedData) {
   try {
     const storyRef = doc(db, 'stories', storyId);
+
+    // Get current story to access createdBy and existing attachments
+    const currentStory = await getStory(storyId);
+    if (!currentStory) {
+      throw new Error("Story not found");
+    }
+
     const updateData = {
       ...updatedData,
       updatedAt: getCurrentTimestamp()
     };
 
+    // Recalculate contributors if attachments are being updated
+    if (updatedData.attachments) {
+      updateData.contributors = calculateContributors(currentStory.createdBy, updatedData.attachments);
+    }
+
     await updateDoc(storyRef, updateData);
-    
+
     // Return updated story
     return await getStory(storyId);
   } catch (error) {
@@ -146,20 +173,41 @@ async function findStoriesByTitle(query) {
       where('title', '>=', query.trim()),
       where('title', '<=', query.trim() + '\uf8ff')
     );
-    
+
     const querySnapshot = await getDocs(q);
     const results = [];
-    
+
     querySnapshot.forEach((doc) => {
       const story = { id: doc.id, ...doc.data() };
       if (story.title && story.title.toLowerCase().includes(query.toLowerCase())) {
         results.push(story);
       }
     });
-    
+
     return results;
   } catch (error) {
     throw new Error(`Failed to find stories by title: ${error.message}`);
+  }
+}
+
+async function getStoriesByCreator(creatorId) {
+  try {
+    const storiesRef = collection(db, 'stories');
+    const q = query(
+      storiesRef,
+      where('active', '==', true),
+      where('createdBy', '==', creatorId)
+    );
+    const querySnapshot = await getDocs(q);
+
+    const stories = [];
+    querySnapshot.forEach((doc) => {
+      stories.push({ id: doc.id, ...doc.data() });
+    });
+
+    return stories;
+  } catch (error) {
+    throw new Error(`Failed to get stories by creator: ${error.message}`);
   }
 }
 
@@ -269,6 +317,7 @@ export const storyServiceFirebase = {
   deleteStory,
   getAllStories,
   getStoriesByPersonId,
+  getStoriesByCreator,
   findStoriesByTitle,
   markStoriesForPersonDeleted,
   undoStoriesDeletion,

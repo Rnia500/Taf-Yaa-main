@@ -3,10 +3,6 @@
 import dataService from "../../services/dataService";
 import { createStory } from "../../models/treeModels/StoryModel";
 
-
-
- 
-
 export async function addStory(params) {
   console.log("DBG:stories.addStory ->", params);
 
@@ -33,41 +29,59 @@ export async function getStoriesByPerson(personId) {
 
 
 export async function createAudioStory(params) {
-  const { treeId, personId, addedBy, storyTitle, language, audioFile, subtitle, tags } = params;
-  let audioUrl = null;
+  const { treeId, personId, addedBy, storyTitle, audioFile, subtitle, tags, language } = params;
 
   if (audioFile) {
     try {
-      const uploaded = await dataService.uploadFile(audioFile, "audio", {
-        treeId: treeId,
-        memberId: personId,
-        userId: addedBy
+      // Upload audio file using the story upload service - this now creates a complete story
+      const uploaded = await dataService.uploadStory(audioFile, treeId, personId, addedBy, {
+        title: storyTitle || "Oral History",
+        subTitle: subtitle || null,
+        description: subtitle || null,
+        tags: Array.isArray(tags) && tags.length ? tags : [],
+        visibility: 'public',
+        language: language || null
       });
-      audioUrl = uploaded.url;
-      console.log("DBG: audio uploaded", audioUrl);
+
+      // The uploadStory now returns a complete story object
+      console.log("DBG: story created with audio", uploaded.id);
+
+      try {
+        // Inform listeners that stories changed (so UI can reload)
+        window.dispatchEvent(new Event('familyDataChanged'));
+      } catch (error) {
+        console.error('Failed to dispatch familyDataChanged event:', error);
+      }
+
+      return uploaded;
     } catch (err) {
-      console.error("Audio upload failed:", err);
+      console.error("Audio story creation failed:", err);
+      throw err;
     }
   }
 
-  if (!storyTitle && !audioUrl) return null;
+  // If no audio file, create a text-only story
+  if (storyTitle) {
+    const saved = await addStory({
+      treeId,
+      personId,
+      createdBy: addedBy,
+      title: storyTitle,
+      subTitle: subtitle || null,
+      description: subtitle || null,
+      attachments: [],
+      tags: Array.isArray(tags) && tags.length ? tags : [],
+    });
 
-  const saved = await addStory({
-    treeId,
-    personId,
-    addedBy,
-    title: storyTitle || "Oral History",
-    type: "audio",
-    language: language || null,
-    audioUrl,
-    text: subtitle || null,
-    tags: Array.isArray(tags) && tags.length ? tags : undefined,
-  });
+    try {
+      // Inform listeners that stories changed (so UI can reload)
+      window.dispatchEvent(new Event('familyDataChanged'));
+    } catch (error) {
+      console.error('Failed to dispatch familyDataChanged event:', error);
+    }
 
-  try {
-    // Inform listeners that stories changed (so UI can reload)
-    window.dispatchEvent(new Event('familyDataChanged'));
-  } catch {}
+    return saved;
+  }
 
-  return saved;
+  return null;
 }

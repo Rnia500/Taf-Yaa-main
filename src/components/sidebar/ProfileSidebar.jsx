@@ -8,7 +8,7 @@ import BiographySection from './ProfileSidebarComponents/BiographySection';
 import RolePermissions from './ProfileSidebarComponents/RolePermissions';
 import FamilyConnections from './ProfileSidebarComponents/FamilyConnections';
 import TimelineEvents from './ProfileSidebarComponents/TimelineEvents';
-import AudioStory from './ProfileSidebarComponents/audioStory';
+import Stories from './ProfileSidebarComponents/Story';
 import PhotoMemorySection from './ProfileSidebarComponents/PhotoMemorySection';
 import RecordModal from './RecordModal/RecordModal'
 import AddEditEvent from '../AddEditEvent';
@@ -20,7 +20,8 @@ import Button from '../Button';
 import Spacer from '../Spacer';
 import { getPrivacyLabel, getCountryLabel } from '../../models/treeModels/PersonModel';
 import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
+
 import PhotoUploadModal from './PhotoUploadModal';
 
 // Download modals
@@ -42,12 +43,13 @@ export default function ProfileSidebar() {
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isAddEditEventModalOpen, setIsAddEditEventModalOpen] = useState(false);
   const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
-  const [currentTreeId, setCurrentTreeId] = useState("t1");
+
   const [currentEditingEvent, setCurrentEditingEvent] = useState(null);
   const [isAddingDescriptionMode, setIsAddingDescriptionMode] = useState(false);
   const { activeProfileId, closeSidebar } = useSidebarStore();
   const { openModal } = useModalStore();
   const { treeId } = useParams();
+  const { currentUser } = useAuth();
 
   // Download modal states
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
@@ -367,10 +369,13 @@ export default function ProfileSidebar() {
       />
       <Spacer size='md' />
 
-      <AudioStory 
-        stories={audioStories} 
-        onRecord={handleRecordAudio} 
-        onTranscribe={() => alert('Transcribe clicked')} 
+      <Stories
+        stories={audioStories}
+        onRecord={handleRecordAudio}
+        onTranscribe={() => alert('Transcribe clicked')}
+        personId={activeProfileId}
+        treeId={treeId}
+        addedBy={currentUser?.uid || "user1"}
       />
       <Spacer size='md' />
 

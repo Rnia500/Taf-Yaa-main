@@ -10,11 +10,19 @@ const Grid = ({
   height = 'auto',
   padding = '0px',
   responsive = true,
+  fitContent = false,
+  cellWidth,
+  cellHeight,
   style,
 }) => {
-  const columnStyle = responsive
-    ? { gridTemplateColumns: `repeat(auto-fit, minmax(200px, 1fr))` }
-    : { gridTemplateColumns: `repeat(${columns}, 1fr)` };
+  let columnStyle;
+  if (fitContent) {
+    columnStyle = { gridTemplateColumns: `repeat(auto-fit, minmax(min-content, max-content))` };
+  } else if (responsive) {
+    columnStyle = { gridTemplateColumns: `repeat(auto-fit, minmax(200px, 1fr))` };
+  } else {
+    columnStyle = { gridTemplateColumns: `repeat(${columns}, 1fr)` };
+  }
 
   return (
     <div
@@ -35,7 +43,10 @@ const Grid = ({
           child?.props?.className?.includes('fixed');
 
         return (
-          <div style={{ width: hasFixedWidth ? 'auto' : '100%' }}>
+          <div style={{
+            width: cellWidth || (hasFixedWidth ? 'auto' : '100%'),
+            height: cellHeight,
+          }}>
             {child}
           </div>
         );

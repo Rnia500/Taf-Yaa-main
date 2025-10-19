@@ -22,11 +22,7 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
       let uploadedPhotoUrl = null;
       if (parentData.profilePhoto) {
         try {
-          const uploaded = await dataService.uploadFile(parentData.profilePhoto, "image", {
-            treeId: treeId,
-            memberId: null, // Parent not created yet
-            userId: createdBy
-          });
+          const uploaded = await dataService.uploadMedia(parentData.profilePhoto, treeId, null, createdBy, "profile");
           uploadedPhotoUrl = uploaded.url;
         } catch (err) {
           console.error("Photo upload failed", err);

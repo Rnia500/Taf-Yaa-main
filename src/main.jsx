@@ -9,13 +9,13 @@ import App from "./App.jsx";
 import GlobalModals from "./pages/GlobalModals";
 import RedirectToTree from "./pages/RedirectToTreePage";
 import ExportPage from "./pages/ExportPage.jsx";
-import { CreateTreePage } from "./pages/CreateTreePage.jsx";
 import DeletedPersonsPage from "./pages/DeletedPersonsPage.jsx";
 import NotificationCenter from "./pages/NotificationCenter.jsx";
 import SuggestionsPage from "./pages/SuggestionsPage.jsx";
 import FamilyTreePage from "./pages/FamilyTreePage.jsx";
 import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
 import MyTreesPage from "./pages/MyTreesPage.jsx";
+import MyStoriesPage from "./pages/MyStoriesPage.jsx";
 import MembersPage from "./pages/MembersPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -132,11 +132,6 @@ const router = createBrowserRouter([
         ],
       },
   {
-    path: "/create-tree",
-    element: <CreateTreePage />, 
-    errorElement: <Custom404Page />,
-  },
-  {
     path: "/members",
     element: <App />,
     errorElement: <Custom404Page />,
@@ -166,6 +161,17 @@ const router = createBrowserRouter([
     path: "/my-trees",
     element: <MyTreesPage />,
     errorElement: <Custom404Page />,
+  },
+  {
+    path: "/my-stories",
+    element: <App />,
+    errorElement: <Custom404Page />,
+    children: [
+      {
+        index: true,
+        element: <MyStoriesPage />,
+      },
+    ],
   },
   {
     path: "/login",

@@ -12,6 +12,7 @@ import Column from '../layout/containers/Column';
 import { useTreeSettings } from '../hooks/useTreeSettings';
 import { Tooltip } from '../components/Tooltip';
 import { personServiceFirebase } from '../services/data/personServiceFirebase';
+import dataService from '../services/dataService';
 
 const languages = [
   { code: 'en', label: 'English', native: 'English' },
@@ -145,7 +146,22 @@ const TreeSettingsPage = () => {
               <FileUpload
                 label="Upload Family Photo"
                 accept="image/*"
-                onChange={(url) => updateSetting('familyPhoto', url)}
+                initialPreview={tree.familyPhoto}
+                onChange={async (file) => {
+                  try {
+                    // Upload the file using dataService.uploadMedia since it's media
+                    const uploadResult = await dataService.uploadMedia(file, treeId, null, 'current-user', {
+                      role: 'family-photo',
+                      title: 'Family Photo',
+                      visibility: 'public'
+                    });
+                    // Save the URL to tree settings
+                    updateSetting('familyPhoto', uploadResult.url);
+                  } catch (error) {
+                    console.error('Failed to upload family photo:', error);
+                    alert('Failed to upload image. Please try again.');
+                  }
+                }}
               />
             </Row>
           </div>

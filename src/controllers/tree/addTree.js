@@ -3,7 +3,7 @@ import dataService from "../../services/dataService";
 import { createTree } from "../../models/treeModels/treeModel";
 import { createPerson } from "../../models/treeModels/PersonModel";
 import { addBirth, addDeath } from "./events";
-import { createAudioStory } from "./stories";
+
 import { generateId } from "../../utils/personUtils/idGenerator";
 
 
@@ -25,7 +25,7 @@ export async function addTree(formData, options = {}) {
       try {
         const uploaded = await dataService.uploadFile(formData.familyPhoto, "image", {
           treeId: treeId,
-          memberId: null,
+          personId: null,
           userId: createdBy
         });
         uploadedFamilyPhotoUrl = uploaded.url;
@@ -39,7 +39,7 @@ export async function addTree(formData, options = {}) {
       try {
         const uploaded = await dataService.uploadFile(formData.rootPersonPhoto, "image", {
           treeId: treeId,
-          memberId: null, // Root person not created yet
+          personId: null, // Root person not created yet
           userId: createdBy
         });
         uploadedPhotoUrl = uploaded.url;
@@ -48,17 +48,17 @@ export async function addTree(formData, options = {}) {
       }
     }
 
-    let uploadedAudioUrl = null;
     if (formData.rootPersonAudioFile) {
       try {
-        const uploaded = await dataService.uploadFile(formData.rootPersonAudioFile, "audio", {
-          treeId: treeId,
-          memberId: null, // Root person not created yet
-          userId: createdBy
+        await dataService.uploadStory(formData.rootPersonAudioFile, treeId, null, createdBy, {
+          title: formData.rootPersonStoryTitle || "Life Story",
+          subTitle: null,
+          description: null,
+          tags: [],
+          visibility: 'public'
         });
-        uploadedAudioUrl = uploaded.url;
       } catch (err) {
-        console.error("Root person audio upload failed", err);
+        console.error("Root person audio story creation failed", err);
       }
     }
     const tree = createTree({
@@ -160,16 +160,8 @@ export async function addTree(formData, options = {}) {
       await addDeath(treeId, rootPersonId, { date: rootPerson.dod, title: "Death" });
     }
 
-    if (uploadedAudioUrl || formData.rootPersonStoryTitle) {
-      await createAudioStory({
-        treeId,
-        personId: rootPersonId,
-        addedBy: createdBy,
-        storyTitle: formData.rootPersonStoryTitle || "Life Story",
-        language: formData.language || "en",
-        audioFile: uploadedAudioUrl,
-      });
-    }
+    // Audio story is already created above, so we don't need to create another one
+    // The uploadedAudioUrl now contains the story ID, not a media URL
 
     // --- 6. RETURN SUCCESS ---
     return { tree: { ...tree, currentRootId: rootPersonId }, rootPerson };

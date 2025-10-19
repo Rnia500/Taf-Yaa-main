@@ -61,7 +61,7 @@ function AudioUploadCard({ onAudioUpload, storyTitle }) {
     try {
       const result = await dataService.uploadFile(file, 'audio', {
         treeId,
-        memberId: null,
+        personId: null,
         userId: currentUser?.uid
       });
       // result: { id, url, type }

@@ -96,11 +96,13 @@ export default function MyTreeNavBar() {
   ];
 
   const navItems = [
+    { label: 'My Trees', href: '/my-trees' },
     { label: 'My Stories', href: '/my-stories' },
     { label: 'Discover', href: '/discover' },
   ];
 
   const MobileNavItems = [
+    { label: 'My Trees', href: '/my-trees' },
     { label: 'My Stories', href: '/my-stories' },
     { label: 'Discover', href: '/discover' },
     { label: t('navbar.settings'), href: '/settings' },
@@ -109,15 +111,14 @@ export default function MyTreeNavBar() {
 
   return (
     <nav className="NavBar">
-    
+      {/* Logo Section */}
       <Row padding='0px' margin='0px' fitContent justifyContent='space-between'>
         <div className="logo-section">
           <ImageCard image='/Images/Logo.png' size={45} rounded margin='0px' />
           <Text variant='heading2' className="brand-text">My Trees</Text>
         </div>
 
-       
-       
+        {/* Desktop Nav */}
         <div className="desktop-nav">
           <Row width='100%' fitContent={true} gap='0.5rem' padding='0px' margin='0px' className='navbar-row'>
             <div className="nav-items-container">

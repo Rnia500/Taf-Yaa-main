@@ -1,3 +1,5 @@
+import { generateId } from '../utils/personUtils/idGenerator.js';
+
 export const mediaService = {
   async uploadFileToCloudinary(file) {
     // Step 1: Ask Netlify for signature
@@ -26,8 +28,13 @@ export const mediaService = {
     return data;
   },
 
-  async uploadMedia(file, treeId, memberId, userId) {
+  async uploadMedia(file, treeId, personId, userId, options = {}) {
     try {
+      // Validate that file is an image
+      if (!file.type.startsWith('image/')) {
+        throw new Error('uploadMedia only accepts image files');
+      }
+
       // Upload file directly to Cloudinary using signature
       const uploadResult = await this.uploadFileToCloudinary(file);
 
@@ -47,8 +54,15 @@ export const mediaService = {
           height: uploadResult.height,
           duration: uploadResult.duration,
           treeId,
-          memberId,
+          personId,
+          role: options.role || 'profile',
+          title: options.title || null,
+          subTitle: options.subTitle || null,
+          description: options.description || null,
+          tags: options.tags || [],
           uploadedBy: userId,
+          visibility: options.visibility || 'public',
+          source: options.source || null,
         }),
       });
 
@@ -64,11 +78,107 @@ export const mediaService = {
     }
   },
 
+  async uploadAttachment(file, treeId, personId, userId, _options = {}) {
+    try {
+      // Validate that file is image, audio, or video
+      const validTypes = ['image/', 'audio/', 'video/'];
+      if (!validTypes.some(type => file.type.startsWith(type))) {
+        throw new Error('uploadAttachment only accepts image, audio, or video files');
+      }
+
+      // Upload file directly to Cloudinary using signature
+      const uploadResult = await this.uploadFileToCloudinary(file);
+
+      // Determine type based on resource_type and format
+      let type = 'image';
+      if (uploadResult.resource_type === 'video') {
+        if (['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'webm'].includes(uploadResult.format)) {
+          type = 'audio';
+        } else {
+          type = 'video';
+        }
+      }
+
+      // Return attachment object
+      return {
+        url: uploadResult.secure_url,
+        type,
+        cloudinaryId: uploadResult.public_id,
+        format: uploadResult.format,
+        size: uploadResult.bytes,
+        duration: uploadResult.duration,
+        width: uploadResult.width,
+        height: uploadResult.height,
+      };
+
+    } catch (error) {
+      throw new Error(`Failed to upload attachment: ${error.message}`);
+    }
+  },
+
+  async uploadStory(file, treeId, personId, userId, options = {}) {
+    try {
+      // Validate that file is image, audio, or video
+      const validTypes = ['image/', 'audio/', 'video/'];
+      if (!validTypes.some(type => file.type.startsWith(type))) {
+        throw new Error('uploadStory only accepts image, audio, or video files');
+      }
+
+      // Upload file directly to Cloudinary using signature
+      const uploadResult = await this.uploadFileToCloudinary(file);
+
+      // Store reference in Firestore via Netlify function
+      const storeResponse = await fetch('/.netlify/functions/manage-stories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          treeId,
+          personId,
+          title: options.title || null,
+          subTitle: options.subTitle || null,
+          description: options.description || null,
+          tags: options.tags || [],
+          attachments: [{
+            attachmentId: generateId('attachment'),
+            url: uploadResult.secure_url,
+            type: uploadResult.resource_type === 'video' ?
+              (['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'webm'].includes(uploadResult.format) ? 'audio' : 'video') :
+              'image',
+            caption: options.caption || null,
+            cloudinaryId: uploadResult.public_id,
+            format: uploadResult.format,
+            size: uploadResult.bytes,
+            duration: uploadResult.duration,
+            width: uploadResult.width,
+            height: uploadResult.height,
+            uploadedBy: userId
+          }],
+          createdBy: userId,
+          visibility: options.visibility || 'public',
+          isPinned: options.isPinned || false,
+          linkedPersons: options.linkedPersons || [],
+        }),
+      });
+
+      if (!storeResponse.ok) {
+        throw new Error('Failed to store story reference');
+      }
+
+      const storeResult = await storeResponse.json();
+      return storeResult.data;
+
+    } catch (error) {
+      throw new Error(`Failed to upload story: ${error.message}`);
+    }
+  },
+
   // Get media by ID
   async getMedia(mediaId) {
     try {
       const response = await fetch(`/.netlify/functions/manage-media/${mediaId}`);
-      
+
       if (!response.ok) {
         throw new Error('Media not found');
       }

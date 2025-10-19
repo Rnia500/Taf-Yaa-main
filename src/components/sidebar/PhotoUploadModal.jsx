@@ -22,10 +22,10 @@ const PhotoUploadModal = ({ isOpen, onClose, personId }) => {
       const treeId = person?.treeId || 'general'; // fallback for general uploads
       const userId = 'current-user'; // TODO: Get from auth context
       
-      const uploaded = await dataService.uploadFile(file, 'image', { 
-        treeId, 
-        memberId: personId, 
-        userId 
+      const uploaded = await dataService.uploadFile(file, 'image', {
+        treeId,
+        personId,
+        userId
       });
       
       const currentPhotos = Array.isArray(person?.photos) ? person.photos.slice() : [];

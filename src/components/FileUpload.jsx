@@ -1,25 +1,18 @@
-import React, { useState, useRef } from 'react';
-import dataService from '../services/dataService.js';
-import { useTree } from '../context/TreeContext.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
+import React, { useState, useRef, useEffect } from 'react';
 import '../styles/FileUpload.css';
 
-function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = 'default' }) {
-  // Handle case where FileUpload is used outside TreeProvider (like in tree creation modal)
-  let treeId;
-  try {
-    treeId = useTree()?.treeId;
-  } catch (error) {
-    // Not within TreeProvider, set treeId to null or a temporary value
-    treeId = 'creating';
-  }
-  
-  const { currentUser } = useAuth();
+function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = 'default', initialPreview = null }) {
 
   const [isDragging, setIsDragging] = useState(false);
-  const [fileName, setFileName] = useState('');
-  const [filePreview, setFilePreview] = useState(null);
+  const [fileName, setFileName] = useState(initialPreview ? 'Current image' : '');
+  const [filePreview, setFilePreview] = useState(initialPreview);
   const fileInputRef = useRef(null);
+
+  // Update preview when initialPreview prop changes
+  useEffect(() => {
+    setFilePreview(initialPreview);
+    setFileName(initialPreview ? 'Current image' : '');
+  }, [initialPreview]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -62,20 +55,10 @@ function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = '
 
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = async (ev) => {
+        reader.onload = (ev) => {
           const dataUrl = ev.target.result;
           setFilePreview(dataUrl);
-      try {
-            const result = await dataService.uploadFile(file, 'image', {
-              treeId,
-              memberId: null,
-              userId: currentUser?.uid
-            });
-            onChange(result.url);
-          } catch (err) {
-            console.error('FileUpload -> uploadImage failed (drop)', err);
-            onChange(dataUrl);
-          }
+          onChange(file);
         };
         reader.readAsDataURL(file);
       } else {
@@ -90,7 +73,7 @@ function FileUpload({ onChange, accept = '*', label = 'Choose file', variant = '
   };
 
   return (
-    <div 
+    <div
       className={`file-upload file-upload--${variant} ${isDragging ? 'file-upload--dragging' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}

@@ -13,7 +13,7 @@ import { createAudioStory } from '../../../controllers/tree/stories.js';
 import { validateAudioFile } from '../../../utils/featuresUtils/audioValidator.js';
 import Column from '../../../layout/containers/Column.jsx';
 
-const RecordModal = ({ isOpen, onClose, personId, treeId = "t1", addedBy = "user1" }) => {
+const RecordModal = ({ isOpen, onClose, personId, treeId, addedBy }) => {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [language, setLanguage] = useState('en');

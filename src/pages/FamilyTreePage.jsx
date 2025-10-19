@@ -49,7 +49,7 @@ export default function FamilyTreePage() {
       setNotFound(true);
       
       const timer = setTimeout(() => {
-        navigate("/create-tree");
+        navigate("/");
       }, 3000); 
 
       return () => clearTimeout(timer);

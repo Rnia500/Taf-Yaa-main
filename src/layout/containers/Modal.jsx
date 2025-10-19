@@ -5,11 +5,12 @@ import Button from '../../components/Button';
 import Card from './Card';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, children, maxHeight = '80vh', style, showCLoseIcon = true }) => {
+const Modal = ({ isOpen, onClose, children, maxHeight = '80vh', maxWidth = '50', style, showCLoseIcon = true }) => {
   if (!isOpen) return null;
 
   const combinedStyle = {
     maxHeight,
+    maxWidth,
     overflowY: 'auto',
     ...style
   }

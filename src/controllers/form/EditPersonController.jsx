@@ -90,11 +90,7 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
       // Upload profile photo if a File was provided
       if (profilePhoto instanceof File) {
         try {
-          const uploaded = await dataService.uploadFile(profilePhoto, 'image', {
-            treeId: person.treeId,
-            memberId: personId,
-            userId: 'current-user' // TODO: Get from auth context
-          });
+          const uploaded = await dataService.uploadMedia(profilePhoto, formData.person.treeId, personId, 'current-user', "profile");
           updates.photoUrl = uploaded.url;
         } catch (e) {
           console.warn('Profile photo upload failed, keeping existing photoUrl', e);
@@ -107,11 +103,7 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
         for (const p of photos) {
           if (p?.file instanceof File) {
             try {
-              const uploaded = await dataService.uploadFile(p.file, 'image', {
-                treeId: person.treeId,
-                memberId: personId,
-                userId: 'current-user' // TODO: Get from auth context
-              });
+              const uploaded = await dataService.uploadMedia(p.file, formData.person.treeId, personId, 'current-user', "profile");
               normalized.push({ url: uploaded.url, alt: p.alt || updatedData.fullName || 'Photo' });
             } catch (e) {
               console.warn('Photo upload failed for one item', e);
@@ -127,8 +119,8 @@ const EditPersonController = ({ personId, onSuccess, onCancel }) => {
       try {
         const originalStories = Array.isArray(formData?.stories) ? formData.stories : [];
         const submittedStories = Array.isArray(stories) ? stories : [];
-        const originalIds = new Set(originalStories.map(s => s?.storyId).filter(Boolean));
-        const submittedIds = new Set(submittedStories.map(s => s?.storyId).filter(Boolean));
+        const originalIds = new Set(originalStories.map(s => s?.id).filter(Boolean));
+        const submittedIds = new Set(submittedStories.map(s => s?.id).filter(Boolean));
         const toDelete = [...originalIds].filter(id => !submittedIds.has(id));
 
         for (const storyId of toDelete) {

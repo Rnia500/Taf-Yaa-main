@@ -4,7 +4,7 @@ import { createPerson } from "../../models/treeModels/PersonModel";
 import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createMarriage, addChildToMarriage } from "./marriages";
-import { createAudioStory } from "./stories";
+
 import { Description } from "@headlessui/react";
 
 export async function addChild(treeId, options) {
@@ -18,11 +18,7 @@ export async function addChild(treeId, options) {
     let uploadedPhotoUrl = null;
     if (childData.profilePhoto) {
       try {
-        const uploaded = await dataService.uploadFile(childData.profilePhoto, "image", {
-          treeId: treeId,
-          memberId: null, // Child not created yet
-          userId: createdBy
-        });
+        const uploaded = await dataService.uploadMedia(childData.profilePhoto, treeId, null, createdBy, "profile");
         uploadedPhotoUrl = uploaded.url;
       } catch (err) {
         console.error("Photo upload failed", err);
@@ -65,14 +61,15 @@ export async function addChild(treeId, options) {
     }
 
     if (childData.audioFile || childData.storyTitle) {
-      await createAudioStory({
-        treeId,
-        personId: newChild.id,
-        addedBy: createdBy,
-        storyTitle: childData.storyTitle,
-        language: childData.language,
-        audioFile: childData.audioFile,
-      });
+      if (childData.audioFile) {
+        await dataService.uploadStory(childData.audioFile, treeId, newChild.id, createdBy, {
+          title: childData.storyTitle || "Life Story",
+          subTitle: null,
+          description: null,
+          tags: [],
+          visibility: 'public'
+        });
+      }
     }
 
     // 3. Add to existing marriage

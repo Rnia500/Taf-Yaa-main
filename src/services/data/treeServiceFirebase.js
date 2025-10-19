@@ -10,10 +10,7 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../../config/firebase.js';
 import { generateId } from '../../utils/personUtils/idGenerator.js';
@@ -281,6 +278,22 @@ async function purgeTree(treeId) {
   }
 }
 
+// Get user by ID (from users collection)
+async function getUser(userId) {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      return { id: userSnap.id, ...userSnap.data() };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    throw new Error(`Failed to get user: ${error.message}`);
+  }
+}
+
 // Export all the functions in a single service object.
 export const treeServiceFirebase = {
   addTree,
@@ -295,6 +308,7 @@ export const treeServiceFirebase = {
   toggleInvites,
   setMergeOptIn,
   getUserLatestTree,
+  getUser,
   deleteTree,
   softDeleteTree,
   restoreTree,

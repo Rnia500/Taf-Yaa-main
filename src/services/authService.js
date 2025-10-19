@@ -55,12 +55,12 @@ export const authService = {
   async login(email, password) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
+
       // Update last login
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         lastLogin: new Date().toISOString()
       }, { merge: true });
-      
+
       return userCredential.user;
     } catch (error) {
       throw new Error(error.message);
@@ -79,7 +79,7 @@ export const authService = {
   // Get current user data from Firestore
   async getCurrentUserData() {
     if (!auth.currentUser) return null;
-    
+
     try {
       const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
       return userDoc.exists() ? userDoc.data() : null;
@@ -137,7 +137,16 @@ export const authService = {
   // Listen to auth state changes
   onAuthStateChange(callback) {
     return onAuthStateChanged(auth, callback);
+  },
+
+  // Get user by ID
+  async getUserById(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      return userDoc.exists() ? userDoc.data() : null;
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      return null;
+    }
   }
 };
-
-

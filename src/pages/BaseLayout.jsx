@@ -4,8 +4,9 @@ import { Outlet, useLocation } from 'react-router-dom';
 import PageFrame from '../layout/containers/PageFrame';
 import ProfileSidebar from '../components/sidebar/ProfileSidebar';
 import AdminNavbar from '../components/navbar/AdminNavbar';
+import MyTreeNavBar from '../components/navbar/MyTreeNavBar';
 import useSidebarStore from '../store/useSidebarStore';
-import { useTranslation } from 'react-i18next';
+
 import Toast from '../components/toasts/Toast';
 
 
@@ -14,19 +15,19 @@ export default function BaseLayout() {
   const isSidebarOpen = useSidebarStore((state) => state.isSidebarOpen);
   const closeSidebar = useSidebarStore((state) => state.closeSidebar);
   const location = useLocation();
-  const { t } = useTranslation();
 
-  // Check if we're on a nested route (any child route of family-tree)
-  const isNestedRoute = location.pathname.split('/').length > 3;
+  // Use MyTreeNavBar for my-stories page, AdminNavbar for others
+  const isMyStoriesPage = location.pathname === '/my-stories';
+  const navbar = isMyStoriesPage ? <MyTreeNavBar /> : <AdminNavbar />;
 
   return (
     <PageFrame
-      topbar={<AdminNavbar />}
-     
+      topbar={navbar}
+
       sidebar={<ProfileSidebar onClose={closeSidebar} />}
-      
+
       sidebarOpen={isSidebarOpen}
-     
+
       onSidebarClose={closeSidebar}
     >
       <>
