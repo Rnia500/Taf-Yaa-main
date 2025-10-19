@@ -157,11 +157,11 @@ const CreateStoryModal = ({ isOpen, onClose, personId, treeId, addedBy, editingS
         )}
         <Spacer size='md' />
 
-        <Row gap='1rem' justifyContent='flex-end'>
-          <Button variant='secondary' onClick={handleClose} disabled={isSubmitting}>
+        <Row gap='1rem'  justifyContent='flex-end'>
+          <Button fullWidth variant='secondary' onClick={handleClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button variant='primary' onClick={handleSubmit} disabled={isSubmitting}>
+          <Button fullWidth variant='primary' onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (editingStory ? 'Updating...' : 'Creating...') : (editingStory ? 'Update Story' : 'Create Story')}
           </Button>
         </Row>
