@@ -3,14 +3,15 @@ import { create } from 'zustand';
 
 const useSidebarStore = create((set) => ({
   isSidebarOpen: false,
-  
-  activeProfileId: null, 
-  
-  
-  openSidebar: (personId) => set({ isSidebarOpen: true, activeProfileId: personId }),
-  
 
-  closeSidebar: () => set({ isSidebarOpen: false, activeProfileId: null }),
+  activeProfileId: null,
+  activeInvite: null,
+
+
+  openSidebar: (personId) => set({ isSidebarOpen: true, activeProfileId: personId }),
+  openInviteSidebar: (invite) => set({ isSidebarOpen: true, activeInvite: invite }),
+
+  closeSidebar: () => set({ isSidebarOpen: false, activeProfileId: null, activeInvite: null }),
 }));
 
 export default useSidebarStore;

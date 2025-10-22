@@ -218,6 +218,7 @@ export function getDescendantIds(personId, marriages) {
   return Array.from(descendants);
 }
 
+
 export function findHighestAncestor(startPersonId, allPeople, allMarriages) {
   let currentPersonId = startPersonId;
   let highestAncestorId = startPersonId;
@@ -250,6 +251,48 @@ export function findHighestAncestor(startPersonId, allPeople, allMarriages) {
 
   console.log(`findHighestAncestor: starting from ${startPersonId}, found true root: ${highestAncestorId}`);
   return highestAncestorId;
+}
+
+
+
+
+export function getSpouseOptions(selectedParentId, people, marriages) {
+  if (!selectedParentId) return { spouse: null, wives: [] };
+
+  const person = people.find(p => p.id === selectedParentId);
+  if (!person) return { spouse: null, wives: [] };
+
+  // Find marriages where this person is a spouse
+  const personMarriages = marriages.filter(m =>
+    (m.marriageType === "monogamous" && m.spouses?.includes(selectedParentId)) ||
+    (m.marriageType === "polygamous" && (m.husbandId === selectedParentId || m.wives?.some(w => w.wifeId === selectedParentId)))
+  );
+
+  // For monogamous: return the spouse
+  const monogamousMarriage = personMarriages.find(m => m.marriageType === "monogamous");
+  if (monogamousMarriage) {
+    const spouseId = monogamousMarriage.spouses.find(id => id !== selectedParentId);
+    const spouse = spouseId ? people.find(p => p.id === spouseId) : null;
+    return { spouse, wives: [] };
+  }
+
+  // For polygamous: if male, return all wives; if female, return husband
+  const polygamousMarriage = personMarriages.find(m => m.marriageType === "polygamous");
+  if (polygamousMarriage) {
+    if (person.gender === "male" && polygamousMarriage.husbandId === selectedParentId) {
+      const wives = polygamousMarriage.wives?.map(w => people.find(p => p.id === w.wifeId)).filter(Boolean) || [];
+      return { spouse: null, wives };
+    } else if (person.gender === "female") {
+      const wifeData = polygamousMarriage.wives?.find(w => w.wifeId === selectedParentId);
+      if (wifeData) {
+        const husband = people.find(p => p.id === polygamousMarriage.husbandId);
+        return { spouse: husband, wives: [] };
+      }
+    }
+  }
+
+  // No spouse found
+  return { spouse: null, wives: [] };
 }
 
 export function calculateLayout(
@@ -413,4 +456,77 @@ visibleMarriages.forEach((marriage) => {
   return isVertical
     ? layoutVertical(nodesMap, sortedMarriages, edges, rootId)
     : layoutHorizontal(nodesMap, sortedMarriages, edges, rootId);
+}
+
+export function getDirectLinePeople(people, marriages) {
+  const directLineIds = new Set();
+
+  marriages.forEach(marriage => {
+    if (marriage.isDeleted) return; // skip deleted records
+
+    if (marriage.marriageType === "monogamous") {
+      const [spouseA, spouseB] = marriage.spouses || [];
+      // both spouses are direct-line if there are children
+      if (marriage.childrenIds?.length > 0) {
+        if (spouseA) directLineIds.add(spouseA);
+        if (spouseB) directLineIds.add(spouseB);
+        marriage.childrenIds.forEach(id => directLineIds.add(id));
+      }
+    }
+
+    else if (marriage.marriageType === "polygamous") {
+      const husbandId = marriage.husbandId;
+      const wives = marriage.wives || [];
+
+      wives.forEach(wife => {
+        const hasChildren = wife.childrenIds?.length > 0;
+        if (hasChildren) {
+          // husband and this wife are both direct-line
+          if (husbandId) directLineIds.add(husbandId);
+          if (wife.wifeId) directLineIds.add(wife.wifeId);
+          // and their children too
+          wife.childrenIds.forEach(id => directLineIds.add(id));
+        }
+      });
+    }
+  });
+
+  // Find the root (highest ancestor) among direct line people
+  let rootId = null;
+  const directLinePeople = people.filter(p => directLineIds.has(p.id));
+  for (const person of directLinePeople) {
+    const hasParents = marriages.some(m =>
+      (m.marriageType === "monogamous" && m.childrenIds?.includes(person.id)) ||
+      (m.marriageType === "polygamous" && m.wives.some(w => w.childrenIds?.includes(person.id)))
+    );
+    if (!hasParents) {
+      rootId = person.id;
+      break; // Assume first one found is the root
+    }
+  }
+
+  // Exclude spouse of the root if found
+  if (rootId) {
+    const rootSpouse = getSpouseOptions(rootId, directLinePeople, marriages);
+    if (rootSpouse.spouse) {
+      directLineIds.delete(rootSpouse.spouse.id);
+    }
+    if (rootSpouse.wives.length > 0) {
+      rootSpouse.wives.forEach(wife => directLineIds.delete(wife.id));
+    }
+  }
+
+  // Filter only people whose IDs are in direct line, remove duplicates, and exclude placeholders/deleted
+  const uniqueDirectLinePeople = [];
+  const seenIds = new Set();
+
+  people.forEach(person => {
+    if (directLineIds.has(person.id) && !seenIds.has(person.id) &&
+        !person.isPlaceholder && !person.isDeleted && !person.pendingDeletion) {
+      uniqueDirectLinePeople.push(person);
+      seenIds.add(person.id);
+    }
+  });
+
+  return uniqueDirectLinePeople;
 }

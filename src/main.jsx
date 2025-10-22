@@ -17,6 +17,7 @@ import NotificationOverviewPage from "./pages/NotificationOverviewPage.jsx";
 import MyTreesPage from "./pages/MyTreesPage.jsx";
 import MyStoriesPage from "./pages/MyStoriesPage.jsx";
 import MembersPage from "./pages/MembersPage.jsx";
+import InvitesPage from "./pages/InvitesPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
@@ -97,6 +98,14 @@ const router = createBrowserRouter([
           {
             path: "members",
             element: <MembersPage />,
+          },
+          {
+            path: "invites",
+            element: <InvitesPage />,
+          },
+          {
+            path: "invites/:inviteId",
+            element: <InvitesPage />,
           },
           {
             path: "notificationcenter",

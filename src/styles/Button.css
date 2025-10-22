@@ -121,11 +121,11 @@
   box-shadow: none;
 }
 
-
 .btn-danger {
   background-color: var(--color-danger);
   color: var(--color-white);
 }
+
 .btn-danger:hover:not(:disabled) {
   background-color: var(--color-danger-hover);
 }
@@ -143,7 +143,7 @@
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background-color: var(--color-gray-lightest);
+  background-color: var(--color-gray-light);
 }
 
 .btn-ghost:focus,

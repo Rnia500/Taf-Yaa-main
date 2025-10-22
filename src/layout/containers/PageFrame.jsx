@@ -1,9 +1,13 @@
 import React from 'react';
 import '../../styles/PageFrame.css';
+import ProfileSidebar from '../../components/sidebar/ProfileSidebar';
+import InviteDetailsSidebar from '../../components/sidebar/InviteDetailsSidebar';
 
 export default function PageFrame({
   topbar,
   sidebar,
+  sidebarContentType = 'peopleprofile', // Default to peopleprofile
+  sidebarProps = {},
   sidebarOpen = false,
   onSidebarClose,
   footer,
@@ -28,6 +32,17 @@ export default function PageFrame({
     return () => (document.body.style.overflow = '');
   }, [isMobile, sidebarOpen]);
 
+  // Render sidebar content based on contentType
+  const renderSidebarContent = () => {
+    if (sidebarContentType === 'peopleprofile') {
+      return <ProfileSidebar onClose={onSidebarClose} {...sidebarProps} />;
+    } else if (sidebarContentType === 'invite') {
+      return <InviteDetailsSidebar key={sidebarProps.invite?.id} onClose={onSidebarClose} {...sidebarProps} />;
+    }
+    // Default fallback
+    return <ProfileSidebar onClose={onSidebarClose} {...sidebarProps} />;
+  };
+
   return (
     <div className="pf-root">
       {/* Topbar */}
@@ -45,7 +60,7 @@ export default function PageFrame({
             ].join(' ')}
             style={{ width: !isMobile && sidebarOpen ? 350 : undefined }}
           >
-            {sidebar}
+            {renderSidebarContent()}
           </aside>
         )}
         {/* Overlay for mobile */}

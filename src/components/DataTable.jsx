@@ -25,7 +25,9 @@ const DataTable = ({
   const [filters, setFilters] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [controlsOpen, setControlsOpen] = useState(controlsInitiallyOpen);
-   console.log("DataTable State:", { searchQuery, searchColumn });
+  const [openFilter, setOpenFilter] = useState({});
+  const [filterOrder, setFilterOrder] = useState([]);
+  console.log("DataTable State:", { searchQuery, searchColumn });
 
 
   // 🔹 Generate default sort options from columns
@@ -179,64 +181,57 @@ const DataTable = ({
       )}
 
       {controlsOpen && (
-        <Row gap="0.5rem" padding="0px" margin="1rem" fitContent  alignItems="center" wrap>
-          {/* search */}
-          {enableSearch && (
-            <Row gap="0.5rem" fitContent padding="5px" margin="0px">
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search..."
-              />
+        <Column gap="0.5rem" fitContent alignItems="center" padding="0px" margin="0px">
+          <Row gap="0.5rem" padding="0px" margin="1rem" fitContent alignItems="center" wrap>
+            {/* search */}
+            {enableSearch && (
+              <Row gap="0.5rem" fitContent padding="5px" margin="0px">
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search..."
+                />
+                <SelectDropdown
+                  options={[
+                    { value: "all", label: "All Columns" },
+                    ...columns
+                      .filter((c) => c.searchable)
+                      .map((c) => ({ value: c.key, label: c.header }))
+                  ]}
+                  value={searchColumn}
+                  onChange={(e) => setSearchColumn(e.target.value)}
+                  placeholder="Search by"
+                />
+              </Row>
+            )}
+
+            {/* sorting */}
+            {sortOptions.length > 0 && (
               <SelectDropdown
                 options={[
-                  { value: "all", label: "All Columns" },
-                  ...columns
-                    .filter((c) => c.searchable)
-                    .map((c) => ({ value: c.key, label: c.header }))
+                  ...sortOptions.map((opt) => ({
+                    value: opt.key,
+                    label: opt.label,
+                  })),
                 ]}
-                value={searchColumn}
-                onChange={(e) => setSearchColumn(e.target.value)}
-                placeholder="Search by"
+                value={sortKey || ""}
+                onChange={(e) => setSortKey(e.target.value)}
+                placeholder="Sort by."
               />
-            </Row>
+            )}
+          </Row>
+          {/* active filters sequence */}
+          {filterOrder.length > 0 && (
+            <Text style={{ fontSize: '0.9rem', color: 'var(--color-primary2)' }}>
+              Filters sequence: {filterOrder.map((f, i) => (
+                <span key={f.key}>
+                  {columns.find(c => c.key === f.key)?.header}({f.label})
+                  {i < filterOrder.length - 1 ? ' > ' : ''}
+                </span>
+              ))}
+            </Text>
           )}
-
-          {/* sorting */}
-          {sortOptions.length > 0 && (
-            <SelectDropdown
-              options={[
-                // { value: "", label: "Sort by..." },
-                ...sortOptions.map((opt) => ({
-                  value: opt.key,
-                  label: opt.label,
-                })),
-              ]}
-              value={sortKey || ""}
-              onChange={(e) => setSortKey(e.target.value)}
-              placeholder="Sort by."
-            />
-          )}
-
-          {/* filters */}
-          {filterOptions.map((f) => (
-            <SelectDropdown
-              key={f.key}
-              options={[
-                { value: "", label: f.label },
-                ...f.options,
-              ]}
-              value={filters[f.key] || ""}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  [f.key]: e.target.value || null,
-                }))
-              }
-              placeholder={f.label}
-            />
-          ))}
-        </Row>
+        </Column>
       )}
 
       {/* table */}
@@ -246,8 +241,55 @@ const DataTable = ({
             <thead>
               <tr style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary2)' }}>
                 {columns.map((col) => (
-                  <th key={col.key} style={{ padding: '12px 16px', textAlign: col.align || 'left', fontWeight: '600', borderBottom: '2px solid var(--color-primary)' }}>
-                    {col.header}
+                  <th key={col.key} style={{ padding: '12px 16px', textAlign: col.align || 'left', fontWeight: '600', borderBottom: '2px solid var(--color-primary)', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: col.align === 'right' ? 'flex-end' : 'flex-start' }}>
+                      {col.header}
+                      {col.filterable && (
+                        <button
+                          onClick={() => setOpenFilter(prev => ({ ...prev, [col.key]: !prev[col.key] }))}
+                          style={{ marginLeft: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary2)', fontSize: '12px' }}
+                        >
+                          ▼
+                        </button>
+                      )}
+                    </div>
+                    {openFilter[col.key] && col.filterable && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 10, background: 'white', border: '1px solid var(--color-gray-light)', borderRadius: '4px', minWidth: '150px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                        <div
+                          onClick={() => {
+                            setFilters(prev => ({ ...prev, [col.key]: null }));
+                            setFilterOrder(prev => prev.filter(f => f.key !== col.key));
+                            setOpenFilter(prev => ({ ...prev, [col.key]: false }));
+                          }}
+                          style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid var(--color-gray-light)', hover: { backgroundColor: 'var(--color-gray-lightest)' } }}
+                        >
+                          All
+                        </div>
+                        {(defaultFilterOptions.find(f => f.key === col.key)?.options || []).map(opt => (
+                          <div
+                            key={opt.value}
+                            onClick={() => {
+                              setFilters(prev => ({ ...prev, [col.key]: opt.value }));
+                              setFilterOrder(prev => {
+                                const existing = prev.findIndex(f => f.key === col.key);
+                                const newFilter = { key: col.key, value: opt.value, label: opt.label };
+                                if (existing !== -1) {
+                                  const updated = [...prev];
+                                  updated[existing] = newFilter;
+                                  return updated;
+                                } else {
+                                  return [...prev, newFilter];
+                                }
+                              });
+                              setOpenFilter(prev => ({ ...prev, [col.key]: false }));
+                            }}
+                            style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid var(--color-gray-light)', hover: { backgroundColor: 'var(--color-gray-lightest)' } }}
+                          >
+                            {opt.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </th>
                 ))}
               </tr>

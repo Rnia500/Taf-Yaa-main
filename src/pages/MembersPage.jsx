@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import FlexContainer from '../layout/containers/FlexContainer';
 import Text from '../components/Text';
 import Card from '../layout/containers/Card';
@@ -15,14 +15,15 @@ import dataService from '../services/dataService';
 import useToastStore from '../store/useToastStore';
 import useModalStore from '../store/useModalStore';
 import { DeletePersonModal } from '../components/modals/DeletePersonModal';
-import { UserPen, Trash2, Users, User, Settings, Users2 } from 'lucide-react';
+import { UserPen, Trash2, Users, User, Settings, Users2, UserPlus } from 'lucide-react';
 
 const MembersPage = () => {
   const { treeId } = useParams();
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { people, tree, loading, reload } = useFamilyData(treeId);
   const addToast = useToastStore(state => state.addToast);
-  const { openModal } = useModalStore();
+  const { openModal, closeModal } = useModalStore();
 
   const [members, setMembers] = useState([]);
   const [updatingRole, setUpdatingRole] = useState(null);
@@ -77,6 +78,27 @@ const MembersPage = () => {
     openModal('relationships', { personId });
   };
 
+  const handleInviteMember = () => {
+    openModal('inviteTypeModal', {
+      onSelectType: (type) => {
+        closeModal('inviteTypeModal');
+        openModal('inviteModal', {
+          treeId,
+          inviteType: type,
+          onInviteCreated: (invite) => {
+            console.log('Invitation created:', invite);
+            reload();
+          },
+          onNavigate: (path) => navigate(path)
+        });
+      }
+    });
+  };
+
+  const handleNavigateToInvitePage = () => {
+    navigate(`/family-tree/${treeId}/invites`);
+  };
+
   if (loading) {
     return (
       <FlexContainer justify="center" align="center" padding="20px">
@@ -106,7 +128,7 @@ const MembersPage = () => {
       case 'people':
         return <ManagePeopleTab people={people} onEdit={handleEditPerson} onDelete={handleDeletePerson} onViewRelationships={handleViewRelationships} />;
       case 'members':
-        return <ManageMembersTab members={members} roleOptions={roleOptions} onRoleChange={handleRoleChange} updatingRole={updatingRole} canManageRoles={canManageRoles} />;
+        return <ManageMembersTab members={members} roleOptions={roleOptions} onRoleChange={handleRoleChange} updatingRole={updatingRole} canManageRoles={canManageRoles} onInviteMember={handleInviteMember} onNavigateToInvitePage={handleNavigateToInvitePage} />;
       default:
         return null;
     }
@@ -173,10 +195,9 @@ const ManagePeopleTab = ({ people, onEdit, onDelete, onViewRelationships }) => {
     {
       key: 'profileImage',
       header: 'Photo',
-      
       render: (person) => (
         <img
-          src={person.profileImage || '/Images/default-avatar.png'}
+          src={person.photoUrl || '/Images/default-avatar.png'}
           alt={person.name}
           style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
         />
@@ -224,21 +245,38 @@ const ManagePeopleTab = ({ people, onEdit, onDelete, onViewRelationships }) => {
   );
 };
 
-const ManageMembersTab = ({ members, roleOptions, onRoleChange, updatingRole, canManageRoles }) => {
+const ManageMembersTab = ({ members, roleOptions, onRoleChange, updatingRole, canManageRoles, onInviteMember, onNavigateToInvitePage }) => {
   if (members.length === 0) {
     return (
-      <Card padding="20px" textAlign="center">
-        <Users size={48} color="var(--color-gray)" />
-        <Text variant="heading3" margin="10px 0">No Members Found</Text>
-        <Text variant="body2" color="gray">
-          Members are people linked to user accounts in your tree.
-        </Text>
-      </Card>
+      <Column gap="20px">
+        <Row justifyContent="center">
+          <Button variant="primary" onClick={onInviteMember}>
+            <UserPlus size={16} style={{ marginRight: '8px' }} />
+            Invite Member
+          </Button>
+          <Button variant='primary' onClick={onNavigateToInvitePage}>
+            Go to invite page
+          </Button>
+        </Row>
+        <Card padding="20px" textAlign="center">
+          <Users size={48} color="var(--color-gray)" />
+          <Text variant="heading3" margin="10px 0">No Members Found</Text>
+          <Text variant="body2" color="gray">
+            Members are people linked to user accounts in your tree.
+          </Text>
+        </Card>
+      </Column>
     );
   }
 
   return (
     <Column gap="15px">
+      <Row justifyContent="flex-end">
+        <Button variant="primary" onClick={onInviteMember}>
+          <UserPlus size={16} style={{ marginRight: '8px' }} />
+          Invite Member
+        </Button>
+      </Row>
       {members.map((member) => (
         <Card key={member.id} padding="15px" borderRadius="10px">
           <Row align="center" gap="15px">
@@ -248,7 +286,7 @@ const ManageMembersTab = ({ members, roleOptions, onRoleChange, updatingRole, ca
               birthDate={member.dob}
               deathDate={member.dod}
               role={member.role}
-              profileImage={member.profileImage}
+              profileImage={member.photoUrl}
               isDead={member.isDeceased}
               style={{ flex: 1 }}
             />

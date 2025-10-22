@@ -11,6 +11,8 @@ import PDFExport from "../PdfExport";
 import InfoModal from "../modals/InfoModal";
 import CascadeDetailsModal from "../modals/CascadeDetailsModal";
 import RelationshipsModal from "../modals/RelationshipsModal";
+import InviteTypeModal from "../modals/InviteTypeModal";
+import InviteModal from "../modals/InviteModal";
 
 export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
@@ -25,4 +27,6 @@ export const modalRegistry = {
   infoModal: InfoModal,
   cascadeDetailsModal: CascadeDetailsModal,
   relationships: RelationshipsModal,
+  inviteTypeModal: InviteTypeModal,
+  inviteModal: InviteModal,
 };
