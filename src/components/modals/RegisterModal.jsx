@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import useModalStore from '../../store/useModalStore';
 import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
@@ -12,6 +12,7 @@ import Card from '../../layout/containers/Card';
 import { X } from 'lucide-react';
 
 export default function RegisterModal() {
+  const [searchParams] = useSearchParams();
   const { modals, closeModal } = useModalStore();
   const isOpen = modals.registerModal || false;
   const { register, loginWithGoogle } = useAuth();
@@ -55,6 +56,23 @@ export default function RegisterModal() {
         darkMode: formData.darkMode,
       });
       closeModal('registerModal');
+
+      // Check if there's a pending join invite to resume
+      const pendingInvite = sessionStorage.getItem('pendingJoinInvite');
+      if (pendingInvite) {
+        const inviteData = JSON.parse(pendingInvite);
+        sessionStorage.removeItem('pendingJoinInvite');
+        navigate(`/join-request?inviteId=${inviteData.inviteId}&code=${inviteData.code}`);
+        return;
+      }
+
+      // Check for return URL from join process
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+        navigate(decodeURIComponent(returnUrl));
+        return;
+      }
+
       navigate('/my-trees');
     } catch (err) {
       setError(err.message);
@@ -68,6 +86,23 @@ export default function RegisterModal() {
     try {
       await loginWithGoogle();
       closeModal('registerModal');
+
+      // Check if there's a pending join invite to resume
+      const pendingInvite = sessionStorage.getItem('pendingJoinInvite');
+      if (pendingInvite) {
+        const inviteData = JSON.parse(pendingInvite);
+        sessionStorage.removeItem('pendingJoinInvite');
+        navigate(`/join-request?inviteId=${inviteData.inviteId}&code=${inviteData.code}`);
+        return;
+      }
+
+      // Check for return URL from join process
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+        navigate(decodeURIComponent(returnUrl));
+        return;
+      }
+
       navigate('/my-trees');
     } catch (err) {
       setError(err.message);

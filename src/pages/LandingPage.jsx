@@ -4,10 +4,12 @@ import { SearchIcon, MicIcon, PlayIcon, Volume2Icon, UsersIcon, TreePine, Langua
 import PageFrame from "../layout/containers/PageFrame";
 import DefaultNavbar from "../components/navbar/DefaultNavbar";
 import Button from "../components/Button";
+import useModalStore from "../store/useModalStore";
 
 
 const LandingPageHTML = () => {
   const navigate = useNavigate();
+  const { openModal } = useModalStore();
     return (
         <div className="relative w-full min-h-screen overflow-x-hidden bg-background-dark text-white">
             {/* Background Image */}
@@ -77,7 +79,7 @@ const LandingPageHTML = () => {
                                         e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
                                         e.currentTarget.style.transform = 'scale(1)';
                                     }}
-                                    onClick={() => navigate('/login')}
+                                    onClick={() => openModal('joinModal')}
                                 >
                                     Join a Family
                                 </Button>
@@ -760,7 +762,7 @@ const LandingPageHTML = () => {
                                 variant="secondary"
                                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                onClick={() => navigate('/login')}
+                                onClick={() => openModal('joinModal')}
                             >
                                 Join a family
                             </Button>

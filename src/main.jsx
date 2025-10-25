@@ -21,6 +21,8 @@ import InvitesPage from "./pages/InvitesPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
+import JoinPage from "./pages/JoinPage.jsx";
+import JoinRequestPage from "./pages/JoinRequestPage.jsx";
 import Custom404Page from "./components/Custom404Page.jsx";
 import TreeSettingsPage from "./pages/TreeSettingsPage.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
@@ -48,7 +50,7 @@ const RedirectToNestedRoute = ({ targetPath }) => {
   
   useEffect(() => {
     // Try to get treeId from URL first
-    const pathMatch = location.pathname.match(/\/family-tree\/([^\/]+)/);
+    const pathMatch = location.pathname.match(/\/family-tree\/([^/]+)/);
     let treeId = pathMatch ? pathMatch[1] : null;
     
     // If not in URL, try to get from localStorage
@@ -190,6 +192,16 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
+    errorElement: <Custom404Page />,
+  },
+  {
+    path: "/join",
+    element: <JoinPage />,
+    errorElement: <Custom404Page />,
+  },
+  {
+    path: "/join-request",
+    element: <JoinRequestPage />,
     errorElement: <Custom404Page />,
   },
 

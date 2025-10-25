@@ -1,21 +1,20 @@
-import React, { useState, useRef, useContext } from "react";
-import Modal from "../../layout/containers/Modal";
-import Card from "../../layout/containers/Card";
-import Text from "../Text";
-import Row from "../../layout/containers/Row";
-import Column from "../../layout/containers/Column";
-import Spacer from "../Spacer";
-import Button from "../Button";
-import FileUpload from "../FileUpload";
-import AudioPlayer from "../AudioPLayer";
-import WaveformPlayer from "../WaveformPlayer";
-import { TextInput } from "../Input";
-import { Play, Pause, X, Upload } from "lucide-react";
-import { TreeContext } from "../../context/TreeContext.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
-import dataService from "../../services/dataService.js";
+import React, { useState, useContext } from "react";
+import Card from "../layout/containers/Card";
+import Text from "./Text";
+import Row from "../layout/containers/Row";
+import Column from "../layout/containers/Column";
+import Button from "./Button";
+import FileUpload from "./FileUpload";
+import AudioPlayer from "./AudioPLayer";
+import WaveformPlayer from "./WaveformPlayer";
+import { TextInput } from "./Input";
+import { Play, Pause, X, Upload, FileText } from "lucide-react";
+import { TreeContext } from "../context/TreeContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import dataService from "../services/dataService.js";
+import { ImageAttachmentCard, VideoAttachmentCard, AudioAttachmentCard } from "./StoryAttachmentCard.jsx";
 
-const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
+const MediaAttachment = ({ onAttachmentAdded }) => {
   const context = useContext(TreeContext);
   const treeId = context?.treeId || "creating";
   const { currentUser } = useAuth();
@@ -27,10 +26,7 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
   const [error, setError] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
   const [caption, setCaption] = useState("");
-
-  const fileInputRef = useRef(null);
 
   const detectFileType = (file) => {
     if (file.type.startsWith("image/")) return "image";
@@ -53,7 +49,6 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
     setFileType(type);
     setError(null);
     setIsPlaying(false);
-    setCurrentTime(0);
 
     // Create preview URL
     const reader = new FileReader();
@@ -89,7 +84,8 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
       setUploadStatus("success");
       if (onAttachmentAdded) onAttachmentAdded(attachment);
 
-      setTimeout(() => handleClose(), 1000);
+      // Reset after successful upload
+      setTimeout(() => handleRemove(), 1000);
     } catch (err) {
       console.error("Upload failed:", err);
       setUploadStatus("error");
@@ -105,14 +101,8 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
     setError(null);
     setUploadStatus("idle");
     setIsPlaying(false);
-    setCurrentTime(0);
     setDuration(0);
     setCaption("");
-  };
-
-  const handleClose = () => {
-    handleRemove();
-    onClose();
   };
 
   const formatTime = (time) => {
@@ -124,10 +114,11 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
   const renderPreview = () => {
     if (!file || !fileType) return null;
 
+    // Default UI (existing implementation)
     switch (fileType) {
       case "image":
         return (
-          <Column gap="16px"  padding="0px" margin="0px" className="w-full">
+          <Column gap="16px" padding="0px" margin="0px" className="w-full">
             <Text variant="body1" bold className="text-center">{file.name}</Text>
             <img
               src={previewUrl}
@@ -135,8 +126,8 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
               className="w-full max-h-64 object-contain rounded-lg"
             />
 
-                <div className="flex justify-center">
-               <Card
+            <div className="flex justify-center">
+              <Card
                 rounded
                 size="40px"
                 margin="0.5rem"
@@ -144,10 +135,9 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
                 alignItems="center"
                 onClick={handleRemove}
               >
-                <X size={20}  />
+                <X size={20} />
               </Card>
-
-             </div>
+            </div>
           </Column>
         );
 
@@ -167,7 +157,7 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
                 isPlaying={isPlaying}
                 onTogglePlay={setIsPlaying}
                 onReady={setDuration}
-                onTimeUpdate={setCurrentTime}
+                onTimeUpdate={() => {}}
               />
             </div>
 
@@ -185,7 +175,7 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
                 alignItems="center"
                 onClick={handleRemove}
               >
-                <X size={20}  />
+                <X size={20} />
               </Card>
             </Row>
           </Column>
@@ -193,7 +183,7 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
 
       case "video":
         return (
-          <Column gap="16px" justifyContent="center" alignItems="center"  padding="0px" margin="0px">
+          <Column gap="16px" justifyContent="center" alignItems="center" padding="0px" margin="0px">
             <div className="flex justify-center max-w-800px mx-auto">
               <Text variant="body1" ellipsisLines={2} bold className="text-center">{file.name}</Text>
             </div>
@@ -207,8 +197,8 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
               />
             </div>
 
-             <div className="flex justify-center">
-               <Card
+            <div className="flex justify-center">
+              <Card
                 rounded
                 size="40px"
                 margin="0.5rem"
@@ -216,11 +206,9 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
                 alignItems="center"
                 onClick={handleRemove}
               >
-                <X size={20}  />
+                <X size={20} />
               </Card>
-
-             </div>
-
+            </div>
           </Column>
         );
 
@@ -259,84 +247,77 @@ const AddAttachmentModal = ({ isOpen, onClose, onAttachmentAdded }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} maxWidth="450px" maxHeight="90vh">
-      
-        <Text as="span" variant="heading1" color="primary">
-          Add Attachment
-        </Text>
-      
-      <Column padding="0px" margin="0px" gap="1.5rem">
+    <Column padding="0px" margin="0px" gap="1.5rem">
+      {!file ? (
+        <FileUpload
+          onChange={handleFileChange}
+          accept={treeId === "creating" ? "image/*,audio/*,.pdf" : "image/*,video/*,audio/*,.pdf"}
+          label={treeId === "creating" ? "Choose a file to attach (max 5MB)" : "Choose a file to attach"}
+        />
+      ) : (
+        <Card
+          padding="0.5rem"
+          borderRadius="16px"
+          backgroundColor="white"
+          className="flex flex-col gap-4 shadow-sm"
+        >
+          {renderPreview()}
 
-        {!file ? (
-          <FileUpload
-            onChange={handleFileChange}
-            accept="image/*,video/*,audio/*,.pdf"
-            label="Choose a file to attach"
+          <TextInput
+            label="Caption (optional)"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder="Enter a caption for this attachment"
           />
-        ) : (
-          <Card
-            padding="0.5rem"
-            borderRadius="16px"
-            backgroundColor="white"
-            className="flex flex-col gap-4 shadow-sm"
-          >
-            {renderPreview()}
 
-            <TextInput
-              label="Caption (optional)"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Enter a caption for this attachment"
-            />
+          {uploadStatus === "uploading" && (
+            <Text variant="caption2" color="var(--color-gray)" className="text-center">
+              Uploading...
+            </Text>
+          )}
+          {uploadStatus === "success" && (
+            <Text variant="caption2" color="var(--color-success)" className="text-center">
+              Upload successful!
+            </Text>
+          )}
+          {uploadStatus === "error" && (
+            <Text variant="caption2" color="var(--color-danger)" className="text-center">
+              {error}
+            </Text>
+          )}
 
-            {uploadStatus === "uploading" && (
-              <Text variant="caption2" color="var(--color-gray)" className="text-center">
-                Uploading...
-              </Text>
-            )}
-            {uploadStatus === "success" && (
-              <Text variant="caption2" color="var(--color-success)" className="text-center">
-                Upload successful!
-              </Text>
-            )}
-            {uploadStatus === "error" && (
-              <Text variant="caption2" color="var(--color-danger)" className="text-center">
-                {error}
-              </Text>
-            )}
-          </Card>
-        )}
-
-        
-
-        <Row padding="0px" margin="0px" gap="12px">
-          <Button
-            fullWidth
-            variant="secondary"
-            onClick={handleClose}
-          >
-            Cancel
-          </Button>
-          <Button
-            fullWidth
-            variant="primary"
-            onClick={handleUpload}
-            disabled={!file || uploadStatus === "uploading"}
-            className="flex items-center gap-2"
-          >
-            <Upload size={16} />
-            {uploadStatus === "Attaching" ? "Attaching..." : "Attach"}
-          </Button>
-        </Row>
-
-        <Card padding="12px" backgroundColor="var(--color-light-blue)">
-          <Text variant="caption2" color="var(--color-primary-dark)">
-            Supported formats: Images (JPG, PNG), Videos (MP4, WebM), Audio (MP3, WAV, M4A), PDFs
-          </Text>
+          <Row padding="0px" margin="0px" gap="12px">
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={handleRemove}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              variant="primary"
+              onClick={handleUpload}
+              disabled={!file || uploadStatus === "uploading"}
+              className="flex items-center gap-2"
+            >
+              <Upload size={16} />
+              {uploadStatus === "uploading" ? "Uploading..." : "Attach"}
+            </Button>
+          </Row>
         </Card>
-      </Column>
-    </Modal>
+      )}
+
+      <Card padding="12px" backgroundColor="var(--color-light-blue)">
+        <Text variant="caption2" color="var(--color-primary-dark)">
+          {treeId === "creating"
+            ? "Supported formats: Images (JPG, PNG - auto-compressed), Audio (MP3, WAV, M4A), PDFs. Max 5MB per file. Videos blocked due to storage limits."
+            : "Supported formats: Images (JPG, PNG), Videos (MP4, WebM), Audio (MP3, WAV, M4A), PDFs"
+          }
+        </Text>
+      </Card>
+    </Column>
   );
 };
 
-export default AddAttachmentModal;
+export default MediaAttachment;

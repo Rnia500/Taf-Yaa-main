@@ -19,6 +19,7 @@ const useModalStore = create((set) => ({
     pdfExportModal: false,
     infoModal: false,
     cascadeDetailsModal: false,
+    joinModal: false,
   },
 
   // Modal data
@@ -103,6 +104,7 @@ const useModalStore = create((set) => ({
       pdfExportModal: false,
       infoModal: false,
       cascadeDetailsModal: false,
+      joinModal: false,
     }
   }),
 }));

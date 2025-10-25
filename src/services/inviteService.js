@@ -70,7 +70,7 @@ export async function createInviteService({
   return { id: invite.InviteId, ...invite };
 }
 
-// Validate invite code and return invite data
+// Validate invite code and return invite data with tree info
 export async function validateInviteCode(code) {
   const invitesRef = collection(db, 'invites');
   const q = query(invitesRef, where('code', '==', code), limit(1));
@@ -92,7 +92,11 @@ export async function validateInviteCode(code) {
     throw new Error('Invite usage limit reached');
   }
 
-  return { invite, inviteId: inviteDoc.id };
+  // Get tree information
+  const { treeServiceFirebase } = await import('./data/treeServiceFirebase.js');
+  const tree = await treeServiceFirebase.getTree(invite.treeId);
+
+  return { invite, inviteId: inviteDoc.id, tree };
 }
 
 // Submit a join request

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock } from 'lucide-react';
 import Button from '../components/Button';
@@ -8,6 +8,7 @@ import Checkbox from '../components/Checkbox';
 import { TextInput } from '../components/Input';
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -16,6 +17,15 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Check for pending join invite on mount
+  useEffect(() => {
+    const pendingInvite = sessionStorage.getItem('pendingJoinInvite');
+    if (pendingInvite) {
+      // User was redirected here to login for join process
+      // We'll handle this after successful login
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -23,6 +33,23 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+
+      // Check if there's a pending join invite to resume
+      const pendingInvite = sessionStorage.getItem('pendingJoinInvite');
+      if (pendingInvite) {
+        const inviteData = JSON.parse(pendingInvite);
+        sessionStorage.removeItem('pendingJoinInvite');
+        navigate(`/join-request?inviteId=${inviteData.inviteId}&code=${inviteData.code}`);
+        return;
+      }
+
+      // Check for return URL from join process
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+        navigate(decodeURIComponent(returnUrl));
+        return;
+      }
+
       navigate('/my-trees');
     } catch (err) {
       setError(err.message);
