@@ -29,7 +29,7 @@ export type EventType =
   | "graduation"
   | "custom";
 
-// --- Factory ---
+//  Factory 
 export const createEvent = (data: {
   treeId: string;
   personIds: string[];
@@ -63,7 +63,7 @@ export const createEvent = (data: {
   };
 };
 
-// --- Helpers ---
+//  Helpers 
 /** Returns the displayable label for an event */
 export const getEventLabel = (event: Event): string => {
   if (event.type === "custom" && event.customType) {

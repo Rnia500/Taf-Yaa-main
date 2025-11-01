@@ -40,7 +40,7 @@ export interface Media {
   deletedAt?: any | null; // Firestore Timestamp
 }
 
-// --- Helpers ---
+//  Helpers 
 
 /** Factory to create a new media object */
 export const createMedia = (params: {

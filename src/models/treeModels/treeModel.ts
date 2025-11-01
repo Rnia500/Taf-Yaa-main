@@ -17,6 +17,15 @@ export interface Tree {
 
   roles: Record<string, "admin" | "moderator" | "editor" | "viewer">;
 
+  members: Array<{
+    userId: string;
+    role: "admin" | "moderator" | "editor" | "viewer";
+    joinedAt: string;
+    banned?: boolean;
+    banPeriod?: string | null; // ISO date string for ban expiration, null if permanent or not banned
+    lastActive?: string;
+  }>;
+
   
   settings: {
     privacy: {
@@ -61,7 +70,7 @@ export interface Tree {
   };
 }
 
-// --- Factory ---
+//  Factory 
 export function createTree(input: Partial<Tree>): Tree {
   const id = input.id || generateId("tree");
   return {
@@ -77,6 +86,7 @@ export function createTree(input: Partial<Tree>): Tree {
     origineTongue: input.origineTongue || "No mother tongue given",
     familyPhoto: input.familyPhoto || null,
     roles: input.roles || { [input.createdBy!]: "admin" },
+    members: input.members || [],
 
     settings: {
       privacy: {

@@ -136,7 +136,8 @@ async function addMember(treeId, member) {
 
     const newMember = {
       ...member,
-      joinedAt: new Date().toISOString()
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString()
     };
 
     members.push(newMember);
@@ -180,18 +181,91 @@ async function changeMemberRole(treeId, userId, newRole) {
 
     const members = tree.members || [];
     const memberIndex = members.findIndex(m => m.userId === userId);
-    
+
     if (memberIndex === -1) {
       throw new Error("Member not found in this tree");
     }
 
     members[memberIndex].role = newRole;
     members[memberIndex].updatedAt = new Date().toISOString();
-    
+
     await updateTree(treeId, { members });
     return members[memberIndex];
   } catch (error) {
     throw new Error(`Failed to change member role: ${error.message}`);
+  }
+}
+
+async function banMember(treeId, userId, banPeriod = null) {
+  try {
+    const tree = await getTree(treeId);
+    if (!tree) {
+      throw new Error("Tree not found");
+    }
+
+    const members = tree.members || [];
+    const memberIndex = members.findIndex(m => m.userId === userId);
+
+    if (memberIndex === -1) {
+      throw new Error("Member not found in this tree");
+    }
+
+    members[memberIndex].banned = true;
+    members[memberIndex].banPeriod = banPeriod;
+    members[memberIndex].updatedAt = new Date().toISOString();
+
+    await updateTree(treeId, { members });
+    return members[memberIndex];
+  } catch (error) {
+    throw new Error(`Failed to ban member: ${error.message}`);
+  }
+}
+
+async function unbanMember(treeId, userId) {
+  try {
+    const tree = await getTree(treeId);
+    if (!tree) {
+      throw new Error("Tree not found");
+    }
+
+    const members = tree.members || [];
+    const memberIndex = members.findIndex(m => m.userId === userId);
+
+    if (memberIndex === -1) {
+      throw new Error("Member not found in this tree");
+    }
+
+    members[memberIndex].banned = false;
+    members[memberIndex].updatedAt = new Date().toISOString();
+
+    await updateTree(treeId, { members });
+    return members[memberIndex];
+  } catch (error) {
+    throw new Error(`Failed to unban member: ${error.message}`);
+  }
+}
+
+async function updateMemberLastActive(treeId, userId, lastActive) {
+  try {
+    const tree = await getTree(treeId);
+    if (!tree) {
+      throw new Error("Tree not found");
+    }
+
+    const members = tree.members || [];
+    const memberIndex = members.findIndex(m => m.userId === userId);
+
+    if (memberIndex === -1) {
+      throw new Error("Member not found in this tree");
+    }
+
+    members[memberIndex].lastActive = lastActive;
+    members[memberIndex].updatedAt = new Date().toISOString();
+
+    await updateTree(treeId, { members });
+    return members[memberIndex];
+  } catch (error) {
+    throw new Error(`Failed to update member last active: ${error.message}`);
   }
 }
 
@@ -240,8 +314,7 @@ async function getUserLatestTree(userId) {
     return sortedTrees[0];
   } catch (error) {
     throw new Error(`Failed to get user latest tree: ${error.message}`);
-  }
-}
+  }}
 
 async function deleteTree(treeId) {
   try {
@@ -304,6 +377,9 @@ export const treeServiceFirebase = {
   addMember,
   removeMember,
   changeMemberRole,
+  banMember,
+  unbanMember,
+  updateMemberLastActive,
   setRootPerson,
   toggleInvites,
   setMergeOptIn,

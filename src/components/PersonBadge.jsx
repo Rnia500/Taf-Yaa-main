@@ -8,7 +8,7 @@ export const AdminBadge = ({position = '', padding = '10px',  margin = '0px', sc
     </Card>
 )
 
-export const EditorBadge = ({position = '', padding = '10px',  margin = '0px', scared = false}) => (
+export const EditorBadge = ({position = '', padding = '3px',  margin = '0px', scared = false}) => (
     <Card backgroundColor="var(--color-gray)" positionType='absolute' padding={padding} margin={margin} position={position} borderRadius={scared ? '0px 0px 20px 20px' : '0px 20px 20px 20px'}  size={30}>
         <img src='/SVGs/editor.svg' alt='Editor Badge' />
     </Card>

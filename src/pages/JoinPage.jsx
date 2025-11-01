@@ -68,6 +68,7 @@ const JoinPage = () => {
   };
 
   const proceedToJoinRequest = () => {
+    console.log('Current user ID:', currentUser?.uid);
     if (inviteData) {
       if (!currentUser) {
         // Store invite data in sessionStorage for resume after login

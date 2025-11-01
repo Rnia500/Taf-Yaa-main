@@ -53,7 +53,7 @@ export interface Story {
   deletionBatchId?: string | null;
 }
 
-// --- Helpers ---
+//  Helpers 
 
 /** Format the story date for UI */
 export const formatStoryDate = (story: Story, locale = "en-US"): string => {

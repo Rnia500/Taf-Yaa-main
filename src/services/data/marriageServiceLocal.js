@@ -4,7 +4,7 @@
 import { getDB, saveDB } from "./localDB.js"; 
 import { generateId } from "../../utils/personUtils/idGenerator.js";
 
-// --- Marriage-Specific Data Access Functions (Local Storage Implementation) ---
+//  Marriage-Specific Data Access Functions (Local Storage Implementation) 
 
 function addMarriage(marriage) {
   const db = getDB();

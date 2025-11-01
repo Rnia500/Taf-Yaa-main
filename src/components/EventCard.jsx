@@ -70,7 +70,7 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true, editingE
       }
     }
 
-    // --- EDIT LOGIC ---
+    //  EDIT LOGIC 
     if (editingId !== null) {
       const originalEvent = events.find(e => e.id === editingId);
 
@@ -87,7 +87,7 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true, editingE
       );
       onEventsChange(updatedEvents);
 
-      // --- ADD LOGIC ---
+      //  ADD LOGIC 
     } else {
       const newEvent = {
         ...eventData,
@@ -138,7 +138,7 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true, editingE
 
   return (
     <Card padding='0px' backgroundColor='var(--color-transparent)' margin='20px 0px 0px 0px' width='100%'>
-      {/* --- Form Section --- */}
+      {/*  Form Section  */}
 
       <div style={{display: 'flex', gap:'0.5rem', margin: '0.5rem 0rem', width: '100%'}}>
         <div style={{ width: '100%' }}>
@@ -186,7 +186,7 @@ const EventCard = ({ events = [], onEventsChange, showEventList = true, editingE
         </Button>
       </Row>
 
-      {/* --- Display List Section --- */}
+      {/*  Display List Section  */}
       {events.length > 0 && showEventList && (
         <>
           <Text variant="heading3" margin="20px 0px 10px 0px">Added Events</Text>

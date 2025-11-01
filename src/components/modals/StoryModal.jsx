@@ -7,7 +7,7 @@ import Divider from '../Divider';
 import Row from '../../layout/containers/Row';
 import Column from '../../layout/containers/Column';
 import Button from '../Button';
-import { VideoAttachmentCard, ImageAttachmentCard, AudioAttachmentCard } from '../StoryAttachmentCard';
+import { VideoAttachmentCard, ImageAttachmentCard, AudioAttachmentCard } from '../AttachmentCard';
 import { authService } from '../../services/authService';
 import dataService from '../../services/dataService';
 import AddAttachmentModal from './AddAttachmentModal';

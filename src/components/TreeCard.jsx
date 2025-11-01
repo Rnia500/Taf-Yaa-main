@@ -3,7 +3,7 @@ import Text from './Text';
 import Button from './Button';
 import DeletionCountdown from './DeletionCountdown';
 
-const TreeCard = ({ tree, rootName, peopleCount, onClick, onContextMenu, onRestore, onPurge }) => {
+const TreeCard = ({ tree, rootName, peopleCount, userRole, onClick, onContextMenu, onRestore, onPurge }) => {
   const isDeleted = tree.deletedAt;
   const timeRemaining = isDeleted ? 30 * 24 * 60 * 60 * 1000 - (new Date() - new Date(tree.deletedAt.toDate ? tree.deletedAt.toDate() : tree.deletedAt)) : 0;
 
@@ -39,7 +39,7 @@ const TreeCard = ({ tree, rootName, peopleCount, onClick, onContextMenu, onResto
       <div className="p-6">
         <Text variant='heading3' bold>The {tree.familyName} Family Tree</Text>
         <div className="text-gray-600 space-y-1 mt-2">
-          <p><span className="text-sm font-semibold">Role:</span> {tree.role}</p>
+          <p><span className="text-sm font-semibold">Role:</span> {userRole}</p>
           <p><span className="text-sm font-semibold">Root Person:</span> {rootName || 'Loading...'}</p>
           <p><span className="text-sm font-semibold">Number of members:</span> {peopleCount}</p>
         </div>

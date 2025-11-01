@@ -97,7 +97,7 @@ export async function handleSpouseAddition(existingSpouse, newSpouse, formData, 
   const existingMonogamous = existingMarriages.find(m => m.marriageType === "monogamous");
   const existingPolygamousForHusband = existingMarriages.find(m => m.marriageType === "polygamous" && m.husbandId === existingSpouse.id);
 
-  // --- Scenario 1: Husband is already in a polygamous marriage -> APPEND ---
+  //  Scenario 1: Husband is already in a polygamous marriage -> APPEND 
   if (existingPolygamousForHusband) {
     const marriage = await addWifeToMarriage(existingPolygamousForHusband.id, newSpouse.id, {
       startDate: formData.marriageDate,
@@ -107,7 +107,7 @@ export async function handleSpouseAddition(existingSpouse, newSpouse, formData, 
     return { marriage, marriageAction: "updated" };
   }
 
-  // --- Scenario 2: A monogamous marriage exists -> CONVERT ---
+  //  Scenario 2: A monogamous marriage exists -> CONVERT 
   if (existingMonogamous) {
     // Check if user confirmation is needed (i.e., they didn't explicitly choose "polygamous" in the form).
     if (formData.marriageType !== 'polygamous') {
@@ -149,7 +149,7 @@ export async function handleSpouseAddition(existingSpouse, newSpouse, formData, 
     return { marriage, marriageAction: "converted" };
   }
 
-  // --- Scenario 3: No existing marriage -> CREATE NEW ---
+  //  Scenario 3: No existing marriage -> CREATE NEW 
   if (formData.marriageType === 'monogamous') {
     const marriage = await createMarriage(treeId, "monogamous", createdBy, {
         spouses: [existingSpouse.id, newSpouse.id],

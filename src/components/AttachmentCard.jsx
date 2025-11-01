@@ -18,7 +18,7 @@ const formatDuration = (duration) => {
   }
 };
 
-export const VideoAttachmentCard = ({ src, alt, caption, uploader, duration, onClick, onDelete, attachmentId }) => {
+export const VideoAttachmentCard = ({ src, alt, caption, uploader, duration, onClick, showAuthor = true, onDelete, attachmentId }) => {
   const [uploaderName, setUploaderName] = useState('Unknown');
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -114,9 +114,10 @@ export const VideoAttachmentCard = ({ src, alt, caption, uploader, duration, onC
           <p className="text-[11px] font-semibold leading-tight truncate max-w-[100px]">
             {caption || "Video"}
           </p>
-          <p className="text-[10px] text-gray-200 leading-tight truncate max-w-[100px]">
+          {showAuthor && <p className="text-[10px] text-gray-200 leading-tight truncate max-w-[100px]">
             by {uploaderName}
           </p>
+      }
         </div>
       </div>
 
@@ -131,7 +132,7 @@ export const VideoAttachmentCard = ({ src, alt, caption, uploader, duration, onC
   );
 };
 
-export const ImageAttachmentCard = ({ src, alt, caption, uploader, onClick, onDelete, attachmentId }) => {
+export const ImageAttachmentCard = ({ src, alt, caption, uploader, onClick, onDelete, attachmentId, showAuthor = true, showCaption = true }) => {
   const [uploaderName, setUploaderName] = useState('Unknown');
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -216,12 +217,15 @@ export const ImageAttachmentCard = ({ src, alt, caption, uploader, onClick, onDe
 
         {/* Bottom text */}
         <div className="absolute bottom-2 left-2 text-white">
-          <p className="text-[11px] font-semibold leading-tight truncate max-w-[100px]">
+         
+         {showCaption && <p className="text-[11px] font-semibold leading-tight truncate max-w-[100px]">
             {caption || "Image"}
           </p>
-          <p className="text-[10px] text-gray-200 leading-tight truncate max-w-[100px]">
+          }
+          {showAuthor && <p className="text-[10px] text-gray-200 leading-tight truncate max-w-[100px]">
             by {uploaderName}
           </p>
+      }
         </div>
       </div>
 
@@ -236,7 +240,7 @@ export const ImageAttachmentCard = ({ src, alt, caption, uploader, onClick, onDe
   );
 };
 
-export const AudioAttachmentCard = ({ thumbnail, duration, title, uploader, onClick, onDelete, attachmentId }) => {
+export const AudioAttachmentCard = ({ thumbnail, duration, title, uploader, onClick, onDelete, attachmentId, showAuthor = true }) => {
   const [uploaderName, setUploaderName] = useState('Unknown');
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -334,9 +338,10 @@ export const AudioAttachmentCard = ({ thumbnail, duration, title, uploader, onCl
         </div>
 
         {/* Bottom text */}
-        <div className="absolute bottom-2 left-2 text-white z-10">
-          <p className="text-[9px] text-gray-800 truncate ">by {uploaderName}</p>
-        </div>
+          {showAuthor && <p className="text-[10px] text-gray-200 leading-tight truncate max-w-[100px]">
+            by {uploaderName}
+          </p>
+      }
       </div>
 
       <DeleteAttachmentModal
@@ -344,6 +349,90 @@ export const AudioAttachmentCard = ({ thumbnail, duration, title, uploader, onCl
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
         attachmentType="audio"
+        isDeleting={isDeleting}
+      />
+    </>
+  );
+};
+
+export const FileAttachmentCard = ({ fileUrl, fileName, onClick, onDelete, attachmentId, showAuthor = true }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      if (onDelete) {
+        await onDelete(attachmentId);
+      }
+    } catch (error) {
+      console.error('Failed to delete attachment:', error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  return (
+    <>
+      <div
+        className="relative w-[120px] h-[120px] rounded-xl overflow-hidden shadow-md group cursor-pointer bg-zinc-50 border border-zinc-200 flex flex-col items-center justify-center"
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Delete button - top right corner */}
+        {isHovered && (
+          <div className="absolute top-1 right-1 z-20">
+            <Card
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }}
+              style={{
+                padding: '3px',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                border: '1px solid #e5e7eb'
+              }}
+            >
+              <Trash2 size={12} color="#dc2626" />
+            </Card>
+          </div>
+        )}
+
+        {/* File icon */}
+        <div className="flex items-center justify-center p-4">
+          <span className="material-symbols-outlined text-5xl text-red-500">description</span>
+        </div>
+
+        {/* File name */}
+        <div className="absolute bottom-2 left-2 right-2 text-center">
+          <p className="text-[11px] font-semibold leading-tight text-zinc-800 truncate">
+            {fileName || "File"}
+          </p>
+        </div>
+      </div>
+
+      <DeleteAttachmentModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        attachmentType="file"
         isDeleting={isDeleting}
       />
     </>

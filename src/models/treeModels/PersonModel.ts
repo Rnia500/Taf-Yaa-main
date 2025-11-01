@@ -35,7 +35,7 @@ export interface Person {
 }
 
 
-// --- Helpers ---
+//  Helpers 
 
 /** Returns the calculated age or null if dob is missing */
 export const getAge = (person: Person): number | null => {

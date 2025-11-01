@@ -13,6 +13,9 @@ const useModalStore = create((set) => ({
     treeModal: false,
     confirmationModal: false,
     editPerson: false,  // Added editPerson modal
+    editMember: false,
+    editMemberRole: false,
+    banMemberModal: false,
     deletePerson: false,
     relationships: false,
     warningModal: false,
@@ -20,6 +23,8 @@ const useModalStore = create((set) => ({
     infoModal: false,
     cascadeDetailsModal: false,
     joinModal: false,
+    pendingRequestDetailsModal: false,
+    grantMembershipModal: false,
   },
 
   // Modal data
@@ -43,6 +48,19 @@ const useModalStore = create((set) => ({
     editPerson: {  // Added editPerson modal data
       personId: null,
     },
+    editMember: {
+      memberId: null,
+    },
+    editMemberRole: {
+      member: null,
+      treeId: null,
+      onRoleUpdated: null,
+    },
+    banMemberModal: {
+      member: null,
+      treeId: null,
+      onBanConfirmed: null,
+    },
     deletePerson: {
       person: null,
       onDeleteComplete: null,
@@ -64,6 +82,16 @@ const useModalStore = create((set) => ({
     },
     cascadeDetailsModal: {
       person: null,
+    },
+    pendingRequestDetailsModal: {
+      request: null,
+      onRefresh: null,
+    },
+    grantMembershipModal: {
+      person: null,
+      treeId: null,
+      treeName: null,
+      onMembershipGranted: null,
     },
   },
 
@@ -98,6 +126,9 @@ const useModalStore = create((set) => ({
       treeModal: false,
       confirmationModal: false,
       editPerson: false,
+      editMember: false,
+      editMemberRole: false,
+      banMemberModal: false,
       deletePerson: false,
       relationships: false,
       warningModal: false,
@@ -105,6 +136,8 @@ const useModalStore = create((set) => ({
       infoModal: false,
       cascadeDetailsModal: false,
       joinModal: false,
+      pendingRequestDetailsModal: false,
+      grantMembershipModal: false,
     }
   }),
 }));

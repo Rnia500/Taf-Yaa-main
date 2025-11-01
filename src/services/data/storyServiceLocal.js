@@ -4,7 +4,7 @@
 import { getDB, saveDB } from "./localDB.js";
 import { generateId } from "../../utils/personUtils/idGenerator.js";
 
-// --- Story-Specific Data Access Functions (Local Storage Implementation) ---
+//  Story-Specific Data Access Functions (Local Storage Implementation) 
 
 function addStory(story) {
   const db = getDB();

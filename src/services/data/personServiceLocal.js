@@ -91,7 +91,7 @@ function deletePerson(personId, mode = "soft", options = {}) {
     const handleSpouseMarriages = (id) => {
       for (const m of db.marriages) {
         if (!m) continue;
-        // --- Case 1: Person is a spouse (direct line) ---
+        //  Case 1: Person is a spouse (direct line) 
         if (
           (m.marriageType === "monogamous" && Array.isArray(m.spouses) && m.spouses.includes(id)) ||
           (m.marriageType === "polygamous" && (m.husbandId === id || (Array.isArray(m.wives) && m.wives.some(w => w.wifeId === id))))
@@ -160,7 +160,7 @@ function deletePerson(personId, mode = "soft", options = {}) {
       for (const m of db.marriages) {
         if (!m) continue;
 
-        // --- Case 2: Person is a child (non-direct line) ---
+        //  Case 2: Person is a child (non-direct line) 
         if (Array.isArray(m.childrenIds) && m.childrenIds.includes(id)) {
           // Cascade delete this child + their descendants
           collectDescendants(id);
@@ -323,7 +323,7 @@ function previewCascadeDelete(personId) {
         }
       }
 
-      // --- Case 2: Person is a child (non-direct line) ---
+      //  Case 2: Person is a child (non-direct line) 
       if (Array.isArray(m.childrenIds) && m.childrenIds.includes(id)) {
         collectDescendants(id);
       }

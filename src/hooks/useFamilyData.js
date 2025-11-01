@@ -57,7 +57,6 @@ export function useFamilyData(treeId) {
         pendingDeletion: person.pendingDeletion,
       })));
 
-      // Assign roles based on linked users
       p = p.map(person => {
         console.log(`Person ${person.name} (id: ${person.id}) linkedUserId:`, person.linkedUserId);
         return {
@@ -87,7 +86,7 @@ export function useFamilyData(treeId) {
         return false;
       });
 
-      // --- PATCH: enforce root + spouse variants ---
+     
       if (t.currentRootId) {
         const rootId = t.currentRootId;
 

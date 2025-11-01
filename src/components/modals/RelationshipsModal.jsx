@@ -31,7 +31,7 @@ const PersonMiniCard = ({ person }) => (
   </Card>
 );
 
-// --- Section wrapper for each family relationship category ---
+//  Section wrapper for each family relationship category 
 const SectionCard = ({ title, color, icon, people }) => (
   <Card
     backgroundColor='var(--color-transparent)'
@@ -66,7 +66,7 @@ const RelationshipsModal = ({ isOpen, onClose, personId }) => {
   const [person, setPerson] = useState(null);
   const [error, setError] = useState(null);
 
-  // --- Data fetching & relationship calculation ---
+  //  Data fetching & relationship calculation 
   useEffect(() => {
     if (!isOpen || !personId) return;
 
@@ -91,7 +91,7 @@ const RelationshipsModal = ({ isOpen, onClose, personId }) => {
     loadRelationships();
   }, [isOpen, personId]);
 
-  // --- Core logic (unchanged from your version) ---
+  //  Core logic (unchanged from your version) 
   const calculateRelationships = (person, allPeople, allMarriages) => {
     const connections = { spouses: [], children: [], parents: [], siblings: [], halfSiblings: [] };
     const peopleMap = new Map((allPeople || []).map(p => [p.id, p]));
@@ -224,7 +224,7 @@ const RelationshipsModal = ({ isOpen, onClose, personId }) => {
     return connections;
   };
 
-  // --- Summary line under person's name ---
+  //  Summary line under person's name 
   const summaryText = relationships
     ? [
         relationships.children.length ? `Parent of ${relationships.children.length}` : '',
@@ -235,7 +235,7 @@ const RelationshipsModal = ({ isOpen, onClose, personId }) => {
         .join(' • ')
     : '';
 
-  // --- RENDER ---
+  //  RENDER 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <FlexContainer

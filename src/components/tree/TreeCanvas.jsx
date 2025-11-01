@@ -37,7 +37,7 @@ import usePersonMenuStore from "../../store/usePersonMenuStore";
 import useSidebarStore from "../../store/useSidebarStore";
 import useModalStore from "../../store/useModalStore";
 
-// ----- React Flow `config -----
+// -- React Flow `config --
 const nodeTypes = {
   person: FlowPersonNode,
   marriage: MarriageNode,
@@ -49,7 +49,7 @@ const edgeTypes = {
   parentChild: ParentChildEdge,
 };
 
-// ----- SVG markers for edges -----
+// -- SVG markers for edges --
 const CustomMarkers = () => (
   <svg>
     <defs>
@@ -87,7 +87,7 @@ const CustomMarkers = () => (
 
 
 function TreeCanvasComponent({ treeId }) {
-  // ---- Hooks ----
+  // - Hooks -
   const { people: allPeople, marriages: allMarriages, loading, reload } =
     useFamilyData(treeId);
 
@@ -96,7 +96,7 @@ function TreeCanvasComponent({ treeId }) {
   const openProfileSidebar = useSidebarStore((state) => state.openSidebar);
   const { openModal } = useModalStore();
 
-  // ---- State ----
+  // - State -
   const [peopleWithCollapseState, setPeopleWithCollapseState] =
     useState(allPeople);
 
@@ -125,7 +125,7 @@ function TreeCanvasComponent({ treeId }) {
   const [partnerName, setPartnerName] = useState("");
   const [targetNodeId, setTargetNodeId] = useState(null);
 
-  // ---- Handlers ----
+  // - Handlers -
   const handleToggleCollapse = useCallback((personId) => {
     setPeopleWithCollapseState((current) =>
       current.map((p) =>
@@ -141,7 +141,7 @@ function TreeCanvasComponent({ treeId }) {
     [openProfileSidebar]
   );
 
-  // ---- Layout ----
+  // - Layout -
   const { nodes, edges: baseEdges } = useMemo(() => {
     if (!viewRootId) return { nodes: [], edges: [] };
 
@@ -228,7 +228,7 @@ const handleResetView = useCallback(() => {
 
 
 
-  // ---- Edge highlighting on hover ----
+  // - Edge highlighting on hover -
   const finalBaseEdges = useMemo(() => {
     if (!hoveredNodeId) return baseEdges;
     return baseEdges.map((e) =>
@@ -242,7 +242,7 @@ const handleResetView = useCallback(() => {
     );
   }, [hoveredNodeId, baseEdges]);
 
-  // ---- Effects ----
+  // - Effects -
   useEffect(() => {
     console.log("DBG:TreeCanvas useEffect allPeople changed, count:", allPeople.length);
     const placeholderCount = allPeople.filter(p => p.isPlaceholder).length;
@@ -380,7 +380,7 @@ useEffect(() => {
   );
 }
 
-// ----- Wrapper -----
+// -- Wrapper --
 export default function TreeCanvasWrapper(props) {
   return (
     <ReactFlowProvider>

@@ -22,12 +22,12 @@ const NODE_HEIGHT = VERTICAL_NODE_HEIGHT;
 const GAP = HORIZONTAL_SPACING;
 
 
-/* ------------ Placeholders ------------ */
+/*  Placeholders  */
 function createAndInjectPlaceholders(nodesMap, marriages) {
   const processedMarriages = JSON.parse(JSON.stringify(marriages));
 
   for (const marriage of processedMarriages) {
-    // --- Monogamous ---
+    //  Monogamous 
     if (marriage.marriageType === 'monogamous') {
       const emptyIndex = marriage.spouses.findIndex(id => !id);
       if (emptyIndex !== -1) {
@@ -45,7 +45,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
               name: "Unknown Partner",
               gender: knownSpouse?.gender === 'male' ? 'female' : 'male',
               isPlaceholder: true,
-              variant: 'placeholder'
+              variant: 'spouse'
             },
             position: { x: 0, y: 0 },
             isPositioned: false
@@ -55,7 +55,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
       }
     }
 
-    // --- Polygamous ---
+    //  Polygamous 
     if (marriage.marriageType === 'polygamous') {
       if (!marriage.husbandId) {
         const placeholderId = `placeholder-husband-${marriage.id}`;
@@ -106,7 +106,7 @@ function createAndInjectPlaceholders(nodesMap, marriages) {
 }
 
 
-/* ------------ Helpers ------------ */
+/*  Helpers  */
 function topLeftXFromCenterX(centerX) { return centerX - NODE_WIDTH / 2; }
 
 function parentBlockWidth(marriage) {
@@ -137,20 +137,20 @@ function secondPass(node, centerX, centerY, nodesMap) {
   const rfNode = nodesMap.get(node.id);
 
   if (rfNode) {
-    const isDead = !!rfNode.data?.deathDate; 
+    const isDead = !!rfNode.data?.deathDate;
     rfNode.position = { x: topLeftXFromCenterX(centerX), y: centerY };
     rfNode.isPositioned = true;
 
     rfNode.data = {
-      ...rfNode.data, 
+      ...rfNode.data,
       isDead,
-      variant: isDead ? "dead" : rfNode.data?.variant || "directline",
+      variant: isDead ? "dead" : "directline",
     };
   }
 
   const marriage = node.marriage;
 
-  // --- Monogamous Marriage ---
+  //  Monogamous Marriage 
   if (marriage?.marriageType === "monogamous") {
     const blockW = parentBlockWidth(marriage);
     const leftC = centerX - blockW / 2 + NODE_WIDTH / 2;
@@ -164,17 +164,18 @@ function secondPass(node, centerX, centerY, nodesMap) {
 
     if (spouseRF) {
       const isDead = !!spouseRF.data?.deathDate;
+      const newVariant = isDead ? "dead" : "spouse";
       spouseRF.position = { x: topLeftXFromCenterX(rightC), y: centerY };
       spouseRF.isPositioned = true;
       spouseRF.data = {
         ...spouseRF.data,
         isDead,
-        variant: isDead ? "dead" : "spouse", // normal spouse unless root override later
+        variant: newVariant,
       };
     }
   }
 
-  // --- Polygamous Marriage ---
+  //  Polygamous Marriage 
   if (marriage?.marriageType === "polygamous") {
     const wives = marriage.wives || [];
     const blockW = parentBlockWidth(marriage);
@@ -185,9 +186,11 @@ function secondPass(node, centerX, centerY, nodesMap) {
       const wRF = nodesMap.get(wives[i].wifeId);
       if (wRF) {
         const isDead = !!wRF.data?.deathDate;
+        const currentVariant = wRF.data.variant;
+        const newVariant = isDead ? "dead" : (currentVariant !== "directline" ? currentVariant : "spouse");
         wRF.position = { x: topLeftXFromCenterX(slotC), y: centerY };
         wRF.isPositioned = true;
-        wRF.data = { ...wRF.data, isDead, variant: isDead ? "dead" : "spouse" };
+        wRF.data = { ...wRF.data, isDead, variant: newVariant };
       }
       slotC += NODE_WIDTH + GAP;
     }
@@ -199,15 +202,17 @@ function secondPass(node, centerX, centerY, nodesMap) {
       const wRF = nodesMap.get(wives[i].wifeId);
       if (wRF) {
         const isDead = !!wRF.data?.deathDate;
+        const currentVariant = wRF.data.variant;
+        const newVariant = isDead ? "dead" : (currentVariant !== "directline" ? currentVariant : "spouse");
         wRF.position = { x: topLeftXFromCenterX(slotC), y: centerY };
         wRF.isPositioned = true;
-        wRF.data = { ...wRF.data, isDead, variant: isDead ? "dead" : "spouse" };
+        wRF.data = { ...wRF.data, isDead, variant: newVariant };
       }
       slotC += NODE_WIDTH + GAP;
     }
   }
 
-  // --- Children ---
+  //  Children 
   if (node.children?.length) {
     const childY = centerY + NODE_HEIGHT + VERTICAL_SPACING;
     let total = node.children.reduce(
@@ -224,7 +229,7 @@ function secondPass(node, centerX, centerY, nodesMap) {
 }
 
 
-/* ------------ Edges ------------ */
+/*  Edges  */
 function createEdges(marriages, nodesMap) {
   const edges = [];
   for (const marriage of marriages) {
@@ -281,7 +286,7 @@ function createEdges(marriages, nodesMap) {
   return edges;
 }
 
-/* ------------ Main ------------ */
+/*  Main  */
 export function layoutVertical(nodesMap, marriages, initialEdges, rootId) {
   if (!nodesMap?.size || !marriages?.length) {
     return { nodes: Array.from(nodesMap.values()), edges: initialEdges };
@@ -306,11 +311,6 @@ export function layoutVertical(nodesMap, marriages, initialEdges, rootId) {
   }
 
   const allRootIds = [root.id];
-  if (root.marriage?.marriageType === "monogamous") {
-    allRootIds.push(...root.marriage.spouses.filter(s => s !== root.id));
-  } else if (root.marriage?.marriageType === "polygamous") {
-    allRootIds.push(...(root.marriage.wives || []).map(w => w.wifeId).filter(id => id !== root.id));
-  }
   setRootVariantFor(allRootIds, updatedNodesMap);
 
   const edges = createEdges(processedMarriages, updatedNodesMap);

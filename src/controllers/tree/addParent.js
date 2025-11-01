@@ -4,13 +4,15 @@ import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createMarriage } from "./marriages";
 import { createAudioStory } from "./stories";
+import { validateEventsArray } from "../../utils/treeUtils/eventValidation";
+import { validatePersonData } from "../../utils/validation/personValidation";
 
 
 export async function addParentToChild(treeId, childId, parentData, options = {}) {
   const { createdBy = "system" } = options;
 
   try {
-    // --- STEP 1: Find or create new parent person
+    //  STEP 1: Find or create new parent person
     let newParent = await dataService.findPersonByFields?.({
       treeId,
       name: parentData.fullName,
@@ -19,6 +21,14 @@ export async function addParentToChild(treeId, childId, parentData, options = {}
     });
 
     if (!newParent) {
+      // Validate person data
+      validatePersonData(parentData, 'parent');
+
+      // Validate events before proceeding
+      if (Array.isArray(parentData.events)) {
+        validateEventsArray(parentData.events);
+      }
+
       let uploadedPhotoUrl = null;
       if (parentData.profilePhoto) {
         try {

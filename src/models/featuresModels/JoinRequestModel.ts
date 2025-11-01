@@ -1,4 +1,3 @@
-// src/models/featuresModels/JoinRequestModel.ts
 import { generateId } from "../../utils/personUtils/idGenerator";
 
 export interface JoinRequest {
@@ -27,6 +26,8 @@ export interface JoinRequest {
         type: "image" | "video" | "audio" | "pdf" | "doc";
         name?: string;
         size?: number;
+        duration?: number; 
+        caption?: string;
     }[];
 
 
@@ -61,6 +62,8 @@ export function createJoinRequest({
         type: "image" | "video" | "audio" | "pdf" | "doc";
         name?: string;
         size?: number;
+        duration?: number; 
+        caption?: string;
     }[];
 }): JoinRequest {
     const now = new Date().toISOString();

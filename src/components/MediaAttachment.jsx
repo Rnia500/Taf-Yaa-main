@@ -12,7 +12,7 @@ import { Play, Pause, X, Upload, FileText } from "lucide-react";
 import { TreeContext } from "../context/TreeContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import dataService from "../services/dataService.js";
-import { ImageAttachmentCard, VideoAttachmentCard, AudioAttachmentCard } from "./StoryAttachmentCard.jsx";
+import { ImageAttachmentCard, VideoAttachmentCard, AudioAttachmentCard, FileAttachmentCard } from "./AttachmentCard.jsx";
 
 const MediaAttachment = ({ onAttachmentAdded }) => {
   const context = useContext(TreeContext);
@@ -22,7 +22,7 @@ const MediaAttachment = ({ onAttachmentAdded }) => {
   const [file, setFile] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState("idle"); // idle, uploading, success, error
+  const [uploadStatus, setUploadStatus] = useState("idle"); 
   const [error, setError] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -310,10 +310,7 @@ const MediaAttachment = ({ onAttachmentAdded }) => {
 
       <Card padding="12px" backgroundColor="var(--color-light-blue)">
         <Text variant="caption2" color="var(--color-primary-dark)">
-          {treeId === "creating"
-            ? "Supported formats: Images (JPG, PNG - auto-compressed), Audio (MP3, WAV, M4A), PDFs. Max 5MB per file. Videos blocked due to storage limits."
-            : "Supported formats: Images (JPG, PNG), Videos (MP4, WebM), Audio (MP3, WAV, M4A), PDFs"
-          }
+            Supported formats: Images (JPG, PNG), Videos (MP4, WebM), Audio (MP3, WAV, M4A), PDFs
         </Text>
       </Card>
     </Column>

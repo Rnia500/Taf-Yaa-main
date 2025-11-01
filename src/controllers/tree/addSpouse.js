@@ -4,22 +4,27 @@ import { createPerson } from "../../models/treeModels/PersonModel";
 import { handleSpouseAddition } from "./marriages";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createAudioStory } from "./stories";
+import { validateEventsArray } from "../../utils/treeUtils/eventValidation";
+import { validatePersonData } from "../../utils/validation/personValidation";
+import { validateMarriageData } from "../../utils/validation/marriageValidation";
 
 export async function addSpouse(treeId, existingSpouseId, newSpouseData, options = {}) {
     const { onError, confirmConvert, createdBy = "system" } = options;
     try {
-        // --- 1. INITIAL VALIDATION ---
+        //  1. INITIAL VALIDATION 
         const existingSpouse = await dataService.getPerson(existingSpouseId);
         if (!existingSpouse) throw new Error("Existing spouse not found");
         if (existingSpouse.isPlaceholder) {
             onError?.("Cannot add a spouse to a placeholder partner.", "error");
             return null;
         }
+
+        // Same-sex marriage check
         if (existingSpouse.gender === newSpouseData.gender) {
             throw new Error("Same-sex marriages are not allowed.");
         }
 
-        // --- 2. FILE UPLOADS ---
+       
         let uploadedPhotoUrl = null;
         if (newSpouseData.profilePhoto) {
             try {
@@ -29,7 +34,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
                 console.error("Photo upload failed", err);
             }
         }
-        // --- 3. PERSON "FIND OR CREATE" LOGIC ---
+      
         let newSpouse = await dataService.findPersonByFields?.({
             treeId,
             name: newSpouseData.fullName,
@@ -38,6 +43,14 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
         });
 
         if (!newSpouse) {
+            // Validate person data
+            validatePersonData(newSpouseData, 'spouse');
+
+            // Validate events before proceeding
+            if (Array.isArray(newSpouseData.events)) {
+                validateEventsArray(newSpouseData.events);
+            }
+
             //2 Map the form data names to the model property names.
             newSpouse = createPerson({
                 treeId: treeId,
@@ -63,8 +76,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
 
             await dataService.addPerson(newSpouse);
 
-            // --- 4. CREATE ASSOCIATED RECORDS ---
-            // This logic remains the same.
+
             if (newSpouse.dob) await addBirth(treeId, newSpouse.id, { date: newSpouse.dob, title: "Birth", location:newSpouse.placeOfBirth });
             if (newSpouse.dod) await addDeath(treeId, newSpouse.id, { date: newSpouse.dod, title: "Death", location: newSpouse.placeOfDeath});
 
@@ -80,14 +92,17 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
                     addedBy: createdBy,
                     storyTitle: newSpouseData.storyTitle,
                     language: newSpouseData.language,
-                    audioFile: newSpouseData.audioFile, // Pass the file directly to the service
+                    audioFile: newSpouseData.audioFile, 
                 });
             }
 
         }
 
 
-        // --- 5. DELEGATE MARRIAGE LOGIC ---
+        // Validate marriage data after newSpouse is created/found
+        await validateMarriageData(null, existingSpouse, newSpouse);
+
+       
         const { marriage, marriageAction } = await handleSpouseAddition(
             existingSpouse,
             newSpouse,
@@ -96,7 +111,7 @@ export async function addSpouse(treeId, existingSpouseId, newSpouseData, options
             createdBy
         );
 
-        // --- 6. RETURN SUCCESS ---
+        //  6. RETURN SUCCESS 
         return {
             spouse: newSpouse,
             marriage: marriage,

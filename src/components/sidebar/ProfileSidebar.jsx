@@ -22,6 +22,7 @@ import { getPrivacyLabel, getCountryLabel } from '../../models/treeModels/Person
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+
 import PhotoUploadModal from './PhotoUploadModal';
 
 // Download modals
@@ -153,17 +154,33 @@ export default function ProfileSidebar() {
         profileImage: person.photoUrl,
       });
 
-      // Identity mapping
+      // Fetch user role for this tree (of the person being viewed, if linked)
+      let userRole = person.linkedUserId ? 'Member' : 'Not Linked'; // default to Member if linked
+      if (person.linkedUserId) {
+        try {
+          const treeData = await dataService.getTree(treeId);
+          const member = treeData?.members?.find(m => m.userId === person.linkedUserId);
+          if (member?.role) {
+            userRole = member.role;
+          }
+        } catch (error) {
+          console.error('Error fetching tree role:', error);
+          // Keep default 'Member' on error
+        }
+      }
+
+     
       setIdentityData({
         gender: person.gender ? String(person.gender).charAt(0).toUpperCase() + String(person.gender).slice(1) : 'UnKnown',
-        familyRole: person.isSpouse ? 'Spouse' : 'Family Member',
         tribe: person.tribe || 'Unknown',
         language: person.language || 'Unknown',
         status: person.isDeceased ? 'Deceased' : 'Living',
         countryOfResidence: getCountryLabel(person.countryOfResidence) || 'Unknown',
         nationality: getCountryLabel(person.nationality) || 'Unknown',
         placeOfBirth : person.placeOfBirth || 'Unknown',
-        placeOfDeath : person.dod ?  person.placeOfDeath || 'Unknown' : null
+        placeOfDeath : person.dod ?  person.placeOfDeath || 'Unknown' : null,
+        role: userRole,
+        linkedAccount: person.linkedUserId || 'Not linked'
 
       });
 
@@ -171,7 +188,6 @@ export default function ProfileSidebar() {
       setContactData({
         phoneNumber: person.phoneNumber || 'Unknown',
         email: person.email || 'Unknown',
-        linkedAccount: person.linkedUserId || 'Unknown',
         privacyStatus: getPrivacyLabel(person.privacyLevel) || 'Unknown',
       });
 
@@ -184,7 +200,7 @@ export default function ProfileSidebar() {
       if (person.isSpouse) inferredRoles.push('Spouse');
       setRoles(inferredRoles);
 
-      // Build family connections using DB marriages + people
+     
       const connections = { spouses: [], children: [], parents: [], siblings: [] };
 
       const [allPeople, allMarriages] = await Promise.all([
@@ -195,7 +211,7 @@ export default function ProfileSidebar() {
       const peopleMap = new Map((allPeople || []).map(p => [p.id, p]));
       const peopleNameMapLocal = Object.fromEntries(allPeople.map(p => [p.id, p.name]));
       setPeopleNameMap(peopleNameMapLocal);
-      // Analyze all marriages to derive spouses, children, parents and siblings
+      
       (allMarriages || []).forEach(m => {
         // MONOGAMOUS: spouses in m.spouses, children in m.childrenIds
         if (m.marriageType === 'monogamous') {

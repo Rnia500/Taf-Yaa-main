@@ -4,6 +4,8 @@ import { createPerson } from "../../models/treeModels/PersonModel";
 import dataService from "../../services/dataService";
 import { addBirth, addDeath, addCustom } from "./events";
 import { createMarriage, addChildToMarriage } from "./marriages";
+import { validateEventsArray } from "../../utils/treeUtils/eventValidation";
+import { validatePersonData } from "../../utils/validation/personValidation";
 
 import { Description } from "@headlessui/react";
 
@@ -13,6 +15,14 @@ export async function addChild(treeId, options) {
   try {
     if (!marriageId && !parentId) {
       throw new Error("addChild requires either a marriageId or a parentId to proceed.");
+    }
+
+    // Validate person data
+    validatePersonData(childData, 'child');
+
+    // Validate events before proceeding
+    if (Array.isArray(childData.events)) {
+      validateEventsArray(childData.events);
     }
 
     let uploadedPhotoUrl = null;
@@ -46,6 +56,7 @@ export async function addChild(treeId, options) {
       privacyLevel: childData.privacyLevel,
       allowGlobalMatching: childData.allowGlobalMatching,
       isSpouse: false,
+      linkedUserId: childData.linkedUserId ?? null, 
     });
 
     await dataService.addPerson(newChild);

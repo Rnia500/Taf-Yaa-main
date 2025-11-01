@@ -7,11 +7,13 @@ import Button from '../Button';
 import { TextInput } from '../Input';
 import { validateInviteCode } from '../../services/inviteService';
 import useToastStore from '../../store/useToastStore';
+import { useAuth } from '../../context/AuthContext';
 import { QrCode, Keyboard, CheckCircle, XCircle } from 'lucide-react';
 import CustomQrScanner from '../CustomQrScanner';
 
 const JoinModal = ({ isOpen, onClose }) => {
   const addToast = useToastStore(state => state.addToast);
+  const { currentUser } = useAuth();
 
   const [inviteCode, setInviteCode] = useState('');
   const [scanning, setScanning] = useState(false);
@@ -64,7 +66,20 @@ const JoinModal = ({ isOpen, onClose }) => {
   };
 
   const proceedToJoinRequest = () => {
+    
     if (inviteData) {
+      if (!currentUser) {
+        // Store invite data in sessionStorage for resume after login
+        sessionStorage.setItem('pendingJoinInvite', JSON.stringify({
+          inviteId: inviteData.inviteId,
+          code: inviteData.invite.code,
+          invite: inviteData.invite
+        }));
+        // Redirect to login with return URL
+        window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        onClose();
+        return;
+      }
       // Navigate to join request form with invite data
       window.location.href = `/join-request?inviteId=${inviteData.inviteId}&code=${inviteData.invite.code}`;
       onClose();

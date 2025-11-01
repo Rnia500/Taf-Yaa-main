@@ -4,7 +4,7 @@
 import { getDB, saveDB } from "./localDB.js";
 import { generateId } from "../../utils/personUtils/idGenerator.js";
 
-// --- Event-Specific Data Access Functions (Local Storage Implementation) ---
+//  Event-Specific Data Access Functions (Local Storage Implementation) 
 
 function addEvent(event) {
   const db = getDB();

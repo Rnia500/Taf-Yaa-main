@@ -14,6 +14,10 @@ import RelationshipsModal from "../modals/RelationshipsModal";
 import InviteTypeModal from "../modals/InviteTypeModal";
 import InviteModal from "../modals/InviteModal";
 import JoinModal from "../modals/JoinModal";
+import PendingRequestDetailsModal from "../modals/PendingRequestDetailsModal";
+import EditMemberRoleModal from "../modals/EditMemberRoleModal";
+import BanMemberModal from "../modals/BanMemberModal";
+import GrantMembershipModal from "../modals/GrantMembershipModal";
 
 export const modalRegistry = {
   addSpouseModal: AddSpouseModal,
@@ -31,4 +35,8 @@ export const modalRegistry = {
   inviteTypeModal: InviteTypeModal,
   inviteModal: InviteModal,
   joinModal: JoinModal,
+  pendingRequestDetailsModal: PendingRequestDetailsModal,
+  editMemberRole: EditMemberRoleModal,
+  banMemberModal: BanMemberModal,
+  grantMembershipModal: GrantMembershipModal,
 };

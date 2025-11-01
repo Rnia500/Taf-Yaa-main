@@ -3,6 +3,8 @@ import dataService from "../../services/dataService";
 import { createTree } from "../../models/treeModels/treeModel";
 import { createPerson } from "../../models/treeModels/PersonModel";
 import { addBirth, addDeath } from "./events";
+import { validateTreeData } from "../../utils/validation/treeValidation";
+import { validatePersonData } from "../../utils/validation/personValidation";
 
 import { generateId } from "../../utils/personUtils/idGenerator";
 
@@ -11,15 +13,22 @@ export async function addTree(formData, options = {}) {
   const { createdBy = "system", onError } = options;
 
   try {
-    // --- 1. INITIAL VALIDATION ---
-    if (!formData.familyName) throw new Error("Family name is required");
-    if (!formData.rootPersonName) throw new Error("Root person name is required");
-    if (!formData.rootPersonGender) throw new Error("Root person gender is required");
+    //  1. INITIAL VALIDATION 
+    validateTreeData(formData);
 
-    // --- 2. CREATE TREE OBJECT ---
+    // Validate root person data
+    const rootPersonData = {
+      fullName: formData.rootPersonName,
+      gender: formData.rootPersonGender,
+      email: formData.rootPersonEmail || null,
+      // Add other fields as needed
+    };
+    validatePersonData(rootPersonData, 'root');
+
+    //  2. CREATE TREE OBJECT 
     const treeId = generateId("tree");
 
-    // --- 3. FILE UPLOADS ---
+    //  3. FILE UPLOADS 
     let uploadedFamilyPhotoUrl = null;
     if (formData.familyPhoto) {
       try {
@@ -120,7 +129,7 @@ export async function addTree(formData, options = {}) {
       // Removed placeholder user name and email
     });
 
-    // --- 4. CREATE ROOT PERSON ---
+    //  4. CREATE ROOT PERSON 
     const rootPersonId = generateId("person");
     const rootPerson = createPerson({
       id: rootPersonId,
@@ -152,7 +161,7 @@ export async function addTree(formData, options = {}) {
     // Update tree root
     await dataService.updateTree(treeId, { currentRootId: rootPersonId });
 
-    // --- 5. CREATE ASSOCIATED RECORDS ---
+    //  5. CREATE ASSOCIATED RECORDS 
     if (rootPerson.dob) {
       await addBirth(treeId, rootPersonId, { date: rootPerson.dob, title: "Birth" });
     }
@@ -163,7 +172,7 @@ export async function addTree(formData, options = {}) {
     // Audio story is already created above, so we don't need to create another one
     // The uploadedAudioUrl now contains the story ID, not a media URL
 
-    // --- 6. RETURN SUCCESS ---
+    //  6. RETURN SUCCESS 
     return { tree: { ...tree, currentRootId: rootPersonId }, rootPerson };
   } catch (err) {
     console.error("Error in addTree orchestrator:", err);

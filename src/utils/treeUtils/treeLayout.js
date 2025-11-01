@@ -143,12 +143,12 @@ export function filterFamilyByRoot(rootId, allPeople, allMarriages) {
 
   return { people: visiblePeople, marriages: visibleMarriages };
 }
-export function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile, variant = "directline") {
+export function formatPersonData(person, marriages, handleToggleCollapse, handleOpenProfile) {
   if (!person) return {};
   const hasChildren = marriages.some(m =>
     (m.marriageType === "monogamous" &&
       m.spouses?.includes(person.id) &&
-      (m.childrenIds?.length ?? 0) > 0) ||  
+      (m.childrenIds?.length ?? 0) > 0) ||
 
     (m.marriageType === "polygamous" &&
       (
@@ -157,11 +157,18 @@ export function formatPersonData(person, marriages, handleToggleCollapse, handle
       )
     )
   );
+
+  let variant = person.variant || "directline";
+  if (person.isDeceased || person.dod) {
+    variant = "dead";
+  }
+
+  const gender = person.gender || "male"; // Default to male if gender is undefined
   return {
     id: person.id,
     name: person.name,
     profileImage: person.photoUrl,
-    sex: person.gender === "male" ? "M" : "F",
+    sex: gender === "male" ? "M" : "F",
     birthDate: person.dob,
     deathDate: person.dod,
     isDead: person.dod ? true : false,
@@ -174,6 +181,7 @@ export function formatPersonData(person, marriages, handleToggleCollapse, handle
     onToggleCollapse: () => handleToggleCollapse(person.id),
     onOpenProfile: () => handleOpenProfile(person.id),
     variant,
+    gender, // Include gender for components that use it
   };
 }
 
@@ -319,12 +327,9 @@ export function calculateLayout(
     throw new Error("calculateLayout: handleOpenProfile must be a function");
   }
 
-  // // Filter family members relevant to the chosen root
-  // const { people: visiblePeople, marriages: visibleMarriages } =
-  //   filterFamilyByRoot(rootId, people, marriages);
-
-  const visiblePeople = people;
-  const visibleMarriages = marriages;
+  // Filter family members relevant to the chosen root
+  const { people: visiblePeople, marriages: visibleMarriages } =
+    filterFamilyByRoot(rootId, people, marriages);
 
   const isVertical = orientation === "vertical";
   const NODE_WIDTH = isVertical ? VERTICAL_NODE_WIDTH : HORIZONTAL_NODE_WIDTH;

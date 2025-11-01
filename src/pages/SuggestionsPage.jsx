@@ -27,7 +27,7 @@ import Slider from "../components/Slider";
 import NavigationSideBar from "../components/NavigationSideBar/NavigationSideBar";
 import { useTranslation } from "react-i18next";
 
-// --- Demo data (UI-only) ---
+//  Demo data (UI-only) 
 const INITIAL_SUGGESTIONS = [
   {
     id: "s1",

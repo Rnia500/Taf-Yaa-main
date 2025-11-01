@@ -15,7 +15,7 @@ import { clearDB as clearLocalDB } from './data/localDB.js';
 
 import { mediaService } from './mediaService.js';
 
-const BACKEND = "firebase"; // or "local"
+const BACKEND = "firebase"; // or4 "local"
 
 const services = {
   local: {

@@ -29,6 +29,7 @@
     "i18next-http-backend": "^3.0.2",
     "jspdf": "^3.0.2",
     "lucide-react": "^0.525.0",
+    "nodemailer": "^7.0.10",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-d3-tree": "^3.6.6",

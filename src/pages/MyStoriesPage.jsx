@@ -41,8 +41,8 @@ const MyStoriesPage = () => {
       setLoading(true);
       setError(null);
 
-      // Get all stories created by the current user
-      const userStories = await dataService.getStoriesByCreator(currentUser.uid);
+      // Get all stories where the user is a contributor (created or added attachments)
+      const userStories = await dataService.getStoriesByContributor(currentUser.uid);
 
       // Sort by creation date (newest first)
       const sortedStories = userStories.sort((a, b) =>
@@ -64,23 +64,26 @@ const MyStoriesPage = () => {
     }
 
     try {
-      // Get all stories created by the current user to collect their attachments
-      const userStories = await dataService.getStoriesByCreator(currentUser.uid);
+      // Get all stories where the user is a contributor (created or added attachments)
+      const allStories = await dataService.getStoriesByContributor(currentUser.uid);
 
-      // Collect all attachments from user's stories
+      // Collect all attachments uploaded by the current user across all stories
       const allAttachments = [];
-      userStories.forEach(story => {
+      allStories.forEach(story => {
         if (story.attachments && story.attachments.length > 0) {
           story.attachments.forEach(attachment => {
-            allAttachments.push({
-              ...attachment,
-              storyId: story.id,
-              storyTitle: story.title || 'Untitled Story',
-              storyCreatedBy: story.createdBy,
-              storyCreatedAt: story.createdAt,
-              treeId: attachment.treeId || story.treeId,
-              personId: attachment.personId || story.personId
-            });
+            // Only include attachments uploaded by the current user
+            if (attachment.uploadedBy === currentUser.uid) {
+              allAttachments.push({
+                ...attachment,
+                storyId: story.id,
+                storyTitle: story.title || 'Untitled Story',
+                storyCreatedBy: story.createdBy,
+                storyCreatedAt: story.createdAt,
+                treeId: attachment.treeId || story.treeId,
+                personId: attachment.personId || story.personId
+              });
+            }
           });
         }
       });
@@ -155,6 +158,7 @@ const MyStoriesPage = () => {
   const CustomStoryCard = ({ story, onClick }) => {
     const [treeName, setTreeName] = useState('');
     const [personName, setPersonName] = useState('');
+    const [creatorName, setCreatorName] = useState('');
     const attachmentCount = story.attachments?.length || 0;
 
     useEffect(() => {
@@ -172,15 +176,26 @@ const MyStoriesPage = () => {
           } else {
             setPersonName('Unknown Person');
           }
+          if (story.createdBy) {
+            if (story.createdBy === currentUser.uid) {
+              setCreatorName('You');
+            } else {
+              const user = await dataService.getUser(story.createdBy);
+              setCreatorName(user?.displayName || user?.email || 'Unknown User');
+            }
+          } else {
+            setCreatorName('Unknown User');
+          }
         } catch (error) {
           console.error('Error fetching additional story info:', error);
           setTreeName('Unknown Family');
           setPersonName('Unknown Person');
+          setCreatorName('Unknown User');
         }
       };
 
       fetchAdditionalInfo();
-    }, [story.treeId, story.personId]);
+    }, [story.treeId, story.personId, story.createdBy]);
 
     return (
       <div
@@ -219,7 +234,7 @@ const MyStoriesPage = () => {
         <div className="flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <User size={12} />
-            <span>You</span>
+            <span>{creatorName}</span>
           </div>
           <span>
             {story.createdAt
@@ -375,11 +390,11 @@ const MyStoriesPage = () => {
 
         <Row padding='0px' justifyContent='flex-start' fitContent alignItems='center' gap='1rem'>
           <Text variant="body1" color="secondary-text" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-            Stories and memories you've created across all your family trees :
+            Stories and memories you've contributed to across all your family trees :
           </Text>
 
           <Text variant="body2" color="secondary-text" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-            {stories.length} {stories.length === 1 ? 'story' : 'stories'} created
+            {stories.length} {stories.length === 1 ? 'story' : 'stories'} contributed to
           </Text>
         </Row>
       </Column>

@@ -242,12 +242,12 @@ const DataTable = ({
               <tr style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary2)' }}>
                 {columns.map((col) => (
                   <th key={col.key} style={{ padding: '12px 16px', textAlign: col.align || 'left', fontWeight: '600', borderBottom: '2px solid var(--color-primary)', position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: col.align === 'right' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: col.align === 'right' ? 'flex-end' : col.align === 'center' ? 'center' : 'flex-start' }}>
                       {col.header}
                       {col.filterable && (
                         <button
                           onClick={() => setOpenFilter(prev => ({ ...prev, [col.key]: !prev[col.key] }))}
-                          style={{ marginLeft: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary2)', fontSize: '12px' }}
+                          style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary2)', fontSize: '12px' }}
                         >
                           ▼
                         </button>
@@ -265,7 +265,7 @@ const DataTable = ({
                         >
                           All
                         </div>
-                        {(defaultFilterOptions.find(f => f.key === col.key)?.options || []).map(opt => (
+                        {(col.filterOptions || defaultFilterOptions.find(f => f.key === col.key)?.options || []).map(opt => (
                           <div
                             key={opt.value}
                             onClick={() => {

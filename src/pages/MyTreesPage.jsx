@@ -380,18 +380,23 @@ const MyTreesPage = () => {
           <div className="w-full flex flex-col items-center">
             <div className="w-full flex flex-col">
               <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-20 max-w-6xl justify-items-center w-full mx-auto">
-                {paginatedTrees.map((tree) => (
-                  <TreeCard
-                    key={tree.id}
-                    tree={tree}
-                    rootName={rootNames[tree.id]}
-                    peopleCount={peopleCounts[tree.id] || 0}
-                    onClick={() => handleTreeClick(tree.id)}
-                    onContextMenu={(e) => handleContextMenu(e, tree.id)}
-                    onRestore={handleRestoreTree}
-                    onPurge={handlePurgeTree}
-                  />
-                ))}
+                {paginatedTrees.map((tree) => {
+                  const userMember = tree.members?.find(m => m.userId === currentUser.uid);
+                  const userRole = userMember?.role || 'No role';
+                  return (
+                    <TreeCard
+                      key={tree.id}
+                      tree={tree}
+                      rootName={rootNames[tree.id]}
+                      peopleCount={peopleCounts[tree.id] || 0}
+                      userRole={userRole}
+                      onClick={() => handleTreeClick(tree.id)}
+                      onContextMenu={(e) => handleContextMenu(e, tree.id)}
+                      onRestore={handleRestoreTree}
+                      onPurge={handlePurgeTree}
+                    />
+                  );
+                })}
               </div>
             </div>
             

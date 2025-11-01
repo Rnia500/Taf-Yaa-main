@@ -211,6 +211,37 @@ async function getStoriesByCreator(creatorId) {
   }
 }
 
+async function getStoriesByContributor(contributorId) {
+  try {
+    const storiesRef = collection(db, 'stories');
+    const q = query(storiesRef, where('active', '==', true));
+    const querySnapshot = await getDocs(q);
+
+    const stories = [];
+    querySnapshot.forEach((doc) => {
+      const story = { id: doc.id, ...doc.data() };
+
+      // Check if user is creator
+      if (story.createdBy === contributorId) {
+        stories.push(story);
+        return;
+      }
+
+      // Check if user uploaded any attachments
+      if (story.attachments && story.attachments.length > 0) {
+        const hasContribution = story.attachments.some(attachment => attachment.uploadedBy === contributorId);
+        if (hasContribution) {
+          stories.push(story);
+        }
+      }
+    });
+
+    return stories;
+  } catch (error) {
+    throw new Error(`Failed to get stories by contributor: ${error.message}`);
+  }
+}
+
 // Mark stories as deleted for a person (used during person deletion)
 async function markStoriesForPersonDeleted(personId, batchId, undoExpiresAt) {
   try {
@@ -318,6 +349,7 @@ export const storyServiceFirebase = {
   getAllStories,
   getStoriesByPersonId,
   getStoriesByCreator,
+  getStoriesByContributor,
   findStoriesByTitle,
   markStoriesForPersonDeleted,
   undoStoriesDeletion,

@@ -9,13 +9,15 @@ import Button from '../components/Button';
 import { TextInput, TextArea } from '../components/Input';
 import SelectDropdown from '../components/SelectDropdown';
 import DateInput from '../components/DateInput';
-import FileUpload from '../components/FileUpload';
-import { submitJoinRequest, validateInviteCode } from '../services/inviteService';
+import MediaAttachment from '../components/MediaAttachment';
+import { submitJoinRequest } from '../services/joinRequestService';
+import { validateInviteCode } from '../services/inviteService';
 import dataService from '../services/dataService';
 import useToastStore from '../store/useToastStore';
 import { useAuth } from '../context/AuthContext';
 import { getDirectLinePeople, getSpouseOptions } from '../utils/treeUtils/treeLayout';
-import { CheckCircle, Upload, User, Users, FileText } from 'lucide-react';
+import { CheckCircle, Upload, User, Users, FileText, Plus, X } from 'lucide-react';
+import { ImageAttachmentCard, VideoAttachmentCard, AudioAttachmentCard } from '../components/AttachmentCard.jsx';
 
 const JoinRequestPage = () => {
   const [searchParams] = useSearchParams();
@@ -178,22 +180,9 @@ const JoinRequestPage = () => {
     }));
   };
 
-  const handleFileUpload = (files) => {
-    const proofFiles = files.map(file => ({
-      url: URL.createObjectURL(file),
-      type: file.type.startsWith('image/') ? 'image' :
-            file.type.startsWith('video/') ? 'video' :
-            file.type.startsWith('audio/') ? 'audio' :
-            file.type === 'application/pdf' ? 'pdf' : 'doc',
-      name: file.name,
-      size: file.size
-    }));
 
-    setFormData(prev => ({
-      ...prev,
-      proofFiles: [...prev.proofFiles, ...proofFiles]
-    }));
-  };
+
+
 
   const removeProofFile = (index) => {
     setFormData(prev => ({
@@ -404,30 +393,106 @@ const JoinRequestPage = () => {
               <Text variant="body1" bold>Proof Documents</Text>
             </Row>
             <Column gap="20px">
-              <FileUpload
-                label="Upload proof documents (images, videos, PDFs, etc.)"
-                accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-                multiple
-                onChange={handleFileUpload}
-                required
+              <MediaAttachment
+                onAttachmentAdded={(attachment) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    proofFiles: [...prev.proofFiles, {
+                      url: attachment.url,
+                      type: attachment.type,
+                      name: attachment.caption || attachment.attachmentId,
+                      size: attachment.size,
+                      attachmentId: attachment.attachmentId,
+                      cloudinaryId: attachment.cloudinaryId,
+                      format: attachment.format,
+                      duration: attachment.duration,
+                      width: attachment.width,
+                      height: attachment.height
+                    }]
+                  }));
+                }}
               />
               {formData.proofFiles.length > 0 && (
                 <Column gap="10px">
-                  <Text variant="body2" bold>Uploaded Files:</Text>
-                  {formData.proofFiles.map((file, index) => (
-                    <Row key={index} align="center" gap="10px" padding="10px" backgroundColor="var(--color-gray-light)" borderRadius="8px">
-                      <FileText size={16} />
-                      <Text variant="body2" flex="1">{file.name}</Text>
-                      <Button
-                        variant="ghost"
-                        size="small"
-                        onClick={() => removeProofFile(index)}
-                        color="error"
-                      >
-                        Remove
-                      </Button>
-                    </Row>
-                  ))}
+                  <Text variant="body2" bold>Attached Files:</Text>
+                  <Row gap="10px" padding="0px" margin="0px" wrap="wrap">
+                    {formData.proofFiles.map((file, index) => {
+                      if (file.type === 'image') {
+                        return (
+                          <ImageAttachmentCard
+                            key={index}
+                            src={file.url}
+                            alt={file.name}
+                            caption={file.name}
+                            uploader={currentUser?.uid}
+                            onClick={() => {}}
+                            onDelete={() => removeProofFile(index)}
+                            attachmentId={`proof-${index}`}
+                          />
+                        );
+                      } else if (file.type === 'video') {
+                        return (
+                          <VideoAttachmentCard
+                            key={index}
+                            src={file.url.replace(/\.[^/.]+$/, '.jpg')}
+                            alt={file.name}
+                            caption={file.name}
+                            duration={file.duration}
+                            uploader={currentUser?.uid}
+                            onClick={() => {}}
+                            onDelete={() => removeProofFile(index)}
+                            attachmentId={`proof-${index}`}
+                          />
+                        );
+                      } else if (file.type === 'audio') {
+                        return (
+                          <AudioAttachmentCard
+                            key={index}
+                            thumbnail={null}
+                            duration={file.duration}
+                            title={file.name}
+                            uploader={currentUser?.uid}
+                            onClick={() => {}}
+                            onDelete={() => removeProofFile(index)}
+                            attachmentId={`proof-${index}`}
+                          />
+                        );
+                      } else {
+                        // PDF or other file types
+                        return (
+                          <div key={index} className="relative w-[120px] h-[120px] rounded-xl overflow-hidden shadow-md group cursor-pointer bg-gray-100 flex flex-col items-center justify-center">
+                            <div className="absolute top-1 right-1 z-20">
+                              <Card
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeProofFile(index);
+                                }}
+                                style={{
+                                  padding: '3px',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                  borderRadius: '50%',
+                                  cursor: 'pointer',
+                                  border: '1px solid #e5e7eb'
+                                }}
+                              >
+                                <X size={12} color="#dc2626" />
+                              </Card>
+                            </div>
+
+                            <div className="text-center">
+                              <FileText className="w-8 h-8 text-gray-400 mb-1" />
+                              <p className="text-[10px] font-semibold text-gray-600 truncate max-w-[100px]">
+                                {file.name}
+                              </p>
+                              <p className="text-[9px] text-gray-500">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+                    })}
+                  </Row>
                 </Column>
               )}
             </Column>
@@ -473,6 +538,8 @@ const JoinRequestPage = () => {
           </Row>
         </Column>
       </Card>
+
+
     </FlexContainer>
   );
 };

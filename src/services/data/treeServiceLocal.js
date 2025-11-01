@@ -3,8 +3,8 @@
 import { getDB, saveDB } from "./localDB";
 import { generateId } from "../../utils/personUtils/idGenerator";
 
-// --- Create ---
-// --- Create ---
+//  Create 
+//  Create 
 function addTree(tree) {
   const db = getDB();
   const exists = db.trees.find(t => t.id === tree.id);
@@ -30,7 +30,7 @@ function addTree(tree) {
 }
 
 
-// --- Get ---
+//  Get 
 function getTree(treeId) {
   const db = getDB();
   const tree = db.trees.find(t => t.id === treeId);
@@ -48,7 +48,7 @@ function getAllTrees() {
   return Promise.resolve([...db.trees]);
 }
 
-// --- Update ---
+//  Update 
 function updateTree(treeId, updatedData) {
   const db = getDB();
   const idx = db.trees.findIndex(t => t.id === treeId);
@@ -64,7 +64,7 @@ function updateTree(treeId, updatedData) {
   return Promise.resolve(db.trees[idx]);
 }
 
-// --- Membership ---
+//  Membership 
 function addMember(treeId, userId, role) {
   const db = getDB();
   const tree = db.trees.find(t => t.id === treeId);
@@ -113,7 +113,7 @@ function changeMemberRole(treeId, userId, newRole) {
   return Promise.resolve(tree);
 }
 
-// --- Root person ---
+//  Root person 
 function setRootPerson(treeId, personId) {
   const db = getDB();
   const tree = db.trees.find(t => t.id === treeId);
@@ -126,7 +126,7 @@ function setRootPerson(treeId, personId) {
   return Promise.resolve(tree);
 }
 
-// --- Invites ---
+//  Invites 
 function toggleInvites(treeId, enabled) {
   const db = getDB();
   const tree = db.trees.find(t => t.id === treeId);
@@ -139,7 +139,7 @@ function toggleInvites(treeId, enabled) {
   return Promise.resolve(tree);
 }
 
-// --- Merge opt-in ---
+//  Merge opt-in 
 function setMergeOptIn(treeId, enabled) {
   const db = getDB();
   const tree = db.trees.find(t => t.id === treeId);
@@ -152,7 +152,7 @@ function setMergeOptIn(treeId, enabled) {
   return Promise.resolve(tree);
 }
 
-// --- Get latest tree for user ---
+//  Get latest tree for user 
 function getUserLatestTree(userId) {
   const db = getDB();
 
@@ -175,7 +175,7 @@ function getUserLatestTree(userId) {
   return Promise.resolve(latestTree || null);
 }
 
-// --- Export ---
+//  Export 
 export const treeServiceLocal = {
   addTree,
   getTree,

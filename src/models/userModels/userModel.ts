@@ -9,7 +9,6 @@ export interface User {
   linkedPersonId?: string | null;
 
   joinedTrees: string[];
-  roles: Record<string, "admin" | "editor" | "viewer" | "moderator" | "guest">;
 
   preferences: {
     language: string; // Consider ISO code
@@ -38,7 +37,6 @@ export function createUser(input: Partial<User>): User {
     profilePhoto: input.profilePhoto || null,
     linkedPersonId: input.linkedPersonId || null,
     joinedTrees: input.joinedTrees || [],
-    roles: input.roles || {},
     preferences: {
       language: input.preferences?.language || "en",
       darkMode: input.preferences?.darkMode ?? false,

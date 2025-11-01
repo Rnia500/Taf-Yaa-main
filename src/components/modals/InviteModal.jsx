@@ -17,7 +17,7 @@ import { getDirectLinePeople, getSpouseOptions } from '../../utils/treeUtils/tre
 
 import { Calendar, Users, FileText } from 'lucide-react';
 
-const InviteModal = ({ isOpen, onClose, treeId, inviteType, onInviteCreated, onNavigate }) => {
+const InviteModal = ({ isOpen, onClose, treeId, inviteType, onInviteCreated, onNavigate, person }) => {
   const { currentUser } = useAuth();
   const [formData, setFormData] = useState({
     role: 'viewer',
@@ -182,8 +182,9 @@ const InviteModal = ({ isOpen, onClose, treeId, inviteType, onInviteCreated, onN
         role: formData.role,
         fatherId: formData.fatherId,
         motherId: formData.motherId,
+        personId: inviteType === 'grant' ? person?.id : null,
         usesAllowed: formData.usesAllowed,
-        expiresAt: formData.expiresAt || null,
+        expiresAt: formData.expiresAt && formData.expiresAt.trim() !== '' ? formData.expiresAt : null,
         notes: formData.notes || null
       };
 
@@ -239,6 +240,8 @@ const InviteModal = ({ isOpen, onClose, treeId, inviteType, onInviteCreated, onN
         <Text variant="caption" color="gray-dark">
           {inviteType === 'targeted'
             ? 'Pre-select parents for the invitee. The form will have pre-filled father and mother fields.'
+            : inviteType === 'grant'
+            ? `Grant membership to ${person?.name || 'this person'}. They will be automatically linked to their existing profile.`
             : 'Invitee selects parents from dropdowns of direct-line relatives. Requires proof submission for approval.'
           }
         </Text>

@@ -40,10 +40,11 @@ export async function createInviteService({
   role,
   fatherId = null,
   motherId = null,
+  personId = null,
   usesAllowed = 1,
   expiresAt,
   notes,
-  appBaseUrl = 'http://localhost:8888', 
+  appBaseUrl = 'http://localhost:8888',
 }) {
   const code = generateInviteCode();
   const joinUrl = `${appBaseUrl}/join?code=${encodeURIComponent(code)}`;
@@ -57,6 +58,7 @@ export async function createInviteService({
     role,
     fatherId,
     motherId,
+    personId,
     usesAllowed,
     expiresAt,
     qrDataUrl,
@@ -99,76 +101,7 @@ export async function validateInviteCode(code) {
   return { invite, inviteId: inviteDoc.id, tree };
 }
 
-// Submit a join request
-export async function submitJoinRequest({
-  treeId,
-  inviteCode,
-  inviteId,
-  submittedBy = null,
-  claimedFatherId = null,
-  claimedMotherId = null,
-  name,
-  gender,
-  birthDate = null,
-  notes = null,
-  proofFiles = [],
-}) {
-  const joinRequest = createJoinRequest({
-    treeId,
-    inviteCode,
-    inviteId,
-    submittedBy,
-    claimedFatherId,
-    claimedMotherId,
-    name,
-    gender,
-    birthDate,
-    notes,
-    proofFiles,
-  });
 
-  // Save to Firestore
-  const joinRequestRef = doc(collection(db, 'joinRequests'), joinRequest.JoinRequestId);
-  await setDoc(joinRequestRef, joinRequest);
-
-  // Increment usesCount on invite
-  const inviteRef = doc(collection(db, 'invites'), inviteId);
-  await runTransaction(db, async (transaction) => {
-    const inviteDoc = await transaction.get(inviteRef);
-    if (!inviteDoc.exists) {
-      throw new Error('Invite not found');
-    }
-    const invite = inviteDoc.data();
-    const newUsesCount = invite.usesCount + 1;
-    transaction.update(inviteRef, { usesCount: newUsesCount });
-    if (newUsesCount >= invite.usesAllowed) {
-      transaction.update(inviteRef, { status: 'used' });
-    }
-  });
-
-  return joinRequest;
-}
-
-// Approve or reject a join request
-export async function reviewJoinRequest(joinRequestId, status, reviewedBy, approvedPersonId = null) {
-  const joinRequestRef = doc(collection(db, 'joinRequests'), joinRequestId);
-  const updateData = {
-    status,
-    reviewedAt: new Date().toISOString(),
-    reviewedBy,
-    approvedPersonId,
-  };
-  await updateDoc(joinRequestRef, updateData);
-  return updateData;
-}
-
-// Get join requests for a tree (for admin review)
-export async function getJoinRequestsForTree(treeId) {
-  const joinRequestsRef = collection(db, 'joinRequests');
-  const q = query(joinRequestsRef, where('treeId', '==', treeId));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-}
 
 // Get invites for a tree (for admin management)
 export async function getInvitesForTree(treeId) {

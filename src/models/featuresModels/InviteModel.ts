@@ -6,10 +6,11 @@ export interface Invite {
     code: string;
     treeId: string;
     createdBy: string;
-    type: "targeted" | "nontargeted";
+    type: "targeted" | "nontargeted" | "grant";
     role: "admin" | "moderator" | "editor" | "viewer";
     fatherId?: string | null;
     motherId?: string | null;
+    personId?: string | null; // For grant invites - links to existing person
 
     usesAllowed: number;
     usesCount: number;
@@ -30,6 +31,7 @@ export function createInvite({
     role,
     fatherId = null,
     motherId = null,
+    personId = null,
     usesAllowed = 1,
     expiresAt,
     qrDataUrl,
@@ -39,10 +41,11 @@ export function createInvite({
     code: string;
     treeId: string;
     createdBy: string;
-    type: "targeted" | "nontargeted";
+    type: "targeted" | "nontargeted" | "grant";
     role: "admin" | "moderator" | "editor" | "viewer";
     fatherId?: string | null;
     motherId?: string | null;
+    personId?: string | null;
     usesAllowed?: number;
     expiresAt?: string;
     qrDataUrl?: string;
@@ -59,6 +62,7 @@ export function createInvite({
         role,
         fatherId,
         motherId,
+        personId,
         usesAllowed,
         usesCount: 0,
         status: "active",

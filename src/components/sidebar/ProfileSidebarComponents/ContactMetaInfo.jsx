@@ -24,10 +24,6 @@ export default function ContactMetaInfo({ contact }) {
       <Divider color="var(--color-gray)" thickness='2px' borderRadius='3px' style={{ margin: '15px 0' }} />
       <Row padding='0px'>
         <Card alignItems='start' padding='0px' margin='0px 0px' backgroundColor='var(--color-transparent)'>
-          <Text align='top' variant='caption1' color='tertiary-text'>Linked Account</Text>
-          <Text variant='caption1' color='secondary'>{contact.linkedAccount}</Text>
-        </Card>
-        <Card alignItems='start' padding='0px' margin='0px 0px' backgroundColor='var(--color-transparent)'>
           <Text align='flex-left' variant='caption1' color='tertiary-text'>Privacy status</Text>
           <Text variant='caption1' color='secondary'>{contact.privacyStatus}</Text>
         </Card>

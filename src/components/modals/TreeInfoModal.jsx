@@ -140,7 +140,7 @@ export default function TreeInfoModal({ isOpen, onClose, tree, rootName, creator
   );
 }
 
-/* ---- Helper Components ---- */
+/* - Helper Components - */
 
 function Section({ title, icon, children }) {
   return (
