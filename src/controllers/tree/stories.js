@@ -21,10 +21,10 @@ export async function updateStory(storyId, updates) {
 }
 
 
-export async function getStoriesByPerson(personId) {
-  console.log(`DBG:stories.getStoriesByPerson -> for personId: ${personId}`);
+export async function getStoriesByPerson(personId, treeId) {
+  console.log(`DBG:stories.getStoriesByPerson -> for personId: ${personId}, treeId: ${treeId}`);
   // Delegate the filtering to the dataService for performance.
-  return dataService.getStoriesByPersonId(personId);
+  return dataService.getStoriesByPersonId(personId, treeId);
 }
 
 

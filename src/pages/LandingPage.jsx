@@ -8,6 +8,7 @@ import useModalStore from "../store/useModalStore";
 
 
 const LandingPageHTML = () => {
+
   const navigate = useNavigate();
   const { openModal } = useModalStore();
     return (

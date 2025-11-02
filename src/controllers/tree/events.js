@@ -13,8 +13,9 @@ export async function addEvent(treeId, personIds, type, options = {}) {
 
     // Check if adding a birth event and person already has one
     if (type === 'birth') {
-      const existingBirthEvents = await dataService.getEventsByPersonId(personId, 'birth');
-      if (existingBirthEvents.length > 0) {
+      const existingBirthEvents = await dataService.getEventsByPersonId(personId, treeId);
+      const birthEvents = existingBirthEvents.filter(e => e.type === 'birth');
+      if (birthEvents.length > 0) {
         throw new Error('Birth event already exists for this person');
       }
     }

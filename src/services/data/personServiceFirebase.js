@@ -10,12 +10,7 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
-  writeBatch,
-  arrayUnion,
-  arrayRemove,
-  increment,
   deleteField
 } from 'firebase/firestore';
 import { db } from '../../config/firebase.js';
@@ -177,7 +172,7 @@ async function deletePerson(personId, mode = "soft", options = {}) {
 
         // Get marriages where this person is a child
         const childMarriages = await marriageServiceFirebase.getMarriagesByChildId(id);
-        for (const marriage of childMarriages) {
+        for (const _ of childMarriages) {
           await collectDescendants(id);
         }
       };
@@ -225,10 +220,13 @@ async function deletePerson(personId, mode = "soft", options = {}) {
 
       // Mark related events and stories for all deleted people
       for (const personIdToDelete of toDelete) {
-        await Promise.all([
-          eventServiceFirebase.markEventsForPersonDeleted(personIdToDelete, batchId, undoExpiresAt),
-          storyServiceFirebase.markStoriesForPersonDeleted(personIdToDelete, batchId, undoExpiresAt)
-        ]);
+        const person = await getPerson(personIdToDelete);
+        if (person && person.treeId) {
+          await Promise.all([
+            eventServiceFirebase.markEventsForPersonDeleted(personIdToDelete, person.treeId, batchId, undoExpiresAt),
+            storyServiceFirebase.markStoriesForPersonDeleted(personIdToDelete, batchId, undoExpiresAt)
+          ]);
+        }
       }
 
       console.log(`DBG:personServiceFirebase.deletePerson[cascade] -> batch=${batchId}, marked ${toDelete.size} people and ${marriagesToDelete.size} marriages as deleted, undo until ${undoExpiresAt}`);
@@ -496,23 +494,37 @@ async function purgeExpiredDeletions() {
   }
 }
 
-async function getAllPeople() {
+async function getAllPeople(treeId = null) {
   try {
     const peopleRef = collection(db, 'people');
-    // Use active field instead of != query for better Firestore compatibility
-    const q = query(peopleRef, where('active', '==', true));
+    let q;
+
+    if (treeId) {
+      // Only fetch people belonging to the given tree
+      q = query(
+        peopleRef,
+        where('treeId', '==', treeId),
+        where('active', '==', true)
+      );
+    } else {
+      // Fallback: fetch all active people (less secure, use only in admin/dev contexts)
+      console.warn("⚠️ getAllPeople called without treeId – fetching all active people");
+      q = query(peopleRef, where('active', '==', true));
+    }
+
     const querySnapshot = await getDocs(q);
-    
     const people = [];
+
     querySnapshot.forEach((doc) => {
       people.push({ id: doc.id, ...doc.data() });
     });
-    
+
     return people;
   } catch (error) {
     throw new Error(`Failed to get all people: ${error.message}`);
   }
 }
+
 
 async function findPeopleByName(query) {
   try {

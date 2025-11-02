@@ -7,30 +7,44 @@ function MediaPlayerBox({ file, name = '', style = {}, className = '' }) {
   const [duration, setDuration] = useState(0);
   const mediaRef = useRef(null);
 
-  // Determine media type based on file object or URL string
-  useEffect(() => {
-    if (!file) {
-      setMediaType(null);
-      return;
+useEffect(() => {
+  if (!file) {
+    setMediaType(null);
+    return;
+  }
+
+  let type = null;
+  if (typeof file === 'string') {
+    // URL string: infer type from extension or MIME hint
+    let lower = file.toLowerCase();
+    let ext = '';
+    try {
+      const url = new URL(file);
+      const pathname = url.pathname || '';
+      ext = pathname.split('.').pop().toLowerCase();
+    } catch {
+      // fallback for invalid URL strings
+      ext = file.split('.').pop().toLowerCase();
     }
 
-    let type = null;
-    if (typeof file === 'string') {
-      // URL string: infer type from extension
-      const ext = file.split('.').pop().toLowerCase();
-      if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) type = 'audio';
-      else if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) type = 'video';
-      else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) type = 'image';
-    } else if (file instanceof File) {
-      if (file.type.startsWith('audio/')) type = 'audio';
-      else if (file.type.startsWith('video/')) type = 'video';
-      else if (file.type.startsWith('image/')) type = 'image';
-    }
-    setMediaType(type);
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
-  }, [file]);
+    if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) type = 'audio';
+    else if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) type = 'video';
+    else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) type = 'image';
+    else if (ext === 'pdf' || lower.includes('.pdf') || lower.includes('pdf?')) type = 'pdf';
+  } 
+  else if (file instanceof File) {
+    if (file.type.startsWith('audio/')) type = 'audio';
+    else if (file.type.startsWith('video/')) type = 'video';
+    else if (file.type.startsWith('image/')) type = 'image';
+    else if (file.type === 'application/pdf') type = 'pdf';
+  }
+
+  setMediaType(type);
+  setIsPlaying(false);
+  setCurrentTime(0);
+  setDuration(0);
+}, [file]);
+
 
   // Handlers for audio/video playback
   const togglePlay = () => {
@@ -76,7 +90,7 @@ function MediaPlayerBox({ file, name = '', style = {}, className = '' }) {
       if (file instanceof File) {
         try {
           URL.revokeObjectURL(src);
-        } catch (e) {
+        } catch {
           // ignore revoke errors
         }
       }
@@ -147,6 +161,18 @@ function MediaPlayerBox({ file, name = '', style = {}, className = '' }) {
           onLoadedMetadata={onLoadedMetadata}
           onEnded={() => setIsPlaying(false)}
         />
+      )}
+
+      {mediaType === 'pdf' && (
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa', color: '#495057', padding: '1rem' }}>
+          <div style={{ fontSize: '48px', marginBottom: '0.5rem' }}>📄</div>
+          <div style={{ fontSize: '14px', textAlign: 'center', marginBottom: '0.5rem' }}>
+            PDF
+          </div>
+          <div style={{ fontSize: '12px', textAlign: 'center', color: '#6c757d' }}>
+            Click download button to view
+          </div>
+        </div>
       )}
     </div>
   );

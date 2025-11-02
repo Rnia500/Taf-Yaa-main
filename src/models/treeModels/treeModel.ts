@@ -25,14 +25,16 @@ export interface Tree {
     banPeriod?: string | null; // ISO date string for ban expiration, null if permanent or not banned
     lastActive?: string;
   }>;
+  memberUIDs: string[];
 
   
   settings: {
     privacy: {
-      isPublic: boolean;                
-      allowMergeRequests: boolean;      
-      globalMatchOptIn: boolean;        
+      isPublic: boolean;
+      allowMergeRequests: boolean;
+      globalMatchOptIn: boolean;
       allowInvites:boolean;
+      allowJoinRequests: boolean;
     };
 
     relationship: {
@@ -87,6 +89,7 @@ export function createTree(input: Partial<Tree>): Tree {
     familyPhoto: input.familyPhoto || null,
     roles: input.roles || { [input.createdBy!]: "admin" },
     members: input.members || [],
+    memberUIDs: input.memberUIDs || [input.createdBy!],
 
     settings: {
       privacy: {
@@ -94,6 +97,7 @@ export function createTree(input: Partial<Tree>): Tree {
         allowMergeRequests: input.settings?.privacy?.allowMergeRequests ?? false,
         globalMatchOptIn: input.settings?.privacy?.globalMatchOptIn ?? false,
         allowInvites: input.settings?.privacy?.allowInvites || true,
+        allowJoinRequests: input.settings?.privacy?.allowJoinRequests ?? false,
       },
       relationship: {
         allowPolygamy: input.settings?.relationship?.allowPolygamy ?? false,

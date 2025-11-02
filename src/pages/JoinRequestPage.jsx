@@ -288,24 +288,24 @@ const JoinRequestPage = () => {
           </FlexContainer>
 
           {/* Invite Summary */}
-          <Card backgroundColor="var(--color-success-light)" padding="20px">
-            <Row align="center" gap="10px" margin="0px 0px 10px 0px">
+          <Card backgroundColor="var(--color-success-light)" padding="20px" boxShadow="0 2px 8px rgba(0,0,0,0.1)">
+            <Row align="center" gap="10px" margin="0px 0px 10px 0px" fitContent justifyContent="flex-start">
               <Users size={20} color="var(--color-primary)" />
               <Text variant="body1" bold>Invitation Details</Text>
             </Row>
-            <FlexContainer direction="vertical" gap="8px">
+            <Column  gap="8px">
               <Text variant="body2"><strong>Family Name:</strong> {inviteData?.tree?.familyName || 'Unknown Family'}</Text>
               <Text variant="body2"><strong>Role:</strong> {inviteData?.invite.role}</Text>
               <Text variant="body2"><strong>Type:</strong> {inviteData?.invite.type}</Text>
               {inviteData?.invite.notes && (
                 <Text variant="body2"><strong>Notes:</strong> {inviteData.invite.notes}</Text>
               )}
-            </FlexContainer>
+            </Column>
           </Card>
 
           {/* Personal Information */}
-          <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px">
-            <Row align="center" gap="10px" margin="0px 0px 20px 0px">
+          <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px" boxShadow="0 2px 8px rgba(0,0,0,0.05)">
+            <Row align="center" gap="10px" margin="0px 0px 10px 0px" fitContent justifyContent="flex-start">
               <User size={20} color="var(--color-primary)" />
               <Text variant="body1" bold>Personal Information</Text>
             </Row>
@@ -337,8 +337,8 @@ const JoinRequestPage = () => {
 
           {/* Parent Selection for Non-Targeted Invites */}
           {inviteData?.invite.type === 'nontargeted' && (
-            <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px">
-              <Row align="center" gap="10px" margin="0px 0px 20px 0px">
+            <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px" boxShadow="0 2px 8px rgba(0,0,0,0.05)">
+              <Row align="center" gap="10px" margin="0px 0px 10px 0px" fitContent justifyContent="flex-start">
                 <Users size={20} color="var(--color-primary)" />
                 <Text variant="body1" bold>Parent Selection</Text>
               </Row>
@@ -375,8 +375,8 @@ const JoinRequestPage = () => {
 
           {/* Pre-filled Parents for Targeted Invites */}
           {inviteData?.invite.type === 'targeted' && (
-            <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px">
-              <Row align="center" gap="10px" margin="0px 0px 20px 0px">
+            <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px" boxShadow="0 2px 8px rgba(0,0,0,0.05)">
+              <Row align="center" gap="10px" margin="0px 0px 10px 0px" fitContent justifyContent="flex-start">
                 <Users size={20} color="var(--color-primary)" />
                 <Text variant="body1" bold>Assigned Parents</Text>
               </Row>
@@ -388,7 +388,7 @@ const JoinRequestPage = () => {
 
           {/* Proof Documents */}
           <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px">
-            <Row align="center" gap="10px" margin="0px 0px 20px 0px">
+            <Row fitContent justifyContent="flex-start" align="center" gap="10px" margin="0px 0px 20px 0px">
               <Upload size={20} color="var(--color-primary)" />
               <Text variant="body1" bold>Proof Documents</Text>
             </Row>
@@ -415,7 +415,7 @@ const JoinRequestPage = () => {
               {formData.proofFiles.length > 0 && (
                 <Column gap="10px">
                   <Text variant="body2" bold>Attached Files:</Text>
-                  <Row gap="10px" padding="0px" margin="0px" wrap="wrap">
+                  <Row  gap="10px" padding="0px" margin="0px" wrap="wrap">
                     {formData.proofFiles.map((file, index) => {
                       if (file.type === 'image') {
                         return (
@@ -500,7 +500,7 @@ const JoinRequestPage = () => {
 
           {/* Additional Notes */}
           <Card backgroundColor="var(--color-transparent)" borderColor="var(--color-gray-light)" padding="20px">
-            <Row align="center" gap="10px" margin="0px 0px 20px 0px">
+            <Row fitContent justifyContent="flex-start" align="center" gap="10px" margin="0px 0px 20px 0px">
               <FileText size={20} color="var(--color-primary)" />
               <Text variant="body1" bold>Additional Notes (Optional)</Text>
             </Row>
@@ -518,7 +518,7 @@ const JoinRequestPage = () => {
             </Text>
           )}
 
-          <Row gap="20px" margin="20px 0px 0px 0px">
+          <Row  gap="20px" margin="20px 0px 0px 0px">
             <Button
               variant="secondary"
               onClick={() => navigate('/join')}

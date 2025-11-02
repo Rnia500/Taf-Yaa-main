@@ -66,7 +66,7 @@ export function useFamilyData(treeId) {
       });
 
       // 3. Load marriages
-      const m = await dataService.getAllMarriages();
+      const m = await dataService.getAllMarriages(treeId);
       const personIds = new Set(p.map(per => per.id));
       const mFiltered = m.filter(marr => {
         // Filter out deleted marriages
@@ -125,14 +125,14 @@ export function useFamilyData(treeId) {
       setMarriages(mFiltered);
 
       // 4. Load events
-      const evts = await dataService.getAllEvents();
+      const evts = await dataService.getAllEvents(treeId);
       const evtsFiltered = evts.filter(e =>
         e.personIds?.some(pid => personIds.has(pid))
       );
       setEvents(evtsFiltered);
 
       // 5. Load stories
-      const sts = await dataService.getAllStories();
+      const sts = await dataService.getAllStories(treeId);
       const stsFiltered = sts.filter(
         s =>
           personIds.has(s.personId) ||

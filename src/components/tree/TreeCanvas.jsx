@@ -303,7 +303,6 @@ useEffect(() => {
         handleOpenProfile={handleOpenProfile}
         handleTraceLineage={handleTraceLineage}
         handleSetAsRoot={handleSetAsRoot}
-        handleResetView={handleResetView}
         onAddSpouse={(personId) => {
           setTargetNodeId(personId);
           const person = allPeople.find((p) => p.id === personId);
@@ -314,15 +313,15 @@ useEffect(() => {
           setTargetNodeId(personId);
           openModal("addChildModal", { targetNodeId: personId, treeId, onSuccess: () => { reload(); setTargetNodeId(null); } });
         }}
-      onAddParent={(personId) => {
-        setTargetNodeId(personId);
-        openModal("addParentModal", { targetNodeId: personId, treeId, onSuccess: () => { reload(); setTargetNodeId(null); } });
-      }}
-      onEditPerson={(personId) => {
-        setTargetNodeId(personId);
-        openModal("editPerson", { personId });
-      }}
-      onDeleteComplete={() => reload()}
+        onAddParent={(personId) => {
+          setTargetNodeId(personId);
+          openModal("addParentModal", { targetNodeId: personId, treeId, onSuccess: () => { reload(); setTargetNodeId(null); } });
+        }}
+        onEditPerson={(personId) => {
+          setTargetNodeId(personId);
+          openModal("editPerson", { personId });
+        }}
+        onDeleteComplete={() => reload()}
       />
 
       {/* Modals */}

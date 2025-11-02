@@ -65,7 +65,7 @@ async function getTree(treeId) {
 async function getTreesByUserId(userId, includeDeleted = false) {
   try {
     const treesRef = collection(db, 'trees');
-    const q = query(treesRef, where('active', '==', true));
+    const q = query(treesRef, where('memberUIDs', 'array-contains', userId));
     const querySnapshot = await getDocs(q);
     
     const trees = [];
@@ -127,6 +127,7 @@ async function addMember(treeId, member) {
     }
 
     const members = tree.members || [];
+    const memberUIDs = tree.memberUIDs || [];
     
     // Check if member already exists
     const existingMemberIndex = members.findIndex(m => m.userId === member.userId);
@@ -141,6 +142,7 @@ async function addMember(treeId, member) {
     };
 
     members.push(newMember);
+    memberUIDs.push(member.userId); 
     
     await updateTree(treeId, { members });
     return newMember;
@@ -164,8 +166,9 @@ async function removeMember(treeId, userId) {
     }
 
     const removedMember = members.splice(memberIndex, 1)[0];
+    const memberUIDs = (tree.memberUIDs || []).filter(uid => uid !== userId);
     
-    await updateTree(treeId, { members });
+    await updateTree(treeId, { members, memberUIDs });
     return removedMember;
   } catch (error) {
     throw new Error(`Failed to remove member: ${error.message}`);

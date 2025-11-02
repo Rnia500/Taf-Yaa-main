@@ -34,11 +34,11 @@ export function createMonogamousEdge(source, target, marriageId, options = {}) {
 }
 
 export function createPolygamousEdge(source, target, marriageId, options = {}) {
-  // normalize marriageId safely
+  // Use full marriageId for uniqueness
   const cleanMarriageId = String(marriageId || "").replace(/^marriage-/, "") || "unknown";
 
 return {
-  id: `edge-polygamous-${source}-${target}-marriage-${cleanMarriageId}`,
+  id: `edge-polygamous-${source}-${target}-marriage-${marriageId}`,
   source,
   target,
   type: "polygamousEdge",

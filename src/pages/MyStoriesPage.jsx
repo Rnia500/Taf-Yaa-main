@@ -71,17 +71,17 @@ const MyStoriesPage = () => {
       const allAttachments = [];
       allStories.forEach(story => {
         if (story.attachments && story.attachments.length > 0) {
-          story.attachments.forEach(attachment => {
+          story.attachments.forEach(att => {
             // Only include attachments uploaded by the current user
-            if (attachment.uploadedBy === currentUser.uid) {
+            if (att.uploadedBy === currentUser.uid) {
               allAttachments.push({
-                ...attachment,
+                ...att,
                 storyId: story.id,
                 storyTitle: story.title || 'Untitled Story',
                 storyCreatedBy: story.createdBy,
                 storyCreatedAt: story.createdAt,
-                treeId: attachment.treeId || story.treeId,
-                personId: attachment.personId || story.personId
+                treeId: att.treeId || story.treeId,
+                personId: att.personId || story.personId
               });
             }
           });
@@ -170,26 +170,52 @@ const MyStoriesPage = () => {
           } else {
             setTreeName('Unknown Family');
           }
+        } catch (error) {
+          if (error.message?.includes('Missing or insufficient permissions')) {
+            console.log('Permission issue fetching tree info for story:', story.id, 'treeId:', story.treeId);
+          } else {
+            console.error('Error fetching tree info:', error);
+          }
+          setTreeName('Unknown Family');
+        }
+
+        try {
           if (story.personId) {
+            console.log('Fetching person info for story:', story.id, 'personId:', story.personId);
             const person = await dataService.getPerson(story.personId);
+            console.log('Person data received for story:', story.id, 'person:', person);
             setPersonName(person?.name || 'Unknown Person');
           } else {
+            console.log('No personId for story:', story.id);
             setPersonName('Unknown Person');
           }
+        } catch (error) {
+          if (error.message?.includes('Missing or insufficient permissions')) {
+            console.log('Permission issue fetching person info for story:', story.id, 'personId:', story.personId);
+          } else {
+            console.error('Error fetching person info for story:', story.id, 'personId:', story.personId, 'Error:', error.message, error);
+          }
+          setPersonName('Unknown Person');
+        }
+
+        try {
           if (story.createdBy) {
             if (story.createdBy === currentUser.uid) {
               setCreatorName('You');
             } else {
-              const user = await dataService.getUser(story.createdBy);
-              setCreatorName(user?.displayName || user?.email || 'Unknown User');
+              // Attempt to fetch other user's info
+              const userDoc = await dataService.getUser(story.createdBy);
+              setCreatorName(userDoc?.displayName || userDoc?.name || 'Unknown User');
             }
           } else {
             setCreatorName('Unknown User');
           }
         } catch (error) {
-          console.error('Error fetching additional story info:', error);
-          setTreeName('Unknown Family');
-          setPersonName('Unknown Person');
+          if (error.message?.includes('Missing or insufficient permissions')) {
+            console.log('Permission issue fetching creator info for story:', story.id, 'createdBy:', story.createdBy);
+          } else {
+            console.error('Error fetching creator info for story:', story.id, 'createdBy:', story.createdBy, 'Error:', error.message, error);
+          }
           setCreatorName('Unknown User');
         }
       };
@@ -261,23 +287,52 @@ const MyStoriesPage = () => {
           } else {
             setTreeName('Unknown Family');
           }
+        } catch (error) {
+          if (error.message?.includes('Missing or insufficient permissions')) {
+            console.log('Permission issue fetching tree info for attachment:', attachment.id, 'treeId:', attachment.treeId);
+          } else {
+            console.error('Error fetching tree info:', error);
+          }
+          setTreeName('Unknown Family');
+        }
+
+        try {
           if (attachment.personId) {
+            console.log('Fetching person info for attachment:', attachment.id, 'personId:', attachment.personId);
             const person = await dataService.getPerson(attachment.personId);
+            console.log('Person data received for attachment:', attachment.id, 'person:', person);
             setPersonName(person?.name || 'Unknown Person');
           } else {
+            console.log('No personId for attachment:', attachment.id);
             setPersonName('Unknown Person');
           }
+        } catch (error) {
+          if (error.message?.includes('Missing or insufficient permissions')) {
+            console.log('Permission issue fetching person info for attachment:', attachment.id, 'personId:', attachment.personId);
+          } else {
+            console.error('Error fetching person info for attachment:', attachment.id, 'personId:', attachment.personId, 'Error:', error.message, error);
+          }
+          setPersonName('Unknown Person');
+        }
+
+        try {
           if (attachment.storyCreatedBy) {
-            // Get user info for story creator
-            const user = await dataService.getUser(attachment.storyCreatedBy);
-            setStoryCreatorName(user?.displayName || user?.email || 'Unknown User');
+            if (attachment.storyCreatedBy === currentUser.uid) {
+              setStoryCreatorName('You');
+            } else {
+              // Attempt to fetch other user's info
+              const userDoc = await dataService.getUser(attachment.storyCreatedBy);
+              setStoryCreatorName(userDoc?.displayName || userDoc?.name || 'Unknown User');
+            }
           } else {
             setStoryCreatorName('Unknown User');
           }
         } catch (error) {
-          console.error('Error fetching attachment info:', error);
-          setTreeName('Unknown Family');
-          setPersonName('Unknown Person');
+          if (error.message?.includes('Missing or insufficient permissions')) {
+            console.log('Permission issue fetching creator info for attachment:', attachment.id, 'storyCreatedBy:', attachment.storyCreatedBy);
+          } else {
+            console.error('Error fetching creator info for attachment:', attachment.id, 'storyCreatedBy:', attachment.storyCreatedBy, 'Error:', error.message, error);
+          }
           setStoryCreatorName('Unknown User');
         }
       };
@@ -303,9 +358,16 @@ const MyStoriesPage = () => {
       );
     };
 
+    const handleAttachmentClick = () => {
+      if (attachment.url) {
+        window.open(attachment.url, '_blank');
+      }
+    };
+
     return (
       <div
-        className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-200 p-4"
+        className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-200 p-4 cursor-pointer"
+        onClick={handleAttachmentClick}
         style={{
           width: "280px",
           minWidth: "280px",
@@ -460,9 +522,9 @@ const MyStoriesPage = () => {
           <Spacer size="md" />
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem', justifyContent: 'flex-start' }}>
-            {currentAttachments.map((attachment) => (
+            {currentAttachments.map((attachment, index) => (
               <CustomAttachmentCard
-                key={attachment.id}
+                key={`${attachment.storyId}-${attachment.id}-${index}`}
                 attachment={attachment}
                 onDownload={handleDownloadAttachment}
               />

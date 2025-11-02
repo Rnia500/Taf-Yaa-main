@@ -10,7 +10,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
   deleteField
 } from 'firebase/firestore';
@@ -93,33 +92,40 @@ async function deleteEvent(eventId) {
   }
 }
 
-async function getAllEvents() {
+async function getAllEvents(treeId) {
   try {
+    if (!treeId) throw new Error("treeId is required to fetch events");
+
     const eventsRef = collection(db, 'events');
-    const q = query(eventsRef, where('active', '==', true));
+    const q = query(
+      eventsRef,
+      where('treeId', '==', treeId),
+      where('active', '==', true)
+    );
+
     const querySnapshot = await getDocs(q);
-    
     const events = [];
-    querySnapshot.forEach((doc) => {
-      events.push({ id: doc.id, ...doc.data() });
-    });
-    
+    querySnapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+
     return events;
   } catch (error) {
     throw new Error(`Failed to get all events: ${error.message}`);
   }
 }
 
-async function getEventsByPersonId(personId) {
+async function getEventsByPersonId(personId, treeId) {
   try {
+    if (!treeId) throw new Error("treeId is required to fetch events by person ID");
+
     const eventsRef = collection(db, 'events');
     const q = query(
       eventsRef,
+      where('treeId', '==', treeId),
       where('active', '==', true),
       where('personIds', 'array-contains', personId)
     );
     const querySnapshot = await getDocs(q);
-    
+
     const events = [];
     querySnapshot.forEach((doc) => {
       events.push({ id: doc.id, ...doc.data() });
@@ -174,16 +180,19 @@ async function findEventsByTitle(query) {
 }
 
 // Mark events as deleted for a person (used during person deletion)
-async function markEventsForPersonDeleted(personId, batchId, undoExpiresAt) {
+async function markEventsForPersonDeleted(personId, treeId, batchId, undoExpiresAt) {
   try {
+    if (!treeId) throw new Error("treeId is required to mark events for person deleted");
+
     const eventsRef = collection(db, 'events');
     const q = query(
       eventsRef,
+      where('treeId', '==', treeId),
       where('active', '==', true),
       where('personIds', 'array-contains', personId)
     );
     const querySnapshot = await getDocs(q);
-    
+
     let markedCount = 0;
     const now = new Date().toISOString();
 
@@ -203,7 +212,7 @@ async function markEventsForPersonDeleted(personId, batchId, undoExpiresAt) {
       markedCount++;
     }
 
-    console.log(`DBG:eventServiceFirebase.markEventsForPersonDeleted -> marked ${markedCount} events for person ${personId}`);
+    console.log(`DBG:eventServiceFirebase.markEventsForPersonDeleted -> marked ${markedCount} events for person ${personId} in tree ${treeId}`);
     return { markedCount };
   } catch (error) {
     throw new Error(`Failed to mark events for person deleted: ${error.message}`);

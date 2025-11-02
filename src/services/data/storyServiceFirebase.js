@@ -120,40 +120,53 @@ async function deleteStory(storyId) {
   }
 }
 
-async function getAllStories() {
+async function getAllStories(treeId) {
   try {
+    if (!treeId) throw new Error("treeId is required to fetch stories");
+
     const storiesRef = collection(db, 'stories');
-    const q = query(storiesRef, where('active', '==', true));
+    const q = query(
+      storiesRef,
+      where('treeId', '==', treeId),
+      where('active', '==', true)
+    );
+
     const querySnapshot = await getDocs(q);
-    
     const stories = [];
     querySnapshot.forEach((doc) => {
       stories.push({ id: doc.id, ...doc.data() });
     });
-    
+
     return stories;
   } catch (error) {
     throw new Error(`Failed to get all stories: ${error.message}`);
   }
 }
 
-async function getStoriesByPersonId(personId) {
+
+async function getStoriesByPersonId(personId, treeId) {
   try {
+    if (!treeId) throw new Error("treeId is required to fetch stories by person ID");
+
     const storiesRef = collection(db, 'stories');
-    const q = query(storiesRef, where('active', '==', true));
+    const q = query(
+      storiesRef,
+      where('treeId', '==', treeId),
+      where('active', '==', true)
+    );
     const querySnapshot = await getDocs(q);
-    
+
     const stories = [];
     querySnapshot.forEach((doc) => {
       const story = { id: doc.id, ...doc.data() };
-      
+
       // Check if story is for this person
-      if (story.personId === personId || 
+      if (story.personId === personId ||
           (Array.isArray(story.personIds) && story.personIds.includes(personId))) {
         stories.push(story);
       }
     });
-    
+
     return stories;
   } catch (error) {
     throw new Error(`Failed to get stories by person ID: ${error.message}`);
@@ -214,29 +227,34 @@ async function getStoriesByCreator(creatorId) {
 async function getStoriesByContributor(contributorId) {
   try {
     const storiesRef = collection(db, 'stories');
-    const q = query(storiesRef, where('active', '==', true));
-    const querySnapshot = await getDocs(q);
 
-    const stories = [];
-    querySnapshot.forEach((doc) => {
-      const story = { id: doc.id, ...doc.data() };
+    // Get stories where user is the creator
+    const creatorQuery = query(
+      storiesRef,
+      where('active', '==', true),
+      where('createdBy', '==', contributorId)
+    );
+    const creatorSnapshot = await getDocs(creatorQuery);
+    const creatorStories = creatorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Check if user is creator
-      if (story.createdBy === contributorId) {
-        stories.push(story);
-        return;
-      }
+    // Get stories where user is in contributors array
+    const contributorQuery = query(
+      storiesRef,
+      where('active', '==', true),
+      where('contributors', 'array-contains', contributorId)
+    );
+    const contributorSnapshot = await getDocs(contributorQuery);
+    const contributorStories = contributorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Check if user uploaded any attachments
-      if (story.attachments && story.attachments.length > 0) {
-        const hasContribution = story.attachments.some(attachment => attachment.uploadedBy === contributorId);
-        if (hasContribution) {
-          stories.push(story);
-        }
+    // Combine and deduplicate stories
+    const allStories = [...creatorStories];
+    contributorStories.forEach(story => {
+      if (!allStories.find(s => s.id === story.id)) {
+        allStories.push(story);
       }
     });
 
-    return stories;
+    return allStories;
   } catch (error) {
     throw new Error(`Failed to get stories by contributor: ${error.message}`);
   }

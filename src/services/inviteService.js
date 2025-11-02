@@ -1,17 +1,14 @@
 // src/services/inviteService.js
 import QRCode from 'qrcode';
 import { createInvite } from '../models/featuresModels/InviteModel';
-import { createJoinRequest } from '../models/featuresModels/JoinRequestModel';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import {
   collection,
   doc,
   setDoc,
   query,
   where,
-  limit,
   getDocs,
-  runTransaction,
   updateDoc,
 } from 'firebase/firestore';
 
@@ -74,41 +71,60 @@ export async function createInviteService({
 
 // Validate invite code and return invite data with tree info
 export async function validateInviteCode(code) {
-  const invitesRef = collection(db, 'invites');
-  const q = query(invitesRef, where('code', '==', code), limit(1));
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) {
-    throw new Error('Invite not found');
-  }
-  const inviteDoc = querySnapshot.docs[0];
-  const invite = inviteDoc.data();
+  try {
+    const response = await fetch('/.netlify/functions/validate-invite', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
+    });
 
-  // Check status and expiration
-  if (invite.status !== 'active') {
-    throw new Error('Invite is not active');
-  }
-  if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-    throw new Error('Invite has expired');
-  }
-  if (invite.usesCount >= invite.usesAllowed) {
-    throw new Error('Invite usage limit reached');
-  }
+    const data = await response.json();
 
-  // Get tree information
-  const { treeServiceFirebase } = await import('./data/treeServiceFirebase.js');
-  const tree = await treeServiceFirebase.getTree(invite.treeId);
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to validate invite');
+    }
 
-  return { invite, inviteId: inviteDoc.id, tree };
+    return {
+      invite: data.invite,
+      inviteId: data.invite.id,
+      tree: data.tree,
+    };
+  } catch (error) {
+    throw new Error(`Failed to validate invite: ${error.message}`);
+  }
 }
 
 
 
-// Get invites for a tree (for admin management)
+// Get invites for a tree (for admin management) - now uses server function
 export async function getInvitesForTree(treeId) {
-  const invitesRef = collection(db, 'invites');
-  const q = query(invitesRef, where('treeId', '==', treeId));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      throw new Error('User not authenticated');
+    }
+
+    const response = await fetch('/.netlify/functions/manage-invites', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch invites');
+    }
+
+    // Filter by treeId since the function returns all user's invites
+    return data.data.filter(invite => invite.treeId === treeId);
+  } catch (error) {
+    throw new Error(`Failed to get invites: ${error.message}`);
+  }
 }
 
 // Revoke an invite

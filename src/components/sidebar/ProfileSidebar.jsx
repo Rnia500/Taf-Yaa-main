@@ -204,8 +204,8 @@ export default function ProfileSidebar() {
       const connections = { spouses: [], children: [], parents: [], siblings: [] };
 
       const [allPeople, allMarriages] = await Promise.all([
-        dataService.getAllPeople(),
-        dataService.getAllMarriages(),
+        dataService.getAllPeople(treeId),
+        dataService.getAllMarriages(treeId),
       ]);
       if (!mounted) return;
       const peopleMap = new Map((allPeople || []).map(p => [p.id, p]));
@@ -303,7 +303,7 @@ export default function ProfileSidebar() {
 
       // Timeline events: read directly from events collection
       // (birth/death/marriage should be stored as Event documents elsewhere)
-      const events = await dataService.getEventsByPersonId(person.id);
+      const events = await dataService.getEventsByPersonId(person.id, treeId);
       if (!mounted) return;
       // sort events by date (earliest first) - events without date go last
       const sorted = (events || []).slice().sort((a, b) => {
@@ -314,7 +314,7 @@ export default function ProfileSidebar() {
       setTimelineEvents(sorted);
 
       // Audio stories from DB
-      const personStories = await dataService.getStoriesByPersonId(person.id);
+      const personStories = await dataService.getStoriesByPersonId(person.id, treeId);
       if (!mounted) return;
       setAudioStories(personStories || []);
 

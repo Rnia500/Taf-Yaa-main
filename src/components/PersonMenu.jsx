@@ -4,6 +4,7 @@ import usePersonMenuStore from '../store/usePersonMenuStore';
 import useModalStore from '../store/useModalStore';
 import dataService from '../services/dataService';
 import useToastStore from '../store/useToastStore';
+import { useAuth } from '../context/AuthContext';
 import { ListCollapse, CircleUserRound, MapPinHouse, GitCompareArrows, UserRoundPlus, UserRoundPen, Heart, Baby, Users, User, ChevronRight, Undo2 } from 'lucide-react';
 import '../styles/PersonMenu.css';
 
@@ -15,6 +16,9 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
   const [isSpouse, setIsSpouse] = useState(false);
   const [isSoftDeleted, setIsSoftDeleted] = useState(false);
   const addToast = useToastStore(state => state.addToast);
+  const { currentUser } = useAuth();
+  const [userRole, setUserRole] = useState(null);
+  const [isMember, setIsMember] = useState(false);
 
 
   useEffect(() => {
@@ -60,13 +64,19 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
     if (!isOpen || !targetNodeId) {
       setIsSpouse(false);
       setIsSoftDeleted(false);
+      setUserRole(null);
+      setIsMember(false);
       return;
     }
 
-    dataService
-      .getPerson(targetNodeId)
-      .then((personModel) => {
+    // Get person data and tree membership info
+    Promise.all([
+      dataService.getPerson(targetNodeId),
+      dataService.getTree(targetPerson?.treeId || targetNodeId.split('-')[0]) // Assuming treeId is part of personId or passed in targetPerson
+    ])
+      .then(([personModel, treeData]) => {
         if (cancelled) return;
+
         if (personModel) {
           setIsSpouse(Boolean(personModel.isSpouse));
           setIsSoftDeleted(Boolean(personModel.deletionMode === "soft" && personModel.pendingDeletion));
@@ -77,17 +87,38 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
           setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
           setIsSoftDeleted(Boolean(targetPerson && targetPerson.isSoftDeleted));
         }
+
+        // Check user role and membership
+        if (treeData && currentUser) {
+          const member = treeData.members?.find(m => m.userId === currentUser.uid);
+          console.log('PersonMenu: treeData.members:', treeData.members);
+          console.log('PersonMenu: currentUser.uid:', currentUser.uid);
+          console.log('PersonMenu: found member:', member);
+          if (member) {
+            setUserRole(member.role);
+            setIsMember(true);
+            console.log('PersonMenu: set userRole to:', member.role, 'isMember to true');
+          } else {
+            setUserRole(null);
+            setIsMember(false);
+            console.log('PersonMenu: set userRole to null, isMember to false');
+          }
+        } else {
+          console.log('PersonMenu: treeData or currentUser missing', { treeData: !!treeData, currentUser: !!currentUser });
+        }
       })
       .catch(() => {
         if (cancelled) return;
         setIsSpouse(Boolean(targetPerson && targetPerson.variant === 'spouse'));
         setIsSoftDeleted(Boolean(targetPerson && targetPerson.isSoftDeleted));
+        setUserRole(null);
+        setIsMember(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [isOpen, targetNodeId, targetPerson]);
+  }, [isOpen, targetNodeId, targetPerson, currentUser]);
 
   const { openModal } = useModalStore();
 
@@ -213,19 +244,24 @@ function PersonMenu({ handleToggleCollapse, handleOpenProfile, handleTraceLineag
                 <GitCompareArrows size={15} />
                 <span className="person-menu-text">Set as Root</span>
               </button>
-              <button className="person-menu-item" onClick={toggleSubmenu}>
-                <UserRoundPlus size={15} />
-                <span className="person-menu-text">Add Relative</span>
-                <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
-              </button>
-              <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
-                <UserRoundPen size={15} />
-                <span className="person-menu-text">Edit Person</span>
-              </button>
-              <button className="person-menu-item" onClick={onDelete}>
-                <User size={15} />
-                <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
-              </button>
+              {/* Only show Add Relative, Edit Person, and Delete Person for members with appropriate roles */}
+              {isMember && (userRole === 'admin' || userRole === 'moderator' || userRole === 'editor') && (
+                <>
+                  <button className="person-menu-item" onClick={toggleSubmenu}>
+                    <UserRoundPlus size={15} />
+                    <span className="person-menu-text">Add Relative</span>
+                    <ChevronRight style={{ marginLeft: 'auto' }} size={15} />
+                  </button>
+                  <button className="person-menu-item" onClick={() => { if (onEditPerson) onEditPerson(targetNodeId); actions.closeMenu(); setShowSubmenu(false); }}>
+                    <UserRoundPen size={15} />
+                    <span className="person-menu-text">Edit Person</span>
+                  </button>
+                  <button className="person-menu-item" onClick={onDelete}>
+                    <User size={15} />
+                    <span className="person-menu-text" style={{ color: '#dc3545' }}>Delete Person</span>
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>

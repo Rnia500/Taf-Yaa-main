@@ -137,22 +137,26 @@ async function deleteMarriage(marriageId) {
   }
 }
 
-async function getAllMarriages() {
+async function getAllMarriages(treeId) {
   try {
+    if (!treeId) throw new Error("treeId is required to fetch marriages");
+
     const marriagesRef = collection(db, 'marriages');
-    const q = query(marriagesRef, where('active', '==', true));
+    const q = query(
+      marriagesRef,
+      where('treeId', '==', treeId),
+      where('active', '==', true)
+    );
+
     const querySnapshot = await getDocs(q);
-    
     const marriages = [];
-    querySnapshot.forEach((doc) => {
-      marriages.push({ id: doc.id, ...doc.data() });
-    });
-    
+    querySnapshot.forEach(doc => marriages.push({ id: doc.id, ...doc.data() }));
     return marriages;
   } catch (error) {
     throw new Error(`Failed to get all marriages: ${error.message}`);
   }
 }
+
 
 async function getMarriagesByPersonId(personId) {
   try {
